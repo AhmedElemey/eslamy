@@ -67,16 +67,18 @@ class FavoritesDatabase {
       orderBy: 'saved_at DESC',
     );
 
-    return maps.map((map) => FavoriteHadith(
-      id: map['id'],
-      hadith: HadithItem(
-        id: map['hadith_id'],
-        title: map['title'] ?? '',
-        narrator: map['narrator'],
-        body: map['body'],
-      ),
-      savedAt: DateTime.parse(map['saved_at']),
-    )).toList();
+    return maps
+        .map((map) => FavoriteHadith(
+              id: map['id'],
+              hadith: HadithItem(
+                id: map['hadith_id'],
+                title: map['title'] ?? '',
+                narrator: map['narrator'],
+                body: map['body'],
+              ),
+              savedAt: DateTime.parse(map['saved_at']),
+            ))
+        .toList();
   }
 
   Future<FavoriteHadith?> getFavoriteById(String id) async {

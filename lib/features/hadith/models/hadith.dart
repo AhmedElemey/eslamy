@@ -23,5 +23,3 @@ class HadithPage {
     required this.hasMore,
   });
 }
-
-

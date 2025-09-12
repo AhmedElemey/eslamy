@@ -22,7 +22,8 @@ class ErrorPage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.error_outline, color: theme.colorScheme.error, size: 32),
+                  Icon(Icons.error_outline,
+                      color: theme.colorScheme.error, size: 32),
                   const SizedBox(width: 12),
                   Text(
                     'An error occurred',
@@ -65,7 +66,8 @@ class ErrorPage extends StatelessWidget {
                   Expanded(
                     child: FilledButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
+                        Navigator.of(context)
+                            .pushNamedAndRemoveUntil('/home', (_) => false);
                       },
                       child: const Text('Go Home'),
                     ),
@@ -79,5 +81,3 @@ class ErrorPage extends StatelessWidget {
     );
   }
 }
-
-

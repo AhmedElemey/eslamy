@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:eslamy/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/hadith_providers.dart';
 import '../../../favorites/presentation/controllers/favorites_providers.dart';
@@ -23,7 +24,10 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
 
   void _onScroll() {
     final state = ref.read(hadithListProvider);
-    if (_controller.position.pixels >= _controller.position.maxScrollExtent - 200 && !state.isLoading && state.hasMore) {
+    if (_controller.position.pixels >=
+            _controller.position.maxScrollExtent - 200 &&
+        !state.isLoading &&
+        state.hasMore) {
       ref.read(hadithListProvider.notifier).loadMore();
     }
   }
@@ -36,7 +40,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF6C3BFF);
+    const primary = AppColors.primary;
     final state = ref.watch(hadithListProvider);
     final notifier = ref.read(hadithListProvider.notifier);
 
@@ -68,7 +72,8 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                       color: primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.menu_book_rounded, color: primary, size: 24),
+                    child:
+                        Icon(Icons.menu_book_rounded, color: primary, size: 24),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -83,7 +88,8 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                   ),
                   if (state.items.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: primary,
                         borderRadius: BorderRadius.circular(12),
@@ -112,8 +118,10 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                         : ListView.separated(
                             controller: _controller,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: state.items.length + (state.hasMore || state.isLoading ? 1 : 0),
-                            separatorBuilder: (_, __) => const SizedBox(height: 16),
+                            itemCount: state.items.length +
+                                (state.hasMore || state.isLoading ? 1 : 0),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 16),
                             itemBuilder: (context, index) {
                               if (index >= state.items.length) {
                                 return _buildLoadingIndicator();
@@ -171,9 +179,10 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C3BFF),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -195,13 +204,13 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C3BFF).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
                 Icons.menu_book_outlined,
                 size: 48,
-                color: Color(0xFF6C3BFF),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 16),
@@ -231,14 +240,14 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
     return const Padding(
       padding: EdgeInsets.all(16),
       child: Center(
-        child: CircularProgressIndicator(color: Color(0xFF6C3BFF)),
+        child: CircularProgressIndicator(color: AppColors.primary),
       ),
     );
   }
 
   Widget _buildHadithCard(HadithItem h) {
-    const primary = Color(0xFF6C3BFF);
-    
+    const primary = AppColors.primary;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -290,12 +299,15 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               Consumer(
                 builder: (context, ref, child) {
                   return FutureBuilder<bool>(
-                    future: ref.read(favoritesProvider.notifier).isFavorite(h.id),
+                    future:
+                        ref.read(favoritesProvider.notifier).isFavorite(h.id),
                     builder: (context, snapshot) {
                       final isFavorite = snapshot.data ?? false;
                       return Container(
                         decoration: BoxDecoration(
-                          color: isFavorite ? primary.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                          color: isFavorite
+                              ? primary.withOpacity(0.1)
+                              : Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isFavorite ? primary : Colors.grey[300]!,
@@ -333,7 +345,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               child: Text(
                 'Narrated by: ${h.narrator}',
                 style: const TextStyle(
-                  color: Color(0xFF5B2E90),
+                  color: AppColors.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -367,11 +379,11 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
   Future<void> _toggleFavorite(HadithItem hadith, WidgetRef ref) async {
     final favoritesNotifier = ref.read(favoritesProvider.notifier);
     final isCurrentlyFavorite = await favoritesNotifier.isFavorite(hadith.id);
-    
+
     if (isCurrentlyFavorite) {
       // Remove from favorites
       await favoritesNotifier.removeFromFavoritesByHadithId(hadith.id);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -382,7 +394,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                 const Text('Removed from favorites'),
               ],
             ),
-            backgroundColor: const Color(0xFF6C3BFF),
+            backgroundColor: AppColors.primary,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -404,7 +416,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                 const Text('Added to favorites'),
               ],
             ),
-            backgroundColor: const Color(0xFF6C3BFF),
+            backgroundColor: AppColors.primary,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -414,7 +426,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
         );
       }
     }
-    
+
     // Refresh the UI
     setState(() {});
   }

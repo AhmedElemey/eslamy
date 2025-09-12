@@ -1,22 +1,23 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/dio_provider.dart';
+import 'dart:convert';
+import '../../../core/network/request_controller.dart';
 import '../hadith_constants.dart';
 import '../models/hadith.dart';
 
 final hadithServiceProvider = Provider((ref) {
-  final dioClient = ref.watch(dioProvider);
-  return HadithService(client: dioClient);
+  final rc = ref.watch(requestControllerProvider);
+  return HadithService(requests: rc);
 });
 
 class HadithService {
-  final Dio client;
+  final RequestController requests;
 
-  HadithService({required this.client});
+  HadithService({required this.requests});
 
   Future<HadithPage> fetchHadiths({required int page, int limit = 20}) async {
     try {
-      final response = await client.get('/hadiths/', queryParameters: {
+      final response = await requests
+          .get('/hadiths/', baseUrl: 'https://www.hadithapi.com/api', query: {
         'apiKey': hadithApiKey,
         'page': page,
         'per_page': limit,
@@ -26,7 +27,19 @@ class HadithService {
         return Future.error("Something went wrong");
       }
 
-      final data = response.data as Map<String, dynamic>;
+      final raw = response.data;
+      // If server returned HTML (e.g., 403/404/maintenance page), bail early
+      if (raw is String && raw.trimLeft().startsWith('<')) {
+        throw 'Server returned non-JSON response';
+      }
+      final Map<String, dynamic> data = () {
+        if (raw is Map<String, dynamic>) return raw;
+        if (raw is String) {
+          final decoded = jsonDecode(raw);
+          if (decoded is Map<String, dynamic>) return decoded;
+        }
+        throw 'Unexpected response shape';
+      }();
 
       // API may return one of:
       // { hadiths: { data: [...], current_page, last_page } }
@@ -40,11 +53,21 @@ class HadithService {
       if (hadithsValue is List) {
         hadithsRaw = hadithsValue;
       } else if (hadithsValue is Map<String, dynamic>) {
-        hadithsRaw = (hadithsValue['data'] ?? hadithsValue['items'] ?? []) as List<dynamic>;
-        currentPageFromApi = int.tryParse('${hadithsValue['current_page'] ?? hadithsValue['currentPage'] ?? page}') ?? page;
-        lastPageFromApi = int.tryParse('${hadithsValue['last_page'] ?? hadithsValue['lastPage'] ?? currentPageFromApi}') ?? currentPageFromApi;
+        hadithsRaw = (hadithsValue['data'] ?? hadithsValue['items'] ?? [])
+            as List<dynamic>;
+        currentPageFromApi = int.tryParse(
+                '${hadithsValue['current_page'] ?? hadithsValue['currentPage'] ?? page}') ??
+            page;
+        lastPageFromApi = int.tryParse(
+                '${hadithsValue['last_page'] ?? hadithsValue['lastPage'] ?? currentPageFromApi}') ??
+            currentPageFromApi;
       } else {
-        hadithsRaw = (data['data'] ?? data['items'] ?? []) as List<dynamic>;
+        final alt = data['data'] ?? data['items'] ?? [];
+        if (alt is List) {
+          hadithsRaw = alt;
+        } else {
+          throw 'Unexpected hadiths payload';
+        }
       }
 
       final items = hadithsRaw.map((e) {
@@ -53,23 +76,30 @@ class HadithService {
           id: m['id'] is int ? m['id'] as int : int.tryParse('${m['id']}') ?? 0,
           title: '${m['title'] ?? m['hadith'] ?? m['slug'] ?? ''}',
           narrator: m['narrator']?.toString(),
-          body: m['body']?.toString() ?? m['arabic']?.toString() ?? m['hadithArabic']?.toString(),
+          body: m['body']?.toString() ??
+              m['arabic']?.toString() ??
+              m['hadithArabic']?.toString(),
         );
       }).toList();
 
       // Meta fallback if not read above
       if (currentPageFromApi == page && lastPageFromApi == page) {
-        final meta = (data['meta'] ?? data['pagination'] ?? {}) as Map<String, dynamic>;
-        currentPageFromApi = int.tryParse('${meta['current_page'] ?? meta['currentPage'] ?? page}') ?? page;
-        lastPageFromApi = int.tryParse('${meta['last_page'] ?? meta['lastPage'] ?? currentPageFromApi}') ?? currentPageFromApi;
+        final meta =
+            (data['meta'] ?? data['pagination'] ?? {}) as Map<String, dynamic>;
+        currentPageFromApi = int.tryParse(
+                '${meta['current_page'] ?? meta['currentPage'] ?? page}') ??
+            page;
+        lastPageFromApi = int.tryParse(
+                '${meta['last_page'] ?? meta['lastPage'] ?? currentPageFromApi}') ??
+            currentPageFromApi;
       }
 
-      return HadithPage(items: items, currentPage: currentPageFromApi, hasMore: currentPageFromApi < lastPageFromApi);
+      return HadithPage(
+          items: items,
+          currentPage: currentPageFromApi,
+          hasMore: currentPageFromApi < lastPageFromApi);
     } catch (exception) {
-      if (exception.runtimeType == DioException) {
-        return Future.error("Something went wrong");
-      }
-      rethrow;
+      return Future.error(exception);
     }
   }
 }

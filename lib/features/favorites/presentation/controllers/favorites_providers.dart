@@ -107,7 +107,8 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
   }
 }
 
-final favoritesProvider = StateNotifierProvider<FavoritesNotifier, FavoritesState>((ref) {
+final favoritesProvider =
+    StateNotifierProvider<FavoritesNotifier, FavoritesState>((ref) {
   final service = ref.watch(favoritesServiceProvider);
   return FavoritesNotifier(service);
 });

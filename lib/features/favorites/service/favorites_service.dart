@@ -2,7 +2,6 @@ import 'package:eslamy/features/hadith/models/hadith.dart';
 
 import '../models/favorite_hadith.dart';
 import 'favorites_database.dart';
- 
 
 class FavoritesService {
   final FavoritesDatabase _database = FavoritesDatabase();

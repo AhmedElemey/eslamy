@@ -1,0 +1,78 @@
+version: 3
+
+tasks:
+  build-obfuscate-apk:
+    cmds:
+      - task clean
+      - flutter build apk --obfuscate --split-debug-info=build/debug-info  --target-platform android-arm64,android-arm
+  build-obfuscate-bundle:
+    cmds:
+      - task clean
+      - flutter build appbundle --obfuscate --split-debug-info=build/debug-info
+  generate-build:
+    cmds:
+      - flutter pub run build_runner build --delete-conflicting-outputs
+
+  generate-watch:
+    cmds:
+      - flutter pub run build_runner watch --delete-conflicting-outputs
+
+  enable-debug-firebase:
+    cmds:
+     - adb shell setprop debug.firebase.analytics.app com.forswapp.forswappandroid
+  
+  disable-debug-firebase:
+    cmds:
+     - adb shell setprop debug.firebase.analytics.app .none
+
+
+  shorebird-android:
+    cmds:
+      - shorebird release android --flutter-version=3.27.3
+  
+  clean:
+    cmds:
+      - dart format .
+      - dart fix --apply
+      - flutter clean
+      - flutter pub get
+  
+  feature:
+    cmds:
+      - mason make riverpod_clean_feature
+  
+  # erase:
+  #   cmds:
+  #     # - adb shell pm uninstall
+  #     - adb uninstall sa.arco.services
+  
+  # splash:
+  #   cmds:
+  #     - flutter pub run flutter_native_splash:create
+  splash:
+    cmds:
+      - flutter pub run flutter_native_splash:create --path=packages/design_system/flutter_native_splash.yaml
+  
+  icons:
+    cmds:
+      - flutter pub get
+      - flutter pub run flutter_launcher_icons:main
+
+  freezed:
+    cmds:
+      - flutter pub run build_runner build --delete-conflicting-outputs
+
+  # apk:
+  #   cmds: 
+  #     - flutter build apk --release --dart-define=ARCO_API="https://test.arco.sa:620/Api/Mobile" "--dart-define=MAPS_KEY=AIzaSyBpb2i-vgld0n2AjBJiTifgilbEtwBknbo"
+  # aab:
+  #   cmds: 
+  #     - flutter build appbundle --release --dart-define=ARCO_API="https://test.arco.sa:620/Api/Mobile" "--dart-define=MAPS_KEY=AIzaSyBpb2i-vgld0n2AjBJiTifgilbEtwBknbo"
+
+  
+  delete-branch:
+    cmds:
+      - git branch -D {{.CLI_ARGS}}
+      - git push origin -d {{.CLI_ARGS}}
+
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../hadith/presentation/pages/hadith_list_page.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 
@@ -7,16 +8,16 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF6C3BFF);
-    const textMuted = Color(0xFF8E8E93);
+    const primary = AppColors.primary;
+    const textMuted = AppColors.muted;
 
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.white,
           foregroundColor: primary,
           centerTitle: false,
           titleSpacing: 0,
@@ -36,8 +37,10 @@ class HomePage extends StatelessWidget {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.search_rounded, color: primary),
-              onPressed: () {},
+              icon: const Icon(Icons.settings, color: primary),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/settings');
+              },
             ),
           ],
           bottom: PreferredSize(
@@ -111,7 +114,7 @@ class HomePage extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: const [
                 BoxShadow(
@@ -127,21 +130,37 @@ class HomePage extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.bookmarks_outlined, color: textMuted),
                   onPressed: () {
-                    Navigator.push(
-                      context,
+                    Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const FavoritesPage(),
                       ),
                     );
                   },
                 ),
-                Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: primary,
+                GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      builder: (_) => SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.8,
+                        child: const HadithListSheet(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: primary,
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: const Icon(Icons.menu_book_rounded,
+                        color: AppColors.white),
                   ),
-                  padding: const EdgeInsets.all(14),
-                  child: const Icon(Icons.menu_book_rounded, color: Colors.white),
                 ),
                 IconButton(
                   icon: const Icon(Icons.mosque_outlined, color: textMuted),
@@ -150,7 +169,8 @@ class HomePage extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(16)),
                       ),
                       builder: (_) => SizedBox(
                         height: MediaQuery.of(context).size.height * 0.8,
@@ -246,7 +266,8 @@ class _SurahList extends StatelessWidget {
       itemBuilder: (_, i) {
         final s = items[i];
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           leading: Container(
             width: 36,
             height: 36,
@@ -257,7 +278,8 @@ class _SurahList extends StatelessWidget {
             ),
             child: Text(
               s[0],
-              style: const TextStyle(color: primary, fontWeight: FontWeight.w700),
+              style:
+                  const TextStyle(color: primary, fontWeight: FontWeight.w700),
             ),
           ),
           title: Text(
@@ -279,5 +301,3 @@ class _SurahList extends StatelessWidget {
     );
   }
 }
-
-

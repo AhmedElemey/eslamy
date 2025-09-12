@@ -2,23 +2,29 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'interceptors.dart';
 
 final dioProvider = Provider<Dio>(
   (ref) {
     final platform = Platform.isAndroid ? 'Android' : 'iOS';
-    
+
     return Dio(BaseOptions(
-      baseUrl: 'https://www.hadithapi.com/api',
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
+      responseType: ResponseType.json,
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'Accept-Language': 'en-us',
         'Platform': platform,
       },
     ))
       ..interceptors.addAll([
+        StopIfNoInternetInterceptor(),
+        SessionExpiredInterceptor(),
         RateLimitInterceptor(),
+        SimpleLogInterceptor(),
+        ...ref.read(extraInterceptorsProvider),
       ]);
   },
 );
