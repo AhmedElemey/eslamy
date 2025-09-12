@@ -17,9 +17,7 @@ tasks:
     cmds:
       - flutter pub run build_runner watch --delete-conflicting-outputs
 
-  enable-debug-firebase:
-    cmds:
-     - adb shell setprop debug.firebase.analytics.app com.forswapp.forswappandroid
+ 
   
   disable-debug-firebase:
     cmds:
