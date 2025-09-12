@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 
 class SettingsDatabase {
@@ -27,17 +28,17 @@ class SettingsDatabase {
             value TEXT
           )
         ''');
+        await db.insert('app_settings', {'key': 'werd_time', 'value': ''});
       },
     );
   }
 
   Future<void> setValue(String key, String value) async {
     final db = await database;
-    await db.insert(
-      'app_settings',
-      {'key': key, 'value': value},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('app_settings', {
+      'key': key,
+      'value': value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<String?> getValue(String key) async {
@@ -50,5 +51,22 @@ class SettingsDatabase {
     );
     if (res.isEmpty) return null;
     return res.first['value'] as String?;
+  }
+
+  Future<TimeOfDay?> getWerdTime() async {
+    final val = await getValue('werd_time');
+    if (val == null || val.isEmpty) return null;
+    final parts = val.split(':');
+    if (parts.length != 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    return TimeOfDay(hour: h, minute: m);
+  }
+
+  Future<void> setWerdTime(TimeOfDay time) async {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
+    await setValue('werd_time', '$hh:$mm');
   }
 }

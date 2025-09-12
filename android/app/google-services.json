@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "214322556188",
+    "project_id": "eslamy-7c514",
+    "storage_bucket": "eslamy-7c514.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214322556188:android:cc2e12f585d65cffdcded9",
+        "android_client_info": {
+          "package_name": "com.eslamy.eslamy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLg8NU0fFMVO0NSdrg2YaSPuJXqoym__w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

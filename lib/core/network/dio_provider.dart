@@ -4,30 +4,30 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'interceptors.dart';
 
-final dioProvider = Provider<Dio>(
-  (ref) {
-    final platform = Platform.isAndroid ? 'Android' : 'iOS';
+final dioProvider = Provider<Dio>((ref) {
+  final platform = Platform.isAndroid ? 'Android' : 'iOS';
 
-    return Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      responseType: ResponseType.json,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Accept-Language': 'en-us',
-        'Platform': platform,
-      },
-    ))
-      ..interceptors.addAll([
-        StopIfNoInternetInterceptor(),
-        SessionExpiredInterceptor(),
-        RateLimitInterceptor(),
-        SimpleLogInterceptor(),
-        ...ref.read(extraInterceptorsProvider),
-      ]);
-  },
-);
+  return Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        responseType: ResponseType.json,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-us',
+          'Platform': platform,
+        },
+      ),
+    )
+    ..interceptors.addAll([
+      StopIfNoInternetInterceptor(),
+      SessionExpiredInterceptor(),
+      RateLimitInterceptor(),
+      SimpleLogInterceptor(),
+      ...ref.read(extraInterceptorsProvider),
+    ]);
+});
 
 extension DioExceptionX on DioException {
   String get errorMsg {
@@ -64,7 +64,9 @@ extension DioExceptionX on DioException {
 class RateLimitInterceptor implements Interceptor {
   @override
   Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode == 429) {
       throw DioException(
         requestOptions: err.requestOptions,

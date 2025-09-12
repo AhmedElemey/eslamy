@@ -72,7 +72,8 @@ class RequestController {
         }
         if (data != null) {
           debugPrint(
-              '[POST] body: ${data is String ? data : (data is Map || data is List ? data : data.toString())}');
+            '[POST] body: ${data is String ? data : (data is Map || data is List ? data : data.toString())}',
+          );
         }
       }
       final res = await _dio.post<T>(
@@ -92,7 +93,8 @@ class RequestController {
     } on DioException catch (e) {
       if (kDebugMode) {
         debugPrint(
-            '[POST][ERR] ${e.requestOptions.uri} ${e.type} ${e.message}');
+          '[POST][ERR] ${e.requestOptions.uri} ${e.type} ${e.message}',
+        );
       }
       return Future.error(e.errorMsg);
     }
@@ -101,9 +103,10 @@ class RequestController {
   String _composeUrl(String? baseUrl, String path) {
     if (baseUrl == null || baseUrl.isEmpty) return path;
     if (path.startsWith('http')) return path;
-    final normalizedBase = baseUrl.endsWith('/')
-        ? baseUrl.substring(0, baseUrl.length - 1)
-        : baseUrl;
+    final normalizedBase =
+        baseUrl.endsWith('/')
+            ? baseUrl.substring(0, baseUrl.length - 1)
+            : baseUrl;
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     return '$normalizedBase$normalizedPath';
   }

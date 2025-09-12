@@ -16,12 +16,11 @@ class HadithService {
 
   Future<HadithPage> fetchHadiths({required int page, int limit = 20}) async {
     try {
-      final response = await requests
-          .get('/hadiths/', baseUrl: 'https://www.hadithapi.com/api', query: {
-        'apiKey': hadithApiKey,
-        'page': page,
-        'per_page': limit,
-      });
+      final response = await requests.get(
+        '/hadiths/',
+        baseUrl: 'https://www.hadithapi.com/api',
+        query: {'apiKey': hadithApiKey, 'page': page, 'per_page': limit},
+      );
 
       if (response.statusCode != 200) {
         return Future.error("Something went wrong");
@@ -53,13 +52,18 @@ class HadithService {
       if (hadithsValue is List) {
         hadithsRaw = hadithsValue;
       } else if (hadithsValue is Map<String, dynamic>) {
-        hadithsRaw = (hadithsValue['data'] ?? hadithsValue['items'] ?? [])
-            as List<dynamic>;
-        currentPageFromApi = int.tryParse(
-                '${hadithsValue['current_page'] ?? hadithsValue['currentPage'] ?? page}') ??
+        hadithsRaw =
+            (hadithsValue['data'] ?? hadithsValue['items'] ?? [])
+                as List<dynamic>;
+        currentPageFromApi =
+            int.tryParse(
+              '${hadithsValue['current_page'] ?? hadithsValue['currentPage'] ?? page}',
+            ) ??
             page;
-        lastPageFromApi = int.tryParse(
-                '${hadithsValue['last_page'] ?? hadithsValue['lastPage'] ?? currentPageFromApi}') ??
+        lastPageFromApi =
+            int.tryParse(
+              '${hadithsValue['last_page'] ?? hadithsValue['lastPage'] ?? currentPageFromApi}',
+            ) ??
             currentPageFromApi;
       } else {
         final alt = data['data'] ?? data['items'] ?? [];
@@ -70,34 +74,44 @@ class HadithService {
         }
       }
 
-      final items = hadithsRaw.map((e) {
-        final m = e as Map<String, dynamic>;
-        return HadithItem(
-          id: m['id'] is int ? m['id'] as int : int.tryParse('${m['id']}') ?? 0,
-          title: '${m['title'] ?? m['hadith'] ?? m['slug'] ?? ''}',
-          narrator: m['narrator']?.toString(),
-          body: m['body']?.toString() ??
-              m['arabic']?.toString() ??
-              m['hadithArabic']?.toString(),
-        );
-      }).toList();
+      final items =
+          hadithsRaw.map((e) {
+            final m = e as Map<String, dynamic>;
+            return HadithItem(
+              id:
+                  m['id'] is int
+                      ? m['id'] as int
+                      : int.tryParse('${m['id']}') ?? 0,
+              title: '${m['title'] ?? m['hadith'] ?? m['slug'] ?? ''}',
+              narrator: m['narrator']?.toString(),
+              body:
+                  m['body']?.toString() ??
+                  m['arabic']?.toString() ??
+                  m['hadithArabic']?.toString(),
+            );
+          }).toList();
 
       // Meta fallback if not read above
       if (currentPageFromApi == page && lastPageFromApi == page) {
         final meta =
             (data['meta'] ?? data['pagination'] ?? {}) as Map<String, dynamic>;
-        currentPageFromApi = int.tryParse(
-                '${meta['current_page'] ?? meta['currentPage'] ?? page}') ??
+        currentPageFromApi =
+            int.tryParse(
+              '${meta['current_page'] ?? meta['currentPage'] ?? page}',
+            ) ??
             page;
-        lastPageFromApi = int.tryParse(
-                '${meta['last_page'] ?? meta['lastPage'] ?? currentPageFromApi}') ??
+        lastPageFromApi =
+            int.tryParse(
+              '${meta['last_page'] ?? meta['lastPage'] ?? currentPageFromApi}',
+            ) ??
             currentPageFromApi;
       }
 
       return HadithPage(
-          items: items,
-          currentPage: currentPageFromApi,
-          hasMore: currentPageFromApi < lastPageFromApi);
+        items: items,
+        currentPage: currentPageFromApi,
+        hasMore: currentPageFromApi < lastPageFromApi,
+      );
     } catch (exception) {
       return Future.error(exception);
     }

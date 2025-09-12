@@ -72,8 +72,11 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                       color: primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child:
-                        Icon(Icons.menu_book_rounded, color: primary, size: 24),
+                    child: Icon(
+                      Icons.menu_book_rounded,
+                      color: primary,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -89,7 +92,9 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
                   if (state.items.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: primary,
                         borderRadius: BorderRadius.circular(12),
@@ -111,24 +116,26 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               child: RefreshIndicator(
                 onRefresh: () => notifier.refresh(),
                 color: primary,
-                child: state.error != null
-                    ? _buildErrorState(notifier)
-                    : state.items.isEmpty && !state.isLoading
+                child:
+                    state.error != null
+                        ? _buildErrorState(notifier)
+                        : state.items.isEmpty && !state.isLoading
                         ? _buildEmptyState()
                         : ListView.separated(
-                            controller: _controller,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: state.items.length +
-                                (state.hasMore || state.isLoading ? 1 : 0),
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
-                              if (index >= state.items.length) {
-                                return _buildLoadingIndicator();
-                              }
-                              return _buildHadithCard(state.items[index]);
-                            },
-                          ),
+                          controller: _controller,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount:
+                              state.items.length +
+                              (state.hasMore || state.isLoading ? 1 : 0),
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            if (index >= state.items.length) {
+                              return _buildLoadingIndicator();
+                            }
+                            return _buildHadithCard(state.items[index]);
+                          },
+                        ),
               ),
             ),
           ],
@@ -168,10 +175,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
             const SizedBox(height: 8),
             Text(
               'Failed to load hadiths',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -181,8 +185,10 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -225,10 +231,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
             const SizedBox(height: 8),
             Text(
               'Try refreshing to load hadiths',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -239,9 +242,7 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
   Widget _buildLoadingIndicator() {
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      ),
+      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
     );
   }
 
@@ -299,15 +300,17 @@ class _HadithListSheetState extends ConsumerState<HadithListSheet> {
               Consumer(
                 builder: (context, ref, child) {
                   return FutureBuilder<bool>(
-                    future:
-                        ref.read(favoritesProvider.notifier).isFavorite(h.id),
+                    future: ref
+                        .read(favoritesProvider.notifier)
+                        .isFavorite(h.id),
                     builder: (context, snapshot) {
                       final isFavorite = snapshot.data ?? false;
                       return Container(
                         decoration: BoxDecoration(
-                          color: isFavorite
-                              ? primary.withOpacity(0.1)
-                              : Colors.grey.withOpacity(0.1),
+                          color:
+                              isFavorite
+                                  ? primary.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isFavorite ? primary : Colors.grey[300]!,

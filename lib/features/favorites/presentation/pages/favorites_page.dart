@@ -16,7 +16,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   void initState() {
     super.initState();
     Future.microtask(
-        () => ref.read(favoritesProvider.notifier).loadFavorites());
+      () => ref.read(favoritesProvider.notifier).loadFavorites(),
+    );
   }
 
   @override
@@ -81,10 +82,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                       const SizedBox(height: 4),
                       Text(
                         '${state.favorites.length} hadiths saved',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -94,9 +92,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
           ),
 
           // Content
-          Expanded(
-            child: _buildContent(state, notifier),
-          ),
+          Expanded(child: _buildContent(state, notifier)),
         ],
       ),
     );
@@ -105,9 +101,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   Widget _buildContent(FavoritesState state, FavoritesNotifier notifier) {
     if (state.isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-        ),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
@@ -164,10 +158,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             const SizedBox(height: 8),
             Text(
               'Failed to load your favorites',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -178,8 +169,10 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C3BFF),
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -222,10 +215,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             const SizedBox(height: 8),
             Text(
               'Start bookmarking hadiths you love\nand they\'ll appear here',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -235,7 +225,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Widget _buildFavoriteCard(
-      FavoriteHadith favorite, FavoritesNotifier notifier) {
+    FavoriteHadith favorite,
+    FavoritesNotifier notifier,
+  ) {
     const primary = Color(0xFF6C3BFF);
 
     return Container(
@@ -259,8 +251,10 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: primary,
                     borderRadius: BorderRadius.circular(8),
@@ -277,11 +271,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 const Spacer(),
                 IconButton(
                   onPressed: () => _removeFavorite(favorite.id, notifier),
-                  icon: const Icon(
-                    Icons.bookmark,
-                    color: primary,
-                    size: 20,
-                  ),
+                  icon: const Icon(Icons.bookmark, color: primary, size: 20),
                 ),
               ],
             ),
@@ -349,18 +339,11 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             // Saved date
             Row(
               children: [
-                Icon(
-                  Icons.access_time,
-                  size: 14,
-                  color: Colors.grey[500],
-                ),
+                Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
                 const SizedBox(width: 4),
                 Text(
                   _formatDate(favorite.savedAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -386,7 +369,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Future<void> _removeFavorite(
-      String favoriteId, FavoritesNotifier notifier) async {
+    String favoriteId,
+    FavoritesNotifier notifier,
+  ) async {
     final success = await notifier.removeFromFavorites(favoriteId);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -399,25 +384,29 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Future<void> _showClearAllDialog(
-      BuildContext context, FavoritesNotifier notifier) async {
+    BuildContext context,
+    FavoritesNotifier notifier,
+  ) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear All Favorites'),
-        content: const Text(
-            'Are you sure you want to remove all your favorite hadiths? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Clear All Favorites'),
+            content: const Text(
+              'Are you sure you want to remove all your favorite hadiths? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear All'),
-          ),
-        ],
-      ),
     );
 
     if (result == true && mounted) {

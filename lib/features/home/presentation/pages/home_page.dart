@@ -25,10 +25,7 @@ class HomePage extends StatelessWidget {
             padding: EdgeInsets.only(left: 8),
             child: Text(
               'Quran App',
-              style: TextStyle(
-                color: primary,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(color: primary, fontWeight: FontWeight.w700),
             ),
           ),
           leading: IconButton(
@@ -121,7 +118,7 @@ class HomePage extends StatelessWidget {
                   color: Color(0x1A000000),
                   blurRadius: 12,
                   offset: Offset(0, 6),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -143,13 +140,15 @@ class HomePage extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                       ),
-                      builder: (_) => SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.8,
-                        child: const HadithListSheet(),
-                      ),
+                      builder:
+                          (_) => SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            child: const HadithListSheet(),
+                          ),
                     );
                   },
                   child: Container(
@@ -158,8 +157,10 @@ class HomePage extends StatelessWidget {
                       color: primary,
                     ),
                     padding: const EdgeInsets.all(14),
-                    child: const Icon(Icons.menu_book_rounded,
-                        color: AppColors.white),
+                    child: const Icon(
+                      Icons.menu_book_rounded,
+                      color: AppColors.white,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -169,13 +170,15 @@ class HomePage extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                       ),
-                      builder: (_) => SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.8,
-                        child: const HadithListSheet(),
-                      ),
+                      builder:
+                          (_) => SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            child: const HadithListSheet(),
+                          ),
                     );
                   },
                 ),
@@ -232,13 +235,10 @@ class _LastReadCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 2),
-                Text(
-                  'Ayah No: 1',
-                  style: TextStyle(color: Colors.black54),
-                ),
+                Text('Ayah No: 1', style: TextStyle(color: Colors.black54)),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -266,8 +266,10 @@ class _SurahList extends StatelessWidget {
       itemBuilder: (_, i) {
         final s = items[i];
         return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 8,
+          ),
           leading: Container(
             width: 36,
             height: 36,
@@ -278,18 +280,17 @@ class _SurahList extends StatelessWidget {
             ),
             child: Text(
               s[0],
-              style:
-                  const TextStyle(color: primary, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                color: primary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           title: Text(
             s[1],
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
-          subtitle: Text(
-            s[2],
-            style: const TextStyle(color: textMuted),
-          ),
+          subtitle: Text(s[2], style: const TextStyle(color: textMuted)),
           trailing: Text(
             s[3],
             textDirection: TextDirection.rtl,

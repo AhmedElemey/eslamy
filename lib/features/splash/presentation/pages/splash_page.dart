@@ -90,15 +90,17 @@ class _SplashPageState extends State<SplashPage> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.of(context)
-                                  .pushReplacementNamed('/home');
+                              Navigator.of(
+                                context,
+                              ).pushReplacementNamed('/home');
                             },
                             child: const Text(
                               'Get Started',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16),
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),

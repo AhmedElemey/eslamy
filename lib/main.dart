@@ -7,29 +7,86 @@ import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
 import 'dart:async';
 import 'core/theme/app_colors.dart';
+import 'core/notifications/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    _navigateToError(details.exception, details.stack);
-  };
+Future<void> main() async {
+  runZonedGuarded(
+    () {
+      WidgetsFlutterBinding.ensureInitialized();
+      Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        _navigateToError(details.exception, details.stack);
+      };
+      runApp(const ProviderScope(child: MyApp()));
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await NotificationService().init();
+        await _initFirebaseMessaging();
+      });
+    },
+    (error, stack) {
+      _navigateToError(error, stack);
+    },
+  );
+}
 
-  runZonedGuarded(() {
-    runApp(const ProviderScope(child: MyApp()));
-  }, (error, stack) {
-    _navigateToError(error, stack);
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Background isolate init
+  await Firebase.initializeApp();
+}
+
+Future<void> _initFirebaseMessaging() async {
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  final fcm = FirebaseMessaging.instance;
+  await fcm.requestPermission(alert: true, badge: true, sound: true);
+  // iOS: show foreground notifications
+  await fcm.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  // Fetch current FCM token on app start
+  try {
+    final token = await fcm.getToken();
+    if (token != null) {
+      // Replace with saving to your backend if needed
+      // ignore: avoid_print
+      print('FCM token: $token');
+    }
+  } catch (_) {
+    // ignore
+  }
+  // Listen for token refreshes
+  fcm.onTokenRefresh.listen((newToken) {
+    // Replace with saving to your backend if needed
+    // ignore: avoid_print
+    print('FCM token refreshed: $newToken');
+  });
+  // Handle foreground messages by displaying local notifications
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    final notification = message.notification;
+    if (notification != null) {
+      await NotificationService().showNow(
+        title: notification.title ?? 'Notification',
+        body: notification.body ?? '',
+      );
+    }
   });
 }
 
 void _navigateToError(Object error, StackTrace? stack) {
   final navigator = _rootNavigatorKey.currentState;
   if (navigator == null) return;
-  navigator.pushNamed('/error', arguments: {
-    'message': 'Unexpected error occurred',
-    'error': error,
-  });
+  navigator.pushNamed(
+    '/error',
+    arguments: {'message': 'Unexpected error occurred', 'error': error},
+  );
 }
 
 class MyApp extends ConsumerWidget {

@@ -19,11 +19,7 @@ class FavoritesDatabase {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'favorites.db');
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createTables,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createTables);
   }
 
   Future<void> _createTables(Database db, int version) async {
@@ -46,18 +42,14 @@ class FavoritesDatabase {
 
   Future<int> insertFavorite(FavoriteHadith favorite) async {
     final db = await database;
-    return await db.insert(
-      'favorites',
-      {
-        'id': favorite.id,
-        'hadith_id': favorite.hadith.id,
-        'title': favorite.hadith.title,
-        'narrator': favorite.hadith.narrator,
-        'body': favorite.hadith.body,
-        'saved_at': favorite.savedAt.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return await db.insert('favorites', {
+      'id': favorite.id,
+      'hadith_id': favorite.hadith.id,
+      'title': favorite.hadith.title,
+      'narrator': favorite.hadith.narrator,
+      'body': favorite.hadith.body,
+      'saved_at': favorite.savedAt.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<FavoriteHadith>> getAllFavorites() async {
@@ -68,16 +60,18 @@ class FavoritesDatabase {
     );
 
     return maps
-        .map((map) => FavoriteHadith(
-              id: map['id'],
-              hadith: HadithItem(
-                id: map['hadith_id'],
-                title: map['title'] ?? '',
-                narrator: map['narrator'],
-                body: map['body'],
-              ),
-              savedAt: DateTime.parse(map['saved_at']),
-            ))
+        .map(
+          (map) => FavoriteHadith(
+            id: map['id'],
+            hadith: HadithItem(
+              id: map['hadith_id'],
+              title: map['title'] ?? '',
+              narrator: map['narrator'],
+              body: map['body'],
+            ),
+            savedAt: DateTime.parse(map['saved_at']),
+          ),
+        )
         .toList();
   }
 
@@ -129,11 +123,7 @@ class FavoritesDatabase {
 
   Future<int> deleteFavorite(String id) async {
     final db = await database;
-    return await db.delete(
-      'favorites',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('favorites', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> deleteFavoriteByHadithId(int hadithId) async {

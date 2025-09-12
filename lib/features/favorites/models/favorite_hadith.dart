@@ -38,11 +38,7 @@ class FavoriteHadith {
     );
   }
 
-  FavoriteHadith copyWith({
-    String? id,
-    HadithItem? hadith,
-    DateTime? savedAt,
-  }) {
+  FavoriteHadith copyWith({String? id, HadithItem? hadith, DateTime? savedAt}) {
     return FavoriteHadith(
       id: id ?? this.id,
       hadith: hadith ?? this.hadith,

@@ -11,9 +11,7 @@ class ErrorPage extends StatelessWidget {
     final theme = Theme.of(context);
     final displayMessage = message ?? 'Something went wrong';
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Error'),
-      ),
+      appBar: AppBar(title: const Text('Error')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -22,20 +20,17 @@ class ErrorPage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.error_outline,
-                      color: theme.colorScheme.error, size: 32),
-                  const SizedBox(width: 12),
-                  Text(
-                    'An error occurred',
-                    style: theme.textTheme.titleLarge,
+                  Icon(
+                    Icons.error_outline,
+                    color: theme.colorScheme.error,
+                    size: 32,
                   ),
+                  const SizedBox(width: 12),
+                  Text('An error occurred', style: theme.textTheme.titleLarge),
                 ],
               ),
               const SizedBox(height: 16),
-              Text(
-                displayMessage,
-                style: theme.textTheme.bodyLarge,
-              ),
+              Text(displayMessage, style: theme.textTheme.bodyLarge),
               if (error != null) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -66,14 +61,15 @@ class ErrorPage extends StatelessWidget {
                   Expanded(
                     child: FilledButton(
                       onPressed: () {
-                        Navigator.of(context)
-                            .pushNamedAndRemoveUntil('/home', (_) => false);
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/home', (_) => false);
                       },
                       child: const Text('Go Home'),
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),

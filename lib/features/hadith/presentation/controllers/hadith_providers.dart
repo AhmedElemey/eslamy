@@ -65,6 +65,6 @@ class HadithListNotifier extends StateNotifier<HadithListState> {
 
 final hadithListProvider =
     StateNotifierProvider<HadithListNotifier, HadithListState>((ref) {
-  final service = ref.watch(hadithServiceProvider);
-  return HadithListNotifier(service);
-});
+      final service = ref.watch(hadithServiceProvider);
+      return HadithListNotifier(service);
+    });
