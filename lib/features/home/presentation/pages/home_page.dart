@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../hadith/presentation/pages/hadith_list_page.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
+import '../../../quran/presentation/widgets/reciter_selection_widget.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
+import '../../../quran/service/audio_url_validator.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const primary = AppColors.primary;
     const textMuted = AppColors.muted;
 
@@ -33,6 +38,107 @@ class HomePage extends StatelessWidget {
             onPressed: () {},
           ),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.bug_report, color: primary),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/quran-test');
+              },
+            ),
+            Consumer(
+              builder: (context, ref, child) {
+                return IconButton(
+                  icon: const Icon(Icons.volume_up, color: primary),
+                  onPressed: () async {
+                    final selectedReciter = ref.read(selectedReciterProvider);
+                    if (selectedReciter != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Current reciter: ${selectedReciter.name}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No reciter selected'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.network_check, color: primary),
+              onPressed: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Testing audio URLs...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                
+                final results = await AudioUrlValidator.testAllReciterUrls(1);
+                AudioUrlValidator.printTestResults(results);
+                
+                final workingReciters = results.entries.where((e) => e.value != null).length;
+                final totalReciters = results.length;
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Audio test complete: $workingReciters/$totalReciters reciters working'),
+                    duration: const Duration(seconds: 3),
+                    backgroundColor: workingReciters > 0 ? Colors.green : Colors.red,
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.play_circle, color: primary),
+              onPressed: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Testing basic audio player...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                
+                // Test with a simple, known working audio URL
+                const testUrl = 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav';
+                debugPrint('Testing basic audio with URL: $testUrl');
+                
+                try {
+                  // Import just_audio here
+                  final audioPlayer = AudioPlayer();
+                  await audioPlayer.setUrl(testUrl);
+                  await audioPlayer.play();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Basic audio test: Playing test sound'),
+                      duration: Duration(seconds: 3),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  
+                  // Stop after 3 seconds
+                  Future.delayed(const Duration(seconds: 3), () async {
+                    await audioPlayer.stop();
+                    await audioPlayer.dispose();
+                  });
+                } catch (e) {
+                  debugPrint('Basic audio test failed: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Basic audio test failed: $e'),
+                      duration: const Duration(seconds: 3),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.settings, color: primary),
               onPressed: () {
@@ -76,6 +182,8 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _LastReadCard(),
               ),
+              const SizedBox(height: 16),
+              const ReciterSelectionWidget(),
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -296,7 +404,9 @@ class _SurahList extends StatelessWidget {
             textDirection: TextDirection.rtl,
             style: const TextStyle(color: primary, fontWeight: FontWeight.w700),
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pushNamed('/quran');
+          },
         );
       },
     );

@@ -5,19 +5,28 @@ import 'features/home/presentation/pages/home_page.dart';
 import 'features/error/presentation/pages/error_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
+import 'features/quran/presentation/pages/quran_chapters_page.dart';
+import 'features/quran/presentation/pages/quran_test_page.dart';
 import 'dart:async';
 import 'core/theme/app_colors.dart';
 import 'core/notifications/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:audio_session/audio_session.dart';
 import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   runZonedGuarded(
-    () {
+    () async {
       WidgetsFlutterBinding.ensureInitialized();
+      
+      // Initialize audio session for proper audio playback
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration.music());
+      print('Audio session configured for music playback');
+      
       Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
@@ -81,12 +90,14 @@ Future<void> _initFirebaseMessaging() async {
 }
 
 void _navigateToError(Object error, StackTrace? stack) {
-  final navigator = _rootNavigatorKey.currentState;
-  if (navigator == null) return;
-  navigator.pushNamed(
-    '/error',
-    arguments: {'message': 'Unexpected error occurred', 'error': error},
-  );
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final navigator = _rootNavigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.pushNamed(
+      '/error',
+      arguments: {'message': 'Unexpected error occurred', 'error': error},
+    );
+  });
 }
 
 class MyApp extends ConsumerWidget {
@@ -139,6 +150,8 @@ class MyApp extends ConsumerWidget {
         '/': (_) => const SplashPage(),
         '/home': (_) => const HomePage(),
         '/settings': (_) => const SettingsPage(),
+        '/quran': (_) => const QuranChaptersPage(),
+        '/quran-test': (_) => const QuranTestPage(),
         '/error': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
           if (args is Map) {
