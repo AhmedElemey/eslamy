@@ -3,6 +3,9 @@ import 'package:eslamy/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/favorites_providers.dart';
 import '../../models/favorite_hadith.dart';
+import '../../../hadith/presentation/widgets/hadith_share_sheet.dart';
+import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/glass_card.dart';
 
 class FavoritesPage extends ConsumerStatefulWidget {
   const FavoritesPage({super.key});
@@ -26,22 +29,20 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     final state = ref.watch(favoritesProvider);
     final notifier = ref.read(favoritesProvider.notifier);
 
+    final textColor = Theme.of(context).textTheme.titleMedium?.color;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Favorites',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           if (state.favorites.isNotEmpty)
@@ -51,49 +52,53 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          // Header section
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(Icons.favorite, color: primary, size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Bookmarked Hadiths',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
+      body: AppBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header section
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${state.favorites.length} hadiths saved',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      child: Icon(Icons.favorite, color: primary, size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bookmarked Hadiths',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${state.favorites.length} hadiths saved',
+                            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Content
-          Expanded(child: _buildContent(state, notifier)),
-        ],
+              // Content
+              Expanded(child: _buildContent(state, notifier)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -147,12 +152,12 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Something went wrong',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: Theme.of(context).textTheme.titleMedium?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -167,7 +172,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C3BFF),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -194,22 +199,22 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C3BFF).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
                 Icons.bookmark_border,
                 size: 48,
-                color: Color(0xFF6C3BFF),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'No favorites yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: Theme.of(context).textTheme.titleMedium?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -228,127 +233,120 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     FavoriteHadith favorite,
     FavoritesNotifier notifier,
   ) {
-    const primary = Color(0xFF6C3BFF);
+    const primary = AppColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = Theme.of(context).textTheme.titleMedium?.color;
+    final bodyColor = Theme.of(context).textTheme.bodyLarge?.color;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with ID and bookmark button
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '#${favorite.hadith.id}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => _removeFavorite(favorite.id, notifier),
-                  icon: const Icon(Icons.bookmark, color: primary, size: 20),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Title
-            if (favorite.hadith.title.isNotEmpty) ...[
-              Text(
-                favorite.hadith.title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            // Narrator
-            if (favorite.hadith.narrator != null &&
-                favorite.hadith.narrator!.isNotEmpty) ...[
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with ID and bookmark button
+          Row(
+            children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  gradient: const LinearGradient(
+                    colors: [primary, AppColors.violet],
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  favorite.hadith.narrator!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.orange[700],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Arabic text
-            if (favorite.hadith.body != null &&
-                favorite.hadith.body!.isNotEmpty) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Text(
-                  favorite.hadith.body!,
+                  '#${favorite.hadith.id}',
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                    height: 1.6,
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
-                  textAlign: TextAlign.right,
                 ),
               ),
-              const SizedBox(height: 12),
+              const Spacer(),
+              IconButton(
+                onPressed: () => showHadithShareSheet(context, favorite.hadith),
+                icon: const Icon(Icons.share_outlined, color: primary, size: 20),
+              ),
+              IconButton(
+                onPressed: () => _removeFavorite(favorite.id, notifier),
+                icon: const Icon(Icons.bookmark, color: primary, size: 20),
+              ),
             ],
+          ),
 
-            // Saved date
-            Row(
-              children: [
-                Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDate(favorite.savedAt),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-              ],
+          const SizedBox(height: 12),
+
+          // Title
+          if (favorite.hadith.title.isNotEmpty) ...[
+            Text(
+              favorite.hadith.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: titleColor,
+              ),
             ),
+            const SizedBox(height: 8),
           ],
-        ),
+
+          // Narrator
+          if (favorite.hadith.narrator != null &&
+              favorite.hadith.narrator!.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                favorite.hadith.narrator!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFFB8863C),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Body text
+          if (favorite.hadith.body != null &&
+              favorite.hadith.body!.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.white12 : Colors.grey[200]!,
+                ),
+              ),
+              child: Text(
+                favorite.hadith.body!,
+                style: TextStyle(fontSize: 14, color: bodyColor, height: 1.6),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Saved date
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
+              const SizedBox(width: 4),
+              Text(
+                _formatDate(favorite.savedAt),
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -53,8 +53,8 @@ class SettingsDatabase {
     return res.first['value'] as String?;
   }
 
-  Future<TimeOfDay?> getWerdTime() async {
-    final val = await getValue('werd_time');
+  Future<TimeOfDay?> getTimeValue(String key) async {
+    final val = await getValue(key);
     if (val == null || val.isEmpty) return null;
     final parts = val.split(':');
     if (parts.length != 2) return null;
@@ -64,9 +64,13 @@ class SettingsDatabase {
     return TimeOfDay(hour: h, minute: m);
   }
 
-  Future<void> setWerdTime(TimeOfDay time) async {
+  Future<void> setTimeValue(String key, TimeOfDay time) async {
     final hh = time.hour.toString().padLeft(2, '0');
     final mm = time.minute.toString().padLeft(2, '0');
-    await setValue('werd_time', '$hh:$mm');
+    await setValue(key, '$hh:$mm');
   }
+
+  Future<TimeOfDay?> getWerdTime() => getTimeValue('werd_time');
+
+  Future<void> setWerdTime(TimeOfDay time) => setTimeValue('werd_time', time);
 }

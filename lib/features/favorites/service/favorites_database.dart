@@ -19,7 +19,12 @@ class FavoritesDatabase {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'favorites.db');
 
-    return await openDatabase(path, version: 1, onCreate: _createTables);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createTables,
+      onUpgrade: _upgradeTables,
+    );
   }
 
   Future<void> _createTables(Database db, int version) async {
@@ -30,7 +35,10 @@ class FavoritesDatabase {
         title TEXT,
         narrator TEXT,
         body TEXT,
-        saved_at TEXT NOT NULL
+        saved_at TEXT NOT NULL,
+        book_slug TEXT,
+        book_name TEXT,
+        hadith_number INTEGER
       )
     ''');
 
@@ -38,6 +46,30 @@ class FavoritesDatabase {
     await db.execute('''
       CREATE INDEX idx_hadith_id ON favorites(hadith_id)
     ''');
+  }
+
+  Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE favorites ADD COLUMN book_slug TEXT');
+      await db.execute('ALTER TABLE favorites ADD COLUMN book_name TEXT');
+      await db.execute('ALTER TABLE favorites ADD COLUMN hadith_number INTEGER');
+    }
+  }
+
+  FavoriteHadith _favoriteFromMap(Map<String, dynamic> map) {
+    return FavoriteHadith(
+      id: map['id'],
+      hadith: HadithItem(
+        id: map['hadith_id'],
+        title: map['title'] ?? '',
+        narrator: map['narrator'],
+        body: map['body'],
+        book: map['book_slug'],
+        bookName: map['book_name'],
+        hadithNumber: map['hadith_number'],
+      ),
+      savedAt: DateTime.parse(map['saved_at']),
+    );
   }
 
   Future<int> insertFavorite(FavoriteHadith favorite) async {
@@ -49,6 +81,9 @@ class FavoritesDatabase {
       'narrator': favorite.hadith.narrator,
       'body': favorite.hadith.body,
       'saved_at': favorite.savedAt.toIso8601String(),
+      'book_slug': favorite.hadith.book,
+      'book_name': favorite.hadith.bookName,
+      'hadith_number': favorite.hadith.hadithNumber,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -59,20 +94,7 @@ class FavoritesDatabase {
       orderBy: 'saved_at DESC',
     );
 
-    return maps
-        .map(
-          (map) => FavoriteHadith(
-            id: map['id'],
-            hadith: HadithItem(
-              id: map['hadith_id'],
-              title: map['title'] ?? '',
-              narrator: map['narrator'],
-              body: map['body'],
-            ),
-            savedAt: DateTime.parse(map['saved_at']),
-          ),
-        )
-        .toList();
+    return maps.map(_favoriteFromMap).toList();
   }
 
   Future<FavoriteHadith?> getFavoriteById(String id) async {
@@ -84,18 +106,7 @@ class FavoritesDatabase {
     );
 
     if (maps.isEmpty) return null;
-
-    final map = maps.first;
-    return FavoriteHadith(
-      id: map['id'],
-      hadith: HadithItem(
-        id: map['hadith_id'],
-        title: map['title'] ?? '',
-        narrator: map['narrator'],
-        body: map['body'],
-      ),
-      savedAt: DateTime.parse(map['saved_at']),
-    );
+    return _favoriteFromMap(maps.first);
   }
 
   Future<FavoriteHadith?> getFavoriteByHadithId(int hadithId) async {
@@ -107,18 +118,7 @@ class FavoritesDatabase {
     );
 
     if (maps.isEmpty) return null;
-
-    final map = maps.first;
-    return FavoriteHadith(
-      id: map['id'],
-      hadith: HadithItem(
-        id: map['hadith_id'],
-        title: map['title'] ?? '',
-        narrator: map['narrator'],
-        body: map['body'],
-      ),
-      savedAt: DateTime.parse(map['saved_at']),
-    );
+    return _favoriteFromMap(maps.first);
   }
 
   Future<int> deleteFavorite(String id) async {

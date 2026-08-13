@@ -115,6 +115,7 @@ class NotificationService {
     required TimeOfDay time,
     required String title,
     required String body,
+    int id = 1001,
   }) async {
     if (!_initialized) {
       await init();
@@ -149,7 +150,7 @@ class NotificationService {
     );
 
     await _plugin.zonedSchedule(
-      1001,
+      id,
       title,
       body,
       scheduled,

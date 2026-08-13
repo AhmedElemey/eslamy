@@ -19,6 +19,9 @@ class FavoriteHadith {
         'title': hadith.title,
         'narrator': hadith.narrator,
         'body': hadith.body,
+        'book': hadith.book,
+        'bookName': hadith.bookName,
+        'hadithNumber': hadith.hadithNumber,
       },
       'savedAt': savedAt.toIso8601String(),
     };
@@ -33,6 +36,9 @@ class FavoriteHadith {
         title: hadithData['title'] as String? ?? '',
         narrator: hadithData['narrator'] as String?,
         body: hadithData['body'] as String?,
+        book: hadithData['book'] as String?,
+        bookName: hadithData['bookName'] as String?,
+        hadithNumber: hadithData['hadithNumber'] as int?,
       ),
       savedAt: DateTime.parse(json['savedAt'] as String),
     );

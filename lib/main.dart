@@ -8,8 +8,12 @@ import 'features/settings/presentation/controllers/settings_providers.dart';
 import 'features/quran/presentation/pages/quran_chapters_page.dart';
 import 'features/quran/presentation/pages/quran_test_page.dart';
 import 'dart:async';
-import 'core/theme/app_colors.dart';
+import 'core/theme/app_theme.dart';
 import 'core/notifications/notification_service.dart';
+import 'features/settings/presentation/controllers/theme_mode_providers.dart';
+import 'features/prayer_times/presentation/pages/prayer_times_page.dart';
+import 'features/prayer_times/presentation/pages/qibla_page.dart';
+import 'features/hadith/presentation/pages/hadith_books_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_session/audio_session.dart';
@@ -107,6 +111,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textDeltaAsync = ref.watch(textSizeProvider);
+    final themeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
 
     double scaleForDelta(int delta) {
       switch (delta) {
@@ -127,14 +132,9 @@ class MyApp extends ConsumerWidget {
       title: 'Eslamy',
       debugShowCheckedModeBanner: false,
       navigatorKey: _rootNavigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.primary,
-          elevation: 0,
-        ),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       builder: (context, child) {
         final scale = textDeltaAsync.maybeWhen(
           data: (delta) => scaleForDelta(delta),
@@ -152,6 +152,9 @@ class MyApp extends ConsumerWidget {
         '/settings': (_) => const SettingsPage(),
         '/quran': (_) => const QuranChaptersPage(),
         '/quran-test': (_) => const QuranTestPage(),
+        '/prayer-times': (_) => const PrayerTimesPage(),
+        '/qibla': (_) => const QiblaPage(),
+        '/hadith': (_) => const HadithBooksPage(),
         '/error': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
           if (args is Map) {

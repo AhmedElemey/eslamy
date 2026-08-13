@@ -1,0 +1,121 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/notifications/notification_service.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../quran/models/quran_models.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
+import '../../../settings/service/settings_database.dart';
+import '../controllers/hifz_providers.dart';
+
+const _hifzReviewNotificationId = 1002;
+const _hifzReviewTimeKey = 'hifz_review_time';
+
+class HifzPage extends ConsumerWidget {
+  const HifzPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chaptersAsync = ref.watch(chaptersProvider);
+    final memorized = ref.watch(hifzProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hifz Tracker'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            tooltip: 'Set review reminder',
+            onPressed: () => _pickReviewTime(context),
+          ),
+        ],
+      ),
+      body: chaptersAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Failed to load surahs\n$e')),
+        data: (chapters) => _buildList(context, chapters, memorized, ref),
+      ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    List<QuranChapter> chapters,
+    Set<int> memorized,
+    WidgetRef ref,
+  ) {
+    final total = chapters.length;
+    final progress = total == 0 ? 0.0 : memorized.length / total;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${memorized.length} of $total surahs memorized',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: chapters.length,
+            itemExtent: 64,
+            itemBuilder: (context, index) {
+              final chapter = chapters[index];
+              final isMemorized = memorized.contains(chapter.number);
+              return CheckboxListTile(
+                value: isMemorized,
+                onChanged: (_) =>
+                    ref.read(hifzProvider.notifier).toggle(chapter.number),
+                activeColor: AppColors.primary,
+                title: Text(chapter.englishName),
+                subtitle: Text('${chapter.numberOfAyahs} verses'),
+                secondary: Text('${chapter.number}'),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickReviewTime(BuildContext context) async {
+    final db = SettingsDatabase();
+    final current = await db.getTimeValue(_hifzReviewTimeKey);
+    if (!context.mounted) return;
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current ?? const TimeOfDay(hour: 20, minute: 0),
+    );
+    if (picked == null) return;
+
+    await db.setTimeValue(_hifzReviewTimeKey, picked);
+    await NotificationService().requestPermissions();
+    await NotificationService().scheduleDaily(
+      id: _hifzReviewNotificationId,
+      time: picked,
+      title: 'Hifz Review',
+      body: 'Time to review what you\'ve memorized',
+    );
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Daily review reminder scheduled')),
+    );
+  }
+}
