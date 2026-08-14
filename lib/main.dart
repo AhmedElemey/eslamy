@@ -6,7 +6,7 @@ import 'features/home/presentation/pages/home_page.dart';
 import 'features/error/presentation/pages/error_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
-import 'features/quran/presentation/pages/quran_chapters_page.dart';
+import 'features/quran/presentation/pages/quran_index_page.dart';
 import 'features/quran/presentation/pages/quran_test_page.dart';
 import 'dart:async';
 import 'core/localization/app_localizations.dart';
@@ -165,7 +165,7 @@ class MyApp extends ConsumerWidget {
         '/': (_) => const SplashPage(),
         '/home': (_) => const HomePage(),
         '/settings': (_) => const SettingsPage(),
-        '/quran': (_) => const QuranChaptersPage(),
+        '/quran': (_) => const QuranIndexPage(),
         '/quran-test': (_) => const QuranTestPage(),
         '/prayer-times': (_) => const PrayerTimesPage(),
         '/qibla': (_) => const QiblaPage(),

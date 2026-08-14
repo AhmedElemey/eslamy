@@ -11,10 +11,7 @@ import '../../../prayer_times/presentation/widgets/prayer_times_card.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
 import '../../../prayer_times/presentation/pages/prayer_times_page.dart';
 import '../../../quran/presentation/widgets/reciter_selection_widget.dart';
-import '../../../quran/presentation/widgets/juz_list.dart';
-import '../../../quran/presentation/widgets/quran_number_grid.dart';
-import '../../../quran/presentation/controllers/quran_providers.dart';
-import '../../../quran/presentation/pages/quran_chapter_detail_page.dart';
+import '../../../quran/presentation/pages/quran_index_page.dart';
 import '../../../streaks/presentation/controllers/streak_providers.dart';
 import '../../../hifz/presentation/pages/hifz_page.dart';
 import '../../../hifz/presentation/controllers/hifz_providers.dart';
@@ -35,41 +32,40 @@ class HomePage extends ConsumerWidget {
     final headingColor = isDark ? Colors.white : const Color(0xFF16231F);
     final hijriDate = ref.watch(prayerTimesProvider).timings?.hijriDate;
 
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        extendBody: true,
-        appBar: AppBar(
-          elevation: 0,
-          centerTitle: false,
-          titleSpacing: 0,
-          title: Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Text(
-              l10n.appTitle,
-              style: TextStyle(fontWeight: FontWeight.w800, color: headingColor),
-            ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Text(
+            l10n.appTitle,
+            style: TextStyle(fontWeight: FontWeight.w800, color: headingColor),
           ),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu_rounded, color: headingColor),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.settings, color: headingColor),
-              onPressed: () {
-                Navigator.of(context).pushNamed('/settings');
-              },
-            ),
-          ],
         ),
-        extendBodyBehindAppBar: true,
-        drawer: const AppDrawer(),
-        body: AppBackground(
-          child: SafeArea(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu_rounded, color: headingColor),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: headingColor),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/settings');
+            },
+          ),
+        ],
+      ),
+      extendBodyBehindAppBar: true,
+      drawer: const AppDrawer(),
+      body: AppBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -138,47 +134,18 @@ class HomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 const ReciterSelectionWidget(),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: TabBar(
-                    isScrollable: true,
-                    indicatorColor: AppColors.primary,
-                    labelColor: headingColor,
-                    unselectedLabelColor: textMuted,
-                    tabs: [
-                      Tab(text: l10n.tabSurah),
-                      Tab(text: l10n.tabPara),
-                      Tab(text: l10n.tabPage),
-                      Tab(text: l10n.tabHizb),
-                    ],
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _QuranIndexEntryCard(headingColor: headingColor, textMuted: textMuted),
                 ),
-                const SizedBox(height: 4),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _SurahList(),
-                      const JuzList(),
-                      QuranNumberGrid(
-                        count: 604,
-                        labelPrefix: l10n.tabPage,
-                        rangeProviderBuilder: (n) => quranPageProvider(n),
-                      ),
-                      QuranNumberGrid(
-                        count: 240,
-                        labelPrefix: l10n.tabHizb,
-                        rangeProviderBuilder: (n) => hizbQuarterProvider(n),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
         ),
-        bottomNavigationBar: const _HomeBottomDock(),
       ),
+      bottomNavigationBar: const _HomeBottomDock(),
     );
   }
 }
@@ -197,7 +164,8 @@ class _HomeBottomDock extends StatelessWidget {
     final l10n = context.l10n;
     final items = <(IconData, String, bool, VoidCallback?)>[
       (Icons.home_rounded, l10n.navHomeLabel, true, null),
-      (Icons.menu_book_rounded, l10n.navQuranLabel, false, () => Navigator.of(context).pushNamed('/quran')),
+      (Icons.menu_book_rounded, l10n.navQuranLabel, false,
+          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const QuranIndexPage()))),
       (Icons.explore_outlined, l10n.navQiblaLabel, false,
           () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const QiblaPage()))),
       (Icons.import_contacts_outlined, l10n.hadithLabel, false,
@@ -440,81 +408,56 @@ class _HifzStatTile extends ConsumerWidget {
   }
 }
 
-class _SurahList extends ConsumerWidget {
-  const _SurahList();
+/// Replaces the old inline Surah/Para/Page/Hizb tab strip that used to sit
+/// mid-scroll on Home — cramped, no search, four different content shapes
+/// squeezed under one Expanded. This is a single entry point into the new
+/// full-screen QuranIndexPage instead.
+class _QuranIndexEntryCard extends StatelessWidget {
+  const _QuranIndexEntryCard({required this.headingColor, required this.textMuted});
+
+  final Color headingColor;
+  final Color textMuted;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textMuted = Theme.of(context).textTheme.bodySmall?.color;
-    final l10n = context.l10n;
-    final chaptersAsync = ref.watch(chaptersProvider);
-
-    return chaptersAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text('Could not load surahs\n$e', textAlign: TextAlign.center),
-        ),
-      ),
-      data: (chapters) => ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-        itemCount: chapters.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          final chapter = chapters[i];
-          final origin = chapter.revelationType == 'Meccan'
-              ? l10n.quranOriginMeccan
-              : l10n.quranOriginMedinian;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  Widget build(BuildContext context) {
+    return GlassCard(
+      borderRadius: 20,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const QuranIndexPage()),
+        );
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black.withOpacity(0.06),
-              ),
+              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.violet]),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.violet],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+            child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Digital Mushaf',
+                  style: TextStyle(fontWeight: FontWeight.w800, color: headingColor, fontSize: 15),
                 ),
-                child: Text(
-                  '${chapter.number}',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                const SizedBox(height: 2),
+                Text(
+                  'Browse by Surah, Para, Page, or Hizb',
+                  style: TextStyle(color: textMuted, fontSize: 12),
                 ),
-              ),
-              title: Text(chapter.englishName, style: const TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text(
-                '$origin • ${l10n.versesCountCaps(chapter.numberOfAyahs)}',
-                style: TextStyle(color: textMuted),
-              ),
-              trailing: Text(
-                chapter.name,
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
-              ),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => QuranChapterDetailPage(
-                      chapterNumber: chapter.number,
-                      chapterName: chapter.englishName,
-                    ),
-                  ),
-                );
-              },
+              ],
             ),
-          );
-        },
+          ),
+          Icon(Icons.chevron_right_rounded, color: textMuted),
+        ],
       ),
     );
   }

@@ -7,20 +7,40 @@ import '../pages/quran_range_detail_page.dart';
 /// Dense numbered grid used for both mushaf pages (1..604) and Hizb
 /// quarters (1..240) — both are "just a number, tap to jump" ranges with
 /// too many entries to usefully show a subtitle per item (unlike Juz).
+/// [query] narrows the grid to numbers containing the typed digits (e.g.
+/// "5" matches 5, 15, 25, 50-59, ...) so jumping to a specific one doesn't
+/// require scrolling through hundreds of tiles.
 class QuranNumberGrid extends StatelessWidget {
   const QuranNumberGrid({
     super.key,
     required this.count,
     required this.labelPrefix,
     required this.rangeProviderBuilder,
+    this.query = '',
   });
 
   final int count;
   final String labelPrefix;
   final ProviderListenable<AsyncValue<List<AyahWithSurah>>> Function(int number) rangeProviderBuilder;
+  final String query;
 
   @override
   Widget build(BuildContext context) {
+    final q = query.trim();
+    final numbers = [
+      for (var n = 1; n <= count; n++)
+        if (q.isEmpty || '$n'.contains(q)) n,
+    ];
+
+    if (numbers.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('No $labelPrefix matches "$query"', textAlign: TextAlign.center),
+        ),
+      );
+    }
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -29,9 +49,9 @@ class QuranNumberGrid extends StatelessWidget {
         crossAxisSpacing: 10,
         childAspectRatio: 1,
       ),
-      itemCount: count,
+      itemCount: numbers.length,
       itemBuilder: (context, index) {
-        final number = index + 1;
+        final number = numbers[index];
         return _NumberTile(
           number: number,
           onTap: () {

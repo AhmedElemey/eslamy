@@ -11,7 +11,7 @@ import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../prayer_times/presentation/pages/prayer_times_page.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
-import '../../../quran/presentation/pages/quran_chapters_page.dart';
+import '../../../quran/presentation/pages/quran_index_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
 
@@ -59,7 +59,7 @@ class AppDrawer extends ConsumerWidget {
         _DrawerItem(
           Icons.menu_book_rounded,
           l10n.digitalMushaf,
-          () => const QuranChaptersPage(),
+          () => const QuranIndexPage(),
         ),
         _DrawerItem(
           Icons.school_outlined,
