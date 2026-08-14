@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/context_l10n_extension.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/hadith/models/hadith.dart';
 
@@ -31,7 +32,7 @@ class ShareableHadithCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (hadith.narrator != null && hadith.narrator!.isNotEmpty) ...[
             Text(
-              'Narrated ${hadith.narrator}',
+              context.l10n.narratedBy(hadith.narrator!),
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
@@ -68,9 +69,9 @@ class ShareableHadithCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Text(
-                'Eslamy',
-                style: TextStyle(
+              Text(
+                context.l10n.appTitle,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,

@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../hadith/presentation/pages/hadith_books_page.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
+import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../prayer_times/presentation/widgets/prayer_times_card.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
+import '../../../prayer_times/presentation/pages/prayer_times_page.dart';
 import '../../../quran/presentation/widgets/reciter_selection_widget.dart';
+import '../../../quran/presentation/widgets/juz_list.dart';
+import '../../../quran/presentation/widgets/quran_number_grid.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
+import '../../../quran/presentation/pages/quran_chapter_detail_page.dart';
 import '../../../streaks/presentation/controllers/streak_providers.dart';
 import '../../../hifz/presentation/pages/hifz_page.dart';
 import '../../../hifz/presentation/controllers/hifz_providers.dart';
+import '../../../tasbih/presentation/pages/tasbih_page.dart';
+import '../../../duas/presentation/pages/azkar_categories_page.dart';
+import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
+import '../widgets/app_drawer.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,9 +29,11 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final isDark = theme.brightness == Brightness.dark;
     final textMuted = isDark ? Colors.white60 : AppColors.muted;
     final headingColor = isDark ? Colors.white : const Color(0xFF16231F);
+    final hijriDate = ref.watch(prayerTimesProvider).timings?.hijriDate;
 
     return DefaultTabController(
       length: 4,
@@ -34,13 +47,15 @@ class HomePage extends ConsumerWidget {
           title: Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Text(
-              'Eslamy',
+              l10n.appTitle,
               style: TextStyle(fontWeight: FontWeight.w800, color: headingColor),
             ),
           ),
-          leading: IconButton(
-            icon: Icon(Icons.menu_rounded, color: headingColor),
-            onPressed: () {},
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.menu_rounded, color: headingColor),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
           ),
           actions: [
             IconButton(
@@ -52,6 +67,7 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         extendBodyBehindAppBar: true,
+        drawer: const AppDrawer(),
         body: AppBackground(
           child: SafeArea(
             child: Column(
@@ -65,7 +81,7 @@ class HomePage extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        'ASSALAMU ALAIKUM',
+                        l10n.homeGreetingAssalamuAlaikum,
                         style: TextStyle(
                           color: AppColors.gold,
                           fontSize: 12,
@@ -74,12 +90,30 @@ class HomePage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Welcome back',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: headingColor,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            l10n.homeWelcomeBack,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: headingColor,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (hijriDate != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                hijriDate,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -90,6 +124,8 @@ class HomePage extends ConsumerWidget {
                   child: const PrayerTimesCard(),
                 ),
                 const SizedBox(height: 12),
+                const _QuickAccessRow(),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -110,11 +146,11 @@ class HomePage extends ConsumerWidget {
                     indicatorColor: AppColors.primary,
                     labelColor: headingColor,
                     unselectedLabelColor: textMuted,
-                    tabs: const [
-                      Tab(text: 'Surah'),
-                      Tab(text: 'Para'),
-                      Tab(text: 'Page'),
-                      Tab(text: 'Hijb'),
+                    tabs: [
+                      Tab(text: l10n.tabSurah),
+                      Tab(text: l10n.tabPara),
+                      Tab(text: l10n.tabPage),
+                      Tab(text: l10n.tabHizb),
                     ],
                   ),
                 ),
@@ -123,9 +159,17 @@ class HomePage extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       _SurahList(),
-                      const Center(child: Text('Para')),
-                      const Center(child: Text('Page')),
-                      const Center(child: Text('Hijb')),
+                      const JuzList(),
+                      QuranNumberGrid(
+                        count: 604,
+                        labelPrefix: l10n.tabPage,
+                        rangeProviderBuilder: (n) => quranPageProvider(n),
+                      ),
+                      QuranNumberGrid(
+                        count: 240,
+                        labelPrefix: l10n.tabHizb,
+                        rangeProviderBuilder: (n) => hizbQuarterProvider(n),
+                      ),
                     ],
                   ),
                 ),
@@ -133,60 +177,179 @@ class HomePage extends ConsumerWidget {
             ),
           ),
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: GlassCard(
-            borderRadius: 28,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.bookmarks_outlined, color: textMuted),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const FavoritesPage(),
-                      ),
-                    );
-                  },
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const HadithBooksPage(),
-                      ),
-                    );
-                  },
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.violet],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: Icon(Icons.menu_book_rounded, color: AppColors.white),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.explore_outlined, color: textMuted),
-                  tooltip: 'Qibla direction',
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const QiblaPage()),
-                    );
-                  },
-                ),
-              ],
+        bottomNavigationBar: const _HomeBottomDock(),
+      ),
+    );
+  }
+}
+
+/// The floating quick-access dock at the bottom of Home. Redesigned from a
+/// 3-item icon-only row (with one oversized "hero" circle) to a labelled
+/// 5-item dock with an explicit "Home" active state, so it reads as an
+/// anchored navigation surface rather than a handful of loose shortcuts —
+/// and so it complements (rather than duplicates) the Quick Access row
+/// above, which already covers Tasbih/Duas & Azkar/Hijri/Prayer Times.
+class _HomeBottomDock extends StatelessWidget {
+  const _HomeBottomDock();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = <(IconData, String, bool, VoidCallback?)>[
+      (Icons.home_rounded, l10n.navHomeLabel, true, null),
+      (Icons.menu_book_rounded, l10n.navQuranLabel, false, () => Navigator.of(context).pushNamed('/quran')),
+      (Icons.explore_outlined, l10n.navQiblaLabel, false,
+          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const QiblaPage()))),
+      (Icons.import_contacts_outlined, l10n.hadithLabel, false,
+          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HadithBooksPage()))),
+      (Icons.bookmarks_outlined, l10n.favoritesTitle, false,
+          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FavoritesPage()))),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: GlassCard(
+        borderRadius: 26,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            for (final item in items)
+              _DockItem(icon: item.$1, label: item.$2, selected: item.$3, onTap: item.$4),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DockItem extends StatelessWidget {
+  const _DockItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primary : AppColors.muted;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              height: 1.1,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
             ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Surfaces the features that would otherwise be buried in the drawer —
+/// Tasbih, Duas & Azkar, and Hijri Calendar have no other entry point from
+/// Home, so they get top-level real estate here.
+class _QuickAccessRow extends StatelessWidget {
+  const _QuickAccessRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = <(IconData, String, Color, WidgetBuilder)>[
+      (Icons.fingerprint_rounded, l10n.quickAccessTasbih, AppColors.primary, (_) => const TasbihPage()),
+      (Icons.auto_awesome_outlined, l10n.duasAzkarTitle, AppColors.gold, (_) => const AzkarCategoriesPage()),
+      (Icons.calendar_month_outlined, l10n.hijriCalendarTitle, AppColors.violet, (_) => const HijriCalendarPage()),
+      (Icons.access_time_rounded, l10n.prayerTimesTitle, AppColors.primaryDeep, (_) => const PrayerTimesPage()),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          for (final item in items) ...[
+            Expanded(
+              child: _QuickAccessTile(
+                icon: item.$1,
+                label: item.$2,
+                color: item.$3,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: item.$4)),
+              ),
+            ),
+            if (item != items.last) const SizedBox(width: 10),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAccessTile extends StatelessWidget {
+  const _QuickAccessTile({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -251,8 +414,8 @@ class _StreakStatTile extends ConsumerWidget {
     final streak = ref.watch(streakProvider).currentStreak;
     return _StatTile(
       icon: const Text('🔥', style: TextStyle(fontSize: 20)),
-      value: '$streak day${streak == 1 ? '' : 's'}',
-      label: 'streak',
+      value: context.l10n.streakDaysShort(streak),
+      label: context.l10n.streakStatLabel,
       onTap: () {},
     );
   }
@@ -266,8 +429,8 @@ class _HifzStatTile extends ConsumerWidget {
     final memorized = ref.watch(hifzProvider).length;
     return _StatTile(
       icon: const Icon(Icons.school_outlined, color: AppColors.primary, size: 22),
-      value: '$memorized / 114',
-      label: 'memorized',
+      value: context.l10n.memorizedOutOfTotal(memorized, 114),
+      label: context.l10n.memorizedStatLabel,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const HifzPage()),
@@ -277,64 +440,82 @@ class _HifzStatTile extends ConsumerWidget {
   }
 }
 
-class _SurahList extends StatelessWidget {
+class _SurahList extends ConsumerWidget {
   const _SurahList();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textMuted = Theme.of(context).textTheme.bodySmall?.color;
-    final items = const [
-      ['1', 'Al-Fatiah', 'MECCAN • 7 VERSES', 'الفاتحة'],
-      ['2', 'Al-Baqarah', 'MEDINIAN • 286 VERSES', 'البقرة'],
-      ['3', "Ali 'Imran", 'MECCAN • 200 VERSES', 'آل عمران'],
-      ['4', 'An-Nisa', 'MECCAN • 176 VERSES', 'النساء'],
-    ];
+    final l10n = context.l10n;
+    final chaptersAsync = ref.watch(chaptersProvider);
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) {
-        final s = items[i];
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? Colors.white12 : Colors.black.withOpacity(0.06),
+    return chaptersAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Could not load surahs\n$e', textAlign: TextAlign.center),
+        ),
+      ),
+      data: (chapters) => ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        itemCount: chapters.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (_, i) {
+          final chapter = chapters[i];
+          final origin = chapter.revelationType == 'Meccan'
+              ? l10n.quranOriginMeccan
+              : l10n.quranOriginMedinian;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.black.withOpacity(0.06),
+              ),
             ),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.violet],
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.violet],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
+                child: Text(
+                  '${chapter.number}',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                ),
               ),
-              child: Text(
-                s[0],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              title: Text(chapter.englishName, style: const TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: Text(
+                '$origin • ${l10n.versesCountCaps(chapter.numberOfAyahs)}',
+                style: TextStyle(color: textMuted),
               ),
+              trailing: Text(
+                chapter.name,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => QuranChapterDetailPage(
+                      chapterNumber: chapter.number,
+                      chapterName: chapter.englishName,
+                    ),
+                  ),
+                );
+              },
             ),
-            title: Text(s[1], style: const TextStyle(fontWeight: FontWeight.w700)),
-            subtitle: Text(s[2], style: TextStyle(color: textMuted)),
-            trailing: Text(
-              s[3],
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
-            ),
-            onTap: () {
-              Navigator.of(context).pushNamed('/quran');
-            },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

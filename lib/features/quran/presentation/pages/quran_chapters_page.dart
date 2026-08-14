@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../controllers/quran_providers.dart';
 import 'quran_chapter_detail_page.dart';
 
@@ -82,9 +83,9 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Loading audio...'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.loadingAudio),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -95,12 +96,12 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
       debugPrint(
         'Selected reciter for chapter audio: ${selectedReciter?.name} (${selectedReciter?.relativePath})',
       );
-      
+
       // Show reciter info in snackbar for debugging
       if (mounted && selectedReciter != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Playing chapter with reciter: ${selectedReciter.name}'),
+            content: Text(context.l10n.playingChapterWithReciter(selectedReciter.name)),
             duration: const Duration(seconds: 2),
             backgroundColor: Colors.blue,
           ),
@@ -123,7 +124,9 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Real audio not available, playing test audio. Reciter: ${selectedReciter?.name}'),
+              content: Text(
+                context.l10n.realAudioNotAvailableReciter(selectedReciter?.name ?? ''),
+              ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.orange,
             ),
@@ -146,7 +149,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Audio playback error: $e'),
+              content: Text(context.l10n.audioPlaybackErrorWithError(e.toString())),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.red,
             ),
@@ -163,7 +166,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Playing Chapter $chapterNumber audio'),
+            content: Text(context.l10n.playingChapterNumberAudio(chapterNumber)),
             duration: const Duration(seconds: 2),
             backgroundColor: Colors.green,
           ),
@@ -174,10 +177,10 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to play audio. Please try again.'),
+            content: Text(context.l10n.failedToPlayAudioRetry),
             backgroundColor: Colors.red,
             action: SnackBarAction(
-              label: 'Retry',
+              label: context.l10n.retryAction,
               textColor: Colors.white,
               onPressed: () => _playChapterAudio(chapterNumber),
             ),
@@ -226,7 +229,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Auto-advancing to Chapter ${nextChapter.number}: ${nextChapter.englishName}',
+                context.l10n.autoAdvancingToChapter(nextChapter.number, nextChapter.englishName),
               ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.blue,
@@ -244,9 +247,9 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
         // No more chapters, show completion message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('All chapters completed!'),
-              duration: Duration(seconds: 3),
+            SnackBar(
+              content: Text(context.l10n.allChaptersCompleted),
+              duration: const Duration(seconds: 3),
               backgroundColor: Colors.green,
             ),
           );
@@ -264,22 +267,23 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
   @override
   Widget build(BuildContext context) {
     final chaptersAsync = ref.watch(chaptersProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quran Chapters'),
+        title: Text(l10n.quranChaptersTitle),
         centerTitle: true,
         actions: [
           if (_isPlaying) ...[
             IconButton(
               icon: const Icon(Icons.pause),
               onPressed: _pauseAudio,
-              tooltip: 'Pause Audio',
+              tooltip: l10n.pauseAudioTooltip,
             ),
             IconButton(
               icon: const Icon(Icons.stop),
               onPressed: _stopAudio,
-              tooltip: 'Stop Audio',
+              tooltip: l10n.stopAudioTooltip,
             ),
           ],
         ],
@@ -313,8 +317,8 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
                             const SizedBox(width: 8),
                             Text(
                               _currentChapterNumber != null
-                                  ? 'Chapter $_currentChapterNumber Audio'
-                                  : 'Audio Player',
+                                  ? l10n.chapterNumberAudioLabel(_currentChapterNumber!)
+                                  : l10n.audioPlayerLabel,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -435,7 +439,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${chapter.numberOfAyahs} verses • ${chapter.revelationType}',
+                                l10n.versesCountRevelationType(chapter.numberOfAyahs, chapter.revelationType),
                                 style: TextStyle(
                                   color:
                                       isCurrentChapter
@@ -463,8 +467,8 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
                                     () => _playChapterAudio(chapter.number),
                                 tooltip:
                                     isCurrentChapter && _isPlaying
-                                        ? 'Pause Audio'
-                                        : 'Play Audio',
+                                        ? l10n.pauseAudioTooltip
+                                        : l10n.playAudioTooltip,
                               ),
                               Icon(
                                 Icons.arrow_forward_ios,
@@ -503,7 +507,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
                   const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
-                    'Failed to load chapters',
+                    l10n.failedToLoadChapters,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
@@ -515,7 +519,7 @@ class _QuranChaptersPageState extends ConsumerState<QuranChaptersPage> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.refresh(chaptersProvider),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),

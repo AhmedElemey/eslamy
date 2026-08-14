@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 
 class ErrorPage extends StatelessWidget {
   final String? message;
@@ -9,9 +10,10 @@ class ErrorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final displayMessage = message ?? 'Something went wrong';
+    final l10n = context.l10n;
+    final displayMessage = message ?? l10n.somethingWentWrongGeneric;
     return Scaffold(
-      appBar: AppBar(title: const Text('Error')),
+      appBar: AppBar(title: Text(l10n.errorPageTitle)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -26,7 +28,7 @@ class ErrorPage extends StatelessWidget {
                     size: 32,
                   ),
                   const SizedBox(width: 12),
-                  Text('An error occurred', style: theme.textTheme.titleLarge),
+                  Text(l10n.errorOccurredTitle, style: theme.textTheme.titleLarge),
                 ],
               ),
               const SizedBox(height: 16),
@@ -54,7 +56,7 @@ class ErrorPage extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).maybePop(),
-                      child: const Text('Go Back'),
+                      child: Text(l10n.goBack),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -65,7 +67,7 @@ class ErrorPage extends StatelessWidget {
                           context,
                         ).pushNamedAndRemoveUntil('/home', (_) => false);
                       },
-                      child: const Text('Go Home'),
+                      child: Text(l10n.goHome),
                     ),
                   ),
                 ],

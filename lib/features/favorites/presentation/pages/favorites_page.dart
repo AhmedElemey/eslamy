@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/favorites_providers.dart';
 import '../../models/favorite_hadith.dart';
 import '../../../hadith/presentation/widgets/hadith_share_sheet.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 
@@ -28,6 +29,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     const primary = AppColors.primary;
     final state = ref.watch(favoritesProvider);
     final notifier = ref.read(favoritesProvider.notifier);
+    final l10n = context.l10n;
 
     final textColor = Theme.of(context).textTheme.titleMedium?.color;
 
@@ -40,9 +42,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Favorites',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        title: Text(
+          l10n.favoritesTitle,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         actions: [
           if (state.favorites.isNotEmpty)
@@ -75,7 +77,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Bookmarked Hadiths',
+                            l10n.bookmarkedHadiths,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -84,7 +86,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${state.favorites.length} hadiths saved',
+                            l10n.hadithsSavedCount(state.favorites.length),
                             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                           ),
                         ],
@@ -153,7 +155,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Something went wrong',
+              context.l10n.somethingWentWrongGeneric,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -162,7 +164,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Failed to load your favorites',
+              context.l10n.failedToLoadFavorites,
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
@@ -170,7 +172,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ElevatedButton.icon(
               onPressed: () => notifier.loadFavorites(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -210,7 +212,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              'No favorites yet',
+              context.l10n.noFavoritesYetTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -219,7 +221,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Start bookmarking hadiths you love\nand they\'ll appear here',
+              context.l10n.noFavoritesYetBody,
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
@@ -354,15 +356,16 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
+    final l10n = context.l10n;
 
     if (difference.inDays > 7) {
       return '${date.day}/${date.month}/${date.year}';
     } else if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+      return l10n.daysAgo(difference.inDays);
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+      return l10n.hoursAgo(difference.inHours);
     } else {
-      return 'Just now';
+      return l10n.justNow;
     }
   }
 
@@ -374,7 +377,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Removed from favorites'),
+          content: Text(context.l10n.removedFromFavorites),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -385,23 +388,22 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     BuildContext context,
     FavoritesNotifier notifier,
   ) async {
+    final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Clear All Favorites'),
-            content: const Text(
-              'Are you sure you want to remove all your favorite hadiths? This action cannot be undone.',
-            ),
+            title: Text(l10n.clearAllFavoritesTitle),
+            content: Text(l10n.clearAllFavoritesBody),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Clear All'),
+                child: Text(l10n.clearAllButton),
               ),
             ],
           ),
@@ -409,9 +411,10 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
 
     if (result == true && mounted) {
       await notifier.clearAllFavorites();
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('All favorites cleared'),
+          content: Text(l10n.allFavoritesCleared),
           backgroundColor: AppColors.primary,
         ),
       );

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
+import '../../models/quran_models.dart';
 import '../controllers/quran_providers.dart';
+import '../widgets/tajweed_legend_sheet.dart';
+import '../widgets/tajweed_text.dart';
 
 class QuranVerseDetailPage extends ConsumerStatefulWidget {
   final int chapterNumber;
@@ -21,10 +25,16 @@ class QuranVerseDetailPage extends ConsumerStatefulWidget {
 }
 
 class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
+  // Practice-loop repeat counts offered next to the player; null means loop
+  // indefinitely until the user stops it.
+  static const List<int?> _repeatOptions = [1, 3, 5, 10, null];
+
   late AudioPlayer _audioPlayer;
   bool _isPlaying = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
+  int? _repeatTarget = 1;
+  int _repeatCount = 0;
 
   @override
   void initState() {
@@ -40,13 +50,23 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
           _isPlaying = state.playing;
         });
 
-        // Reset position to start when playback completes
+        // On completion, either loop back for the practice repeat count or
+        // reset to the start like before.
         if (state.processingState == ProcessingState.completed) {
-          _audioPlayer.seek(Duration.zero);
-          setState(() {
-            _position = Duration.zero;
-            _isPlaying = false;
-          });
+          final target = _repeatTarget;
+          final shouldRepeatAgain = target == null || _repeatCount + 1 < target;
+          if (shouldRepeatAgain) {
+            _repeatCount++;
+            _audioPlayer.seek(Duration.zero);
+            _audioPlayer.play();
+          } else {
+            _audioPlayer.seek(Duration.zero);
+            setState(() {
+              _position = Duration.zero;
+              _isPlaying = false;
+              _repeatCount = 0;
+            });
+          }
         }
       }
     });
@@ -85,13 +105,14 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
       // Stop any current audio before starting new
       await _stopAudio();
+      _repeatCount = 0;
 
       // Show loading indicator
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Loading audio...'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.loadingAudio),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -102,12 +123,12 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       debugPrint(
         'Selected reciter for audio: ${selectedReciter?.name} (${selectedReciter?.relativePath})',
       );
-      
+
       // Show reciter info in snackbar for debugging
       if (mounted && selectedReciter != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Playing with reciter: ${selectedReciter.name}'),
+            content: Text(context.l10n.playingWithReciter(selectedReciter.name)),
             duration: const Duration(seconds: 2),
             backgroundColor: Colors.blue,
           ),
@@ -130,7 +151,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Real audio not available, playing test audio. Reciter: ${selectedReciter?.name}'),
+              content: Text(
+                context.l10n.realAudioNotAvailableReciter(selectedReciter?.name ?? ''),
+              ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.orange,
             ),
@@ -156,7 +179,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Audio playback error: $e'),
+              content: Text(context.l10n.audioPlaybackErrorWithError(e.toString())),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.red,
             ),
@@ -167,9 +190,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Audio started playing'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.audioStartedPlaying),
+            duration: const Duration(seconds: 2),
             backgroundColor: Colors.green,
           ),
         );
@@ -179,10 +202,10 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to play audio. Please try again.'),
+            content: Text(context.l10n.failedToPlayAudioRetry),
             backgroundColor: Colors.red,
             action: SnackBarAction(
-              label: 'Retry',
+              label: context.l10n.retryAction,
               textColor: Colors.white,
               onPressed: _playAudio,
             ),
@@ -198,6 +221,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
   Future<void> _stopAudio() async {
     await _audioPlayer.stop();
+    _repeatCount = 0;
   }
 
   @override
@@ -214,13 +238,43 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
         verseNumber: widget.verseNumber,
       )),
     );
+    final l10n = context.l10n;
+    final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
+    final tajweedAsync =
+        tajweedEnabled
+            ? ref.watch(chapterTajweedProvider(widget.chapterNumber))
+            : null;
+    final tajweedVerseText = tajweedAsync?.maybeWhen(
+      data: (r) {
+        for (final v in r.data.ayahs ?? const <QuranVerse>[]) {
+          if (v.numberInSurah == widget.verseNumber) return v.text;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Chapter ${widget.chapterNumber}, Verse ${widget.verseNumber}',
-        ),
+        title: Text(l10n.chapterVerseTitle(widget.chapterNumber, widget.verseNumber)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              tajweedEnabled ? Icons.format_color_text : Icons.format_color_reset,
+            ),
+            onPressed:
+                () => ref
+                    .read(tajweedColoringEnabledProvider.notifier)
+                    .setEnabled(!tajweedEnabled),
+            tooltip: l10n.toggleTajweedColoringTooltip,
+          ),
+          IconButton(
+            icon: const Icon(Icons.palette_outlined),
+            onPressed: () => showTajweedLegendSheet(context),
+            tooltip: l10n.tajweedLegendTitle,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -249,7 +303,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Chapter ${widget.chapterNumber}, Verse ${widget.verseNumber}',
+                            l10n.chapterVerseTitle(widget.chapterNumber, widget.verseNumber),
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
@@ -257,12 +311,17 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      widget.verseText,
-                      style: const TextStyle(fontSize: 20, height: 1.8),
-                      textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.right,
-                    ),
+                    tajweedVerseText != null
+                        ? TajweedText(
+                          text: tajweedVerseText,
+                          style: const TextStyle(fontSize: 20, height: 1.8),
+                        )
+                        : Text(
+                          widget.verseText,
+                          style: const TextStyle(fontSize: 20, height: 1.8),
+                          textDirection: TextDirection.rtl,
+                          textAlign: TextAlign.right,
+                        ),
                   ],
                 ),
               ),
@@ -278,7 +337,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Audio Recitation',
+                      l10n.audioRecitationLabel,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -336,12 +395,32 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                 ),
                               ] else
                                 Text(
-                                  'Tap play to load audio',
+                                  l10n.tapPlayToLoadAudio,
                                   style: TextStyle(color: Colors.grey[600]),
                                 ),
                             ],
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.repeatPracticeLabel,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final option in _repeatOptions)
+                          ChoiceChip(
+                            label: Text(option == null ? '∞' : '$option×'),
+                            selected: _repeatTarget == option,
+                            onSelected:
+                                (_) => setState(() => _repeatTarget = option),
+                          ),
                       ],
                     ),
                   ],
@@ -359,27 +438,20 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tafseer (Interpretation)',
+                      l10n.tafseerInterpretationLabel,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
                     tafseerAsync.when(
-                      data: (tafseerResponse) {
-                        if (tafseerResponse.data.ayahs == null ||
-                            tafseerResponse.data.ayahs!.isEmpty) {
+                      data: (tafsir) {
+                        if (tafsir.text.isEmpty) {
                           return Text(
-                            'No tafseer available for this verse.',
+                            l10n.noTafseerAvailable,
                             style: TextStyle(color: Colors.grey[600]),
                           );
                         }
-
-                        // Find the specific verse
-                        final verse = tafseerResponse.data.ayahs!.firstWhere(
-                          (ayah) => ayah.numberInSurah == widget.verseNumber,
-                          orElse: () => tafseerResponse.data.ayahs!.first,
-                        );
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -393,7 +465,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Tafseer (Muyassar)',
+                                tafsir.editionName,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -401,7 +473,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                verse.text,
+                                tafsir.text,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   height: 1.5,
@@ -437,7 +509,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Failed to load tafseer',
+                                  l10n.failedToLoadTafseer,
                                   style: TextStyle(
                                     color: Colors.red[600],
                                     fontWeight: FontWeight.bold,
@@ -465,7 +537,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                     backgroundColor: Colors.red[600],
                                     foregroundColor: Colors.white,
                                   ),
-                                  child: const Text('Retry'),
+                                  child: Text(l10n.retry),
                                 ),
                               ],
                             ),

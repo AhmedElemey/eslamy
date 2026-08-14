@@ -1,13 +1,49 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
+import '../controllers/language_providers.dart';
 import '../controllers/settings_providers.dart';
 import '../controllers/theme_mode_providers.dart';
 import '../../service/settings_database.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/notifications/notification_service.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+
+/// Icon-badge + title used at the top of every settings card, matching the
+/// icon-in-rounded-box language used in the drawer and quick-access tiles.
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 17),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+        ),
+      ],
+    );
+  }
+}
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -16,12 +52,34 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textSize = ref.watch(textSizeProvider);
     final themeModeAsync = ref.watch(themeModeProvider);
+    final languageAsync = ref.watch(languageProvider);
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.violet],
+                ),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Icon(Icons.mosque, color: Colors.white, size: 16),
+            ),
+            const SizedBox(width: 10),
+            Text(l10n.settingsTitle),
+          ],
+        ),
+      ),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -31,25 +89,25 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Appearance', style: theme.textTheme.titleMedium),
+                    _SectionHeader(icon: Icons.brightness_6_outlined, title: l10n.sectionAppearance),
                     const SizedBox(height: 12),
                     themeModeAsync.when(
                       data: (mode) => SegmentedButton<ThemeMode>(
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: ThemeMode.system,
-                            label: Text('System'),
-                            icon: Icon(Icons.brightness_auto),
+                            label: Text(l10n.themeSystem),
+                            icon: const Icon(Icons.brightness_auto),
                           ),
                           ButtonSegment(
                             value: ThemeMode.light,
-                            label: Text('Light'),
-                            icon: Icon(Icons.light_mode),
+                            label: Text(l10n.themeLight),
+                            icon: const Icon(Icons.light_mode),
                           ),
                           ButtonSegment(
                             value: ThemeMode.dark,
-                            label: Text('Dark'),
-                            icon: Icon(Icons.dark_mode),
+                            label: Text(l10n.themeDark),
+                            icon: const Icon(Icons.dark_mode),
                           ),
                         ],
                         selected: {mode},
@@ -60,7 +118,7 @@ class SettingsPage extends ConsumerWidget {
                         },
                       ),
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => Text('Error: $e'),
+                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
                     ),
                   ],
                 ),
@@ -70,9 +128,42 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Text size', style: theme.textTheme.titleMedium),
+                    _SectionHeader(icon: Icons.translate_rounded, title: l10n.sectionLanguage),
+                    const SizedBox(height: 12),
+                    languageAsync.when(
+                      data: (language) => SegmentedButton<AppLanguage>(
+                        segments: [
+                          ButtonSegment(
+                            value: AppLanguage.english,
+                            label: Text(l10n.languageEnglish),
+                          ),
+                          ButtonSegment(
+                            value: AppLanguage.arabic,
+                            label: Text(l10n.languageArabic),
+                          ),
+                        ],
+                        selected: {language},
+                        onSelectionChanged: (selection) {
+                          ref
+                              .read(languageProvider.notifier)
+                              .setLanguage(selection.first);
+                        },
+                      ),
+                      loading: () => const CircularProgressIndicator(),
+                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionHeader(icon: Icons.format_size_rounded, title: l10n.sectionTextSize),
+                    const SizedBox(height: 4),
                     Text(
-                      'Adjust the text size across the app. 0 is default.',
+                      l10n.textSizeDescription,
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
@@ -108,7 +199,7 @@ class SettingsPage extends ConsumerWidget {
                         );
                       },
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => Text('Error: $e'),
+                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
                     ),
                   ],
                 ),
@@ -118,7 +209,7 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Daily Werd time', style: theme.textTheme.titleMedium),
+                    _SectionHeader(icon: Icons.auto_stories_outlined, title: l10n.sectionDailyWerdTime),
                     const SizedBox(height: 8),
                     FutureBuilder<TimeOfDay?>(
                       future: SettingsDatabase().getWerdTime(),
@@ -139,15 +230,13 @@ class SettingsPage extends ConsumerWidget {
                                     await NotificationService().requestPermissions();
                                     await NotificationService().scheduleDaily(
                                       time: picked,
-                                      title: 'Daily Werd',
-                                      body: 'It\'s time for your daily werd',
+                                      title: l10n.sectionDailyWerdTime,
+                                      body: l10n.werdTimeSavedAndScheduled,
                                     );
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Werd time saved and scheduled',
-                                        ),
+                                      SnackBar(
+                                        content: Text(l10n.werdTimeSavedAndScheduled),
                                       ),
                                     );
                                   }
@@ -155,7 +244,7 @@ class SettingsPage extends ConsumerWidget {
                                 child: Text(
                                   current != null
                                       ? '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}'
-                                      : 'Pick time',
+                                      : l10n.pickTime,
                                 ),
                               ),
                             ),
@@ -167,18 +256,18 @@ class SettingsPage extends ConsumerWidget {
                                 if (t != null) {
                                   await NotificationService().scheduleDaily(
                                     time: t,
-                                    title: 'Daily Werd',
-                                    body: 'It\'s time for your daily werd',
+                                    title: l10n.sectionDailyWerdTime,
+                                    body: l10n.werdTimeSavedAndScheduled,
                                   );
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Reminder scheduled'),
+                                    SnackBar(
+                                      content: Text(l10n.reminderScheduled),
                                     ),
                                   );
                                 }
                               },
-                              child: const Text('Schedule'),
+                              child: Text(l10n.scheduleButton),
                             ),
                             const SizedBox(width: 12),
                             OutlinedButton(
@@ -190,20 +279,18 @@ class SettingsPage extends ConsumerWidget {
                                 if (!enabled) {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Notifications are disabled. Enable them in system settings.',
-                                      ),
+                                    SnackBar(
+                                      content: Text(l10n.notificationsDisabledMessage),
                                     ),
                                   );
                                   return;
                                 }
                                 await NotificationService().showNow(
-                                  title: 'Test Notification',
-                                  body: 'If you see this, notifications work',
+                                  title: l10n.testNotificationTitle,
+                                  body: l10n.testNotificationBody,
                                 );
                               },
-                              child: const Text('Test now'),
+                              child: Text(l10n.testNowButton),
                             ),
                           ],
                         );
@@ -217,9 +304,25 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _SectionHeader(icon: Icons.mosque, title: l10n.adhanAlertsTitle),
+                    const SizedBox(height: 4),
                     Text(
-                      'Push notifications (FCM)',
-                      style: theme.textTheme.titleMedium,
+                      l10n.adhanAlertsDescription,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    const _AdhanToggleRow(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionHeader(
+                      icon: Icons.notifications_active_outlined,
+                      title: l10n.sectionPushNotificationsFcm,
                     ),
                     const SizedBox(height: 8),
                     FutureBuilder<String?>(
@@ -227,12 +330,10 @@ class SettingsPage extends ConsumerWidget {
                       builder: (context, snap) {
                         final token = snap.data;
                         if (snap.connectionState == ConnectionState.waiting) {
-                          return const Text('Fetching FCM token...');
+                          return Text(l10n.fetchingFcmToken);
                         }
                         if (token == null || token.isEmpty) {
-                          return const Text(
-                            'No token yet. Ensure notifications are allowed.',
-                          );
+                          return Text(l10n.noFcmTokenYet);
                         }
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,10 +345,10 @@ class SettingsPage extends ConsumerWidget {
                                 await Clipboard.setData(ClipboardData(text: token));
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Token copied')),
+                                  SnackBar(content: Text(l10n.tokenCopied)),
                                 );
                               },
-                              child: const Text('Copy token'),
+                              child: Text(l10n.copyTokenButton),
                             ),
                           ],
                         );
@@ -260,6 +361,107 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AdhanToggleRow extends StatefulWidget {
+  const _AdhanToggleRow();
+
+  @override
+  State<_AdhanToggleRow> createState() => _AdhanToggleRowState();
+}
+
+class _AdhanToggleRowState extends State<_AdhanToggleRow> {
+  bool? _enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    SettingsDatabase().getAdhanEnabled().then((value) {
+      if (!mounted) return;
+      setState(() => _enabled = value);
+    });
+  }
+
+  Future<void> _onChanged(bool value) async {
+    setState(() => _enabled = value);
+    await SettingsDatabase().setAdhanEnabled(value);
+    if (value) {
+      await NotificationService().requestPermissions();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = _enabled ?? true;
+    return Row(
+      children: [
+        Expanded(
+          child: SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.enabledLabel),
+            value: enabled,
+            onChanged: _enabled == null ? null : _onChanged,
+          ),
+        ),
+        const _AdhanPreviewButton(),
+      ],
+    );
+  }
+}
+
+/// Plays a short preview of the bundled adhan recording using its own
+/// AudioPlayer instance (kept separate from the Quran feature's shared
+/// player) so it doesn't interfere with any Quran playback in progress.
+class _AdhanPreviewButton extends StatefulWidget {
+  const _AdhanPreviewButton();
+
+  @override
+  State<_AdhanPreviewButton> createState() => _AdhanPreviewButtonState();
+}
+
+class _AdhanPreviewButtonState extends State<_AdhanPreviewButton> {
+  final _player = AudioPlayer();
+  StreamSubscription<PlayerState>? _stateSubscription;
+  bool _playing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _stateSubscription = _player.playerStateStream.listen((state) {
+      if (!mounted) return;
+      if (state.processingState == ProcessingState.completed) {
+        setState(() => _playing = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _stateSubscription?.cancel();
+    _player.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggle() async {
+    if (_playing) {
+      await _player.stop();
+      if (!mounted) return;
+      setState(() => _playing = false);
+      return;
+    }
+    setState(() => _playing = true);
+    await _player.setAsset('assets/audio/adhan_alafasy.mp3');
+    await _player.play();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: _playing ? context.l10n.stopTooltip : context.l10n.previewTooltip,
+      icon: Icon(_playing ? Icons.stop_circle_outlined : Icons.play_circle_outline),
+      onPressed: _toggle,
     );
   }
 }

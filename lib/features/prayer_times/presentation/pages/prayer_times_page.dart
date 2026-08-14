@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../controllers/prayer_times_providers.dart';
+import '../widgets/prayer_name_localizer.dart';
 import 'qibla_page.dart';
 
 const _prayerIcons = {
@@ -21,16 +23,17 @@ class PrayerTimesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(prayerTimesProvider);
     final notifier = ref.read(prayerTimesProvider.notifier);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Prayer Times'),
+        title: Text(l10n.prayerTimesTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.explore_outlined),
-            tooltip: 'Qibla direction',
+            tooltip: l10n.qiblaDirectionTooltip,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const QiblaPage()),
@@ -66,14 +69,16 @@ class PrayerTimesPage extends ConsumerWidget {
           const Icon(Icons.error_outline, size: 48, color: Colors.grey),
           const SizedBox(height: 12),
           Center(
-            child: Text('Failed to load prayer times\n${state.error}',
-                textAlign: TextAlign.center),
+            child: Text(
+              context.l10n.failedToLoadPrayerTimesWithError(state.error.toString()),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
               onPressed: () => notifier.load(requestFreshLocation: true),
-              child: const Text('Retry'),
+              child: Text(context.l10n.retry),
             ),
           ),
         ],
@@ -103,13 +108,13 @@ class PrayerTimesPage extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Showing times for Cairo (default). Enable location for accurate times.',
+                    context.l10n.showingCairoFallback,
                     style: TextStyle(fontSize: 12, color: textColor),
                   ),
                 ),
                 TextButton(
                   onPressed: () => notifier.load(requestFreshLocation: true),
-                  child: const Text('Enable'),
+                  child: Text(context.l10n.enableButton),
                 ),
               ],
             ),
@@ -154,7 +159,7 @@ class PrayerTimesPage extends ConsumerWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Text(
-                    p.name,
+                    localizedPrayerName(context.l10n, p.name),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: isNext ? FontWeight.w700 : FontWeight.w500,
@@ -163,7 +168,7 @@ class PrayerTimesPage extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  _formatTime(p.time),
+                  _formatTime(context, p.time),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isNext ? FontWeight.w700 : FontWeight.w500,
@@ -182,16 +187,16 @@ class PrayerTimesPage extends ConsumerWidget {
             );
           },
           icon: const Icon(Icons.explore_outlined),
-          label: const Text('Find Qibla direction'),
+          label: Text(context.l10n.findQiblaDirection),
         ),
       ],
     );
   }
 
-  String _formatTime(DateTime t) {
+  String _formatTime(BuildContext context, DateTime t) {
     final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
     final minute = t.minute.toString().padLeft(2, '0');
-    final period = t.hour >= 12 ? 'PM' : 'AM';
+    final period = t.hour >= 12 ? context.l10n.pmLabel : context.l10n.amLabel;
     return '$hour:$minute $period';
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../quran/models/quran_models.dart';
@@ -17,21 +18,22 @@ class HifzPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chaptersAsync = ref.watch(chaptersProvider);
     final memorized = ref.watch(hifzProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hifz Tracker'),
+        title: Text(l10n.hifzTrackerTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            tooltip: 'Set review reminder',
+            tooltip: l10n.setReviewReminderTooltip,
             onPressed: () => _pickReviewTime(context),
           ),
         ],
       ),
       body: chaptersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed to load surahs\n$e')),
+        error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(e.toString()))),
         data: (chapters) => _buildList(context, chapters, memorized, ref),
       ),
     );
@@ -54,7 +56,7 @@ class HifzPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${memorized.length} of $total surahs memorized',
+                context.l10n.surahsMemorizedProgress(memorized.length, total),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -83,7 +85,7 @@ class HifzPage extends ConsumerWidget {
                     ref.read(hifzProvider.notifier).toggle(chapter.number),
                 activeColor: AppColors.primary,
                 title: Text(chapter.englishName),
-                subtitle: Text('${chapter.numberOfAyahs} verses'),
+                subtitle: Text(context.l10n.versesCount(chapter.numberOfAyahs)),
                 secondary: Text('${chapter.number}'),
               );
             },
@@ -97,6 +99,7 @@ class HifzPage extends ConsumerWidget {
     final db = SettingsDatabase();
     final current = await db.getTimeValue(_hifzReviewTimeKey);
     if (!context.mounted) return;
+    final l10n = context.l10n;
 
     final picked = await showTimePicker(
       context: context,
@@ -109,13 +112,13 @@ class HifzPage extends ConsumerWidget {
     await NotificationService().scheduleDaily(
       id: _hifzReviewNotificationId,
       time: picked,
-      title: 'Hifz Review',
-      body: 'Time to review what you\'ve memorized',
+      title: l10n.hifzReviewNotificationTitle,
+      body: l10n.hifzReviewNotificationBody,
     );
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Daily review reminder scheduled')),
+      SnackBar(content: Text(l10n.dailyReviewReminderScheduled)),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/share/share_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/shareable_hadith_card.dart';
@@ -31,7 +32,7 @@ class _HadithShareSheetState extends State<_HadithShareSheet> {
     try {
       await ShareService.shareWidgetAsImage(
         _boundaryKey,
-        text: 'Shared from Eslamy',
+        text: context.l10n.sharedFromEslamy,
       );
     } finally {
       if (mounted) setState(() => _isSharing = false);
@@ -70,7 +71,7 @@ class _HadithShareSheetState extends State<_HadithShareSheet> {
                         ),
                       )
                     : const Icon(Icons.share),
-                label: Text(_isSharing ? 'Preparing…' : 'Share as image'),
+                label: Text(_isSharing ? context.l10n.preparingShare : context.l10n.shareAsImage),
               ),
             ),
           ],

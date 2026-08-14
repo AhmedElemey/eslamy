@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../service/streak_database.dart';
 import '../controllers/streak_providers.dart';
@@ -34,8 +35,8 @@ class StreakCard extends ConsumerWidget {
               children: [
                 Text(
                   state.currentStreak <= 1
-                      ? 'Day 1 streak'
-                      : '${state.currentStreak} day streak',
+                      ? context.l10n.dayStreakSingle
+                      : context.l10n.dayStreakCount(state.currentStreak),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,

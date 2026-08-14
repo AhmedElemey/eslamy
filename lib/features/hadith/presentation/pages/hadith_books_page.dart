@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -15,7 +16,7 @@ class HadithBooksPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('Hadith Collection')),
+      appBar: AppBar(title: Text(context.l10n.hadithCollectionTitle)),
       body: AppBackground(
         child: SafeArea(
           child: ListView.separated(

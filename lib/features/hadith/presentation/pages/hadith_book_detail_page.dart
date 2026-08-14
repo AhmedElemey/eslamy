@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -38,6 +39,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(bookHadithsProvider(widget.book));
     final notifier = ref.read(bookHadithsProvider(widget.book).notifier);
+    final l10n = context.l10n;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -56,7 +58,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
                     controller: _searchController,
                     onChanged: notifier.search,
                     decoration: InputDecoration(
-                      hintText: 'Search ${widget.book.name}…',
+                      hintText: l10n.searchBookHint(widget.book.name),
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
@@ -90,7 +92,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Downloading ${widget.book.name} for offline use…',
+                context.l10n.downloadingBookForOffline(widget.book.name),
                 textAlign: TextAlign.center,
               ),
               if (state.downloadProgress > 0) ...[
@@ -112,11 +114,14 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
-              Text('Failed to download\n${state.error}', textAlign: TextAlign.center),
+              Text(
+                context.l10n.failedToDownloadWithError(state.error.toString()),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: notifier.download,
-                child: const Text('Retry'),
+                child: Text(context.l10n.retry),
               ),
             ],
           ),
@@ -125,7 +130,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
     }
 
     if (state.visible.isEmpty) {
-      return const Center(child: Text('No hadiths match your search'));
+      return Center(child: Text(context.l10n.noHadithsMatchSearch));
     }
 
     return ListView.separated(
@@ -195,7 +200,7 @@ class _HadithCard extends ConsumerWidget {
           if (hadith.narrator != null && hadith.narrator!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'Narrated ${hadith.narrator}',
+              context.l10n.narratedBy(hadith.narrator!),
               style: const TextStyle(
                 fontStyle: FontStyle.italic,
                 color: AppColors.muted,
@@ -227,7 +232,11 @@ class _HadithCard extends ConsumerWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(isCurrentlyFavorite ? 'Removed from favorites' : 'Added to favorites'),
+        content: Text(
+          isCurrentlyFavorite
+              ? context.l10n.removedFromFavorites
+              : context.l10n.addedToFavorites,
+        ),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,

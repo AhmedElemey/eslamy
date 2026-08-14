@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../service/quran_api_service.dart';
 import '../../service/quran_audio_service.dart';
 import '../../service/reciter_preferences_service.dart';
+import '../../service/tajweed_preferences_service.dart';
+import '../../service/translation_preferences_service.dart';
 import '../../models/quran_models.dart';
 
 // Service provider
@@ -13,6 +15,24 @@ final quranApiServiceProvider = Provider<QuranApiService>((ref) {
 final chaptersProvider = FutureProvider<List<QuranChapter>>((ref) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getChapters();
+});
+
+// Juz (Para) ayahs provider — 1..30
+final juzProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, juzNumber) async {
+  final service = ref.read(quranApiServiceProvider);
+  return await service.getJuz(juzNumber);
+});
+
+// Mushaf page ayahs provider — 1..604
+final quranPageProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, pageNumber) async {
+  final service = ref.read(quranApiServiceProvider);
+  return await service.getPage(pageNumber);
+});
+
+// Hizb quarter ayahs provider — 1..240
+final hizbQuarterProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, quarterNumber) async {
+  final service = ref.read(quranApiServiceProvider);
+  return await service.getHizbQuarter(quarterNumber);
 });
 
 // Chapter provider
@@ -35,12 +55,53 @@ final verseProvider = FutureProvider.family<
 
 // Tafseer provider
 final tafseerProvider = FutureProvider.family<
-  QuranChapterResponse,
+  AyahTafsir,
   ({int chapterNumber, int verseNumber})
 >((ref, params) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getTafseer(params.chapterNumber, params.verseNumber);
 });
+
+// Chapter Tajweed provider — same shape as chapterProvider, but verse text
+// carries Tajweed bracket tags instead of plain Uthmani text.
+final chapterTajweedProvider = FutureProvider.family<QuranChapterResponse, int>((
+  ref,
+  chapterNumber,
+) async {
+  final service = ref.read(quranApiServiceProvider);
+  return await service.getChapterTajweed(chapterNumber);
+});
+
+final tajweedPreferencesServiceProvider = Provider(
+  (ref) => TajweedPreferencesService(),
+);
+
+/// Whether verse text is rendered with Tajweed color-coding, defaulting to
+/// on until any saved preference has loaded.
+class TajweedColoringNotifier extends StateNotifier<bool> {
+  TajweedColoringNotifier(this._prefs) : super(true) {
+    _restore();
+  }
+
+  final TajweedPreferencesService _prefs;
+
+  Future<void> _restore() async {
+    final saved = await _prefs.loadEnabled();
+    if (mounted) {
+      state = saved;
+    }
+  }
+
+  Future<void> setEnabled(bool enabled) async {
+    state = enabled;
+    await _prefs.saveEnabled(enabled);
+  }
+}
+
+final tajweedColoringEnabledProvider =
+    StateNotifierProvider<TajweedColoringNotifier, bool>((ref) {
+      return TajweedColoringNotifier(ref.watch(tajweedPreferencesServiceProvider));
+    });
 
 // Reciters provider
 final recitersProvider = FutureProvider<List<Reciter>>((ref) async {
@@ -95,14 +156,76 @@ final chapterAudioUrlProvider = FutureProvider.family<String, int>((
 // Chapter translation provider
 final chapterTranslationProvider = FutureProvider.family<
   QuranChapterResponse,
-  ({int chapterNumber, String language})
+  ({int chapterNumber, String editionIdentifier})
 >((ref, params) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getChapterTranslation(
     params.chapterNumber,
-    language: params.language,
+    editionIdentifier: params.editionIdentifier,
   );
 });
+
+// All selectable translation editions (100+ languages)
+final translationEditionsProvider = FutureProvider<List<TranslationEdition>>((ref) async {
+  final service = ref.read(quranApiServiceProvider);
+  return await service.getTranslationEditions();
+});
+
+final translationPreferencesServiceProvider = Provider(
+  (ref) => TranslationPreferencesService(),
+);
+
+/// Selected translation edition, defaulting to Sahih International (English)
+/// until the editions list has loaded and any saved choice can be resolved.
+class SelectedTranslationNotifier extends StateNotifier<TranslationEdition> {
+  SelectedTranslationNotifier(this._prefs, this._service)
+    : super(
+        const TranslationEdition(
+          identifier: 'en.sahih',
+          language: 'en',
+          name: 'Sahih International',
+          englishName: 'Sahih International',
+        ),
+      ) {
+    _restore();
+  }
+
+  final TranslationPreferencesService _prefs;
+  final QuranApiService _service;
+
+  Future<void> _restore() async {
+    final savedId = await _prefs.loadSelectedEdition();
+    if (savedId == null || savedId == state.identifier) return;
+    try {
+      final editions = await _service.getTranslationEditions();
+      TranslationEdition? match;
+      for (final e in editions) {
+        if (e.identifier == savedId) {
+          match = e;
+          break;
+        }
+      }
+      if (match != null && mounted) {
+        state = match;
+      }
+    } catch (_) {
+      // Keep the default if the editions list can't be fetched yet.
+    }
+  }
+
+  Future<void> select(TranslationEdition edition) async {
+    state = edition;
+    await _prefs.saveSelectedEdition(edition.identifier);
+  }
+}
+
+final selectedTranslationProvider =
+    StateNotifierProvider<SelectedTranslationNotifier, TranslationEdition>((ref) {
+      return SelectedTranslationNotifier(
+        ref.watch(translationPreferencesServiceProvider),
+        ref.watch(quranApiServiceProvider),
+      );
+    });
 
 // Current playing audio state
 class AudioPlayerState {

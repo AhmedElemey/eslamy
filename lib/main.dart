@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
@@ -8,12 +9,17 @@ import 'features/settings/presentation/controllers/settings_providers.dart';
 import 'features/quran/presentation/pages/quran_chapters_page.dart';
 import 'features/quran/presentation/pages/quran_test_page.dart';
 import 'dart:async';
+import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/notifications/notification_service.dart';
+import 'features/settings/presentation/controllers/language_providers.dart';
 import 'features/settings/presentation/controllers/theme_mode_providers.dart';
 import 'features/prayer_times/presentation/pages/prayer_times_page.dart';
 import 'features/prayer_times/presentation/pages/qibla_page.dart';
 import 'features/hadith/presentation/pages/hadith_books_page.dart';
+import 'features/tasbih/presentation/pages/tasbih_page.dart';
+import 'features/duas/presentation/pages/azkar_categories_page.dart';
+import 'features/hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_session/audio_session.dart';
@@ -99,7 +105,7 @@ void _navigateToError(Object error, StackTrace? stack) {
     if (navigator == null) return;
     navigator.pushNamed(
       '/error',
-      arguments: {'message': 'Unexpected error occurred', 'error': error},
+      arguments: {'error': error},
     );
   });
 }
@@ -112,6 +118,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textDeltaAsync = ref.watch(textSizeProvider);
     final themeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+    final language = ref.watch(languageProvider).valueOrNull ?? AppLanguage.english;
 
     double scaleForDelta(int delta) {
       switch (delta) {
@@ -135,6 +142,14 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
+      locale: language.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
         final scale = textDeltaAsync.maybeWhen(
           data: (delta) => scaleForDelta(delta),
@@ -155,6 +170,9 @@ class MyApp extends ConsumerWidget {
         '/prayer-times': (_) => const PrayerTimesPage(),
         '/qibla': (_) => const QiblaPage(),
         '/hadith': (_) => const HadithBooksPage(),
+        '/tasbih': (_) => const TasbihPage(),
+        '/duas': (_) => const AzkarCategoriesPage(),
+        '/hijri-calendar': (_) => const HijriCalendarPage(),
         '/error': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
           if (args is Map) {

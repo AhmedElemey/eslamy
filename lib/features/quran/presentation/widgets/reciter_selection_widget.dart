@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../service/quran_audio_service.dart';
 import '../../models/quran_models.dart';
@@ -46,9 +47,9 @@ class ReciterSelectionWidget extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Quran Reciter',
-                style: TextStyle(
+              Text(
+                context.l10n.quranReciterLabel,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
@@ -77,7 +78,7 @@ class ReciterSelectionWidget extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              selectedReciter?.name ?? 'Select Reciter',
+                              selectedReciter?.name ?? context.l10n.selectReciterPlaceholder,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -107,7 +108,7 @@ class ReciterSelectionWidget extends ConsumerWidget {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      'Active for Audio',
+                                      context.l10n.activeForAudioLabel,
                                       style: TextStyle(
                                         fontSize: 10,
                                         color: primary,
@@ -196,9 +197,9 @@ class ReciterSelectionDialog extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Choose Reciter',
-                  style: TextStyle(
+                Text(
+                  context.l10n.chooseReciterTitle,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Colors.black,

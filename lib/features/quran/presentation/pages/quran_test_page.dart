@@ -92,7 +92,7 @@ class QuranTestPage extends ConsumerWidget {
                   _showResult(
                     context,
                     'Success!',
-                    'Tafseer loaded: ${tafseer.data.ayahs?.length ?? 0} verses',
+                    'Tafseer loaded (${tafseer.editionName}): ${tafseer.text}',
                   );
                 } catch (e) {
                   _showResult(context, 'Error!', e.toString());
@@ -156,7 +156,7 @@ class QuranTestPage extends ConsumerWidget {
                   final translation = await ref.read(
                     chapterTranslationProvider((
                       chapterNumber: 1,
-                      language: 'en',
+                      editionIdentifier: 'en.sahih',
                     )).future,
                   );
                   _showResult(
@@ -276,7 +276,7 @@ class QuranTestPage extends ConsumerWidget {
       final tafseer = await ref.read(
         tafseerProvider((chapterNumber: 1, verseNumber: 1)).future,
       );
-      results.add('✅ Tafseer: ${tafseer.data.ayahs?.length ?? 0} verses');
+      results.add('✅ Tafseer: ${tafseer.editionName} (${tafseer.text.length} chars)');
     } catch (e) {
       results.add('❌ Tafseer: $e');
     }
@@ -306,7 +306,10 @@ class QuranTestPage extends ConsumerWidget {
     // Test 7: Translation
     try {
       final translation = await ref.read(
-        chapterTranslationProvider((chapterNumber: 1, language: 'en')).future,
+        chapterTranslationProvider((
+          chapterNumber: 1,
+          editionIdentifier: 'en.sahih',
+        )).future,
       );
       results.add(
         '✅ Translation: ${translation.data.ayahs?.length ?? 0} verses',

@@ -73,4 +73,11 @@ class SettingsDatabase {
   Future<TimeOfDay?> getWerdTime() => getTimeValue('werd_time');
 
   Future<void> setWerdTime(TimeOfDay time) => setTimeValue('werd_time', time);
+
+  Future<bool> getAdhanEnabled() async {
+    final val = await getValue('adhan_enabled');
+    return val != '0'; // enabled by default until explicitly turned off
+  }
+
+  Future<void> setAdhanEnabled(bool enabled) => setValue('adhan_enabled', enabled ? '1' : '0');
 }

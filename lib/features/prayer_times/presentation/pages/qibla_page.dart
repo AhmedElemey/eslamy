@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../controllers/prayer_times_providers.dart';
@@ -17,7 +18,7 @@ class QiblaPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('Qibla Direction')),
+      appBar: AppBar(title: Text(context.l10n.qiblaDirectionTitle)),
       body: AppBackground(
         child: SafeArea(
           child: Center(
@@ -28,7 +29,7 @@ class QiblaPage extends ConsumerWidget {
                         : Padding(
                           padding: const EdgeInsets.all(24),
                           child: Text(
-                            'Qibla direction unavailable\n${state.error ?? ''}',
+                            context.l10n.qiblaUnavailableWithError(state.error ?? ''),
                             textAlign: TextAlign.center,
                           ),
                         )
@@ -53,10 +54,10 @@ class _CompassView extends StatelessWidget {
       stream: FlutterCompass.events,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
+          return Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'Waiting for compass sensor…\n(not available on all simulators)',
+              context.l10n.waitingForCompassSensor,
               textAlign: TextAlign.center,
             ),
           );
@@ -64,10 +65,10 @@ class _CompassView extends StatelessWidget {
 
         final heading = snapshot.data!.heading;
         if (heading == null) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
+          return Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'This device has no compass sensor.',
+              context.l10n.noCompassSensor,
               textAlign: TextAlign.center,
             ),
           );
@@ -80,7 +81,7 @@ class _CompassView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              aligned ? 'Facing Qibla ✓' : 'Rotate to align',
+              aligned ? context.l10n.facingQibla : context.l10n.rotateToAlign,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -108,7 +109,10 @@ class _CompassView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Qibla bearing: ${qiblaDirection.round()}°  ·  Heading: ${heading.round()}°',
+              context.l10n.qiblaBearingHeading(
+                qiblaDirection.round().toString(),
+                heading.round().toString(),
+              ),
               style: const TextStyle(color: AppColors.muted),
             ),
           ],

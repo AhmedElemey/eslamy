@@ -21,6 +21,24 @@ class NotificationService {
         importance: Importance.high,
       );
 
+  // A full adhan recording (assets/audio/adhan_alafasy.mp3, played in-app via
+  // just_audio — see settings_page.dart's preview button) is bundled, but OS
+  // notification sounds can't use it directly: Android/iOS both expect a
+  // short (iOS: <=30s, .caf/.wav/.aiff) clip placed as a *native* resource
+  // (android/app/src/main/res/raw, ios/Runner bundle), not an arbitrary
+  // Flutter asset. Trim a short opening clip into those native folders and
+  // reference its filename here to get a custom sound on the lock screen.
+  static const AndroidNotificationChannel _adhanChannel =
+      AndroidNotificationChannel(
+        'adhan_calls',
+        'Adhan',
+        description: 'Call-to-prayer alert at each prayer time',
+        importance: Importance.max,
+      );
+
+  static const _adhanPrayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  static const _adhanBaseId = 3000;
+
   Future<void> init() async {
     // Timezone setup
     tz.initializeTimeZones();
@@ -51,6 +69,7 @@ class NotificationService {
             >();
     if (androidImpl != null) {
       await androidImpl.createNotificationChannel(_dailyChannel);
+      await androidImpl.createNotificationChannel(_adhanChannel);
     }
     _initialized = true;
   }
@@ -164,6 +183,59 @@ class NotificationService {
       final hh = time.hour.toString().padLeft(2, '0');
       final mm = time.minute.toString().padLeft(2, '0');
       debugPrint('Scheduled daily notification at $hh:$mm');
+    }
+  }
+
+  /// Schedules one Adhan alert per prayer for [today] and [tomorrow]
+  /// (name -> time maps, Sunrise excluded by the caller) — covering two
+  /// days so alerts keep firing even if the app isn't reopened tomorrow.
+  /// Previously-scheduled Adhan alerts are cancelled first.
+  Future<void> scheduleAdhan({
+    required Map<String, DateTime> today,
+    required Map<String, DateTime> tomorrow,
+  }) async {
+    if (!_initialized) {
+      await init();
+    }
+    for (var i = 0; i < _adhanPrayerNames.length * 2; i++) {
+      await _plugin.cancel(_adhanBaseId + i);
+    }
+
+    final androidDetails = AndroidNotificationDetails(
+      _adhanChannel.id,
+      _adhanChannel.name,
+      channelDescription: _adhanChannel.description,
+      importance: Importance.max,
+      priority: Priority.max,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+    final now = tz.TZDateTime.now(tz.local);
+    var id = _adhanBaseId;
+    for (final day in [today, tomorrow]) {
+      for (final name in _adhanPrayerNames) {
+        final notificationId = id;
+        id++;
+        final time = day[name];
+        if (time == null) continue;
+        final scheduled = tz.TZDateTime.from(time, tz.local);
+        if (scheduled.isBefore(now)) continue;
+        await _plugin.zonedSchedule(
+          notificationId,
+          'Adhan — $name',
+          'It is time for $name prayer',
+          scheduled,
+          details,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+      }
     }
   }
 

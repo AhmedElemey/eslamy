@@ -188,3 +188,76 @@ class AudioResponse {
 
   Map<String, dynamic> toJson() => _$AudioResponseToJson(this);
 }
+
+/// A single ayah as returned by the /juz, /page and /hizbQuarter endpoints —
+/// these spans cross surah boundaries, so each ayah carries its own surah
+/// info (unlike QuranVerse, which is always read within one already-known
+/// surah). Not codegen-backed since it's a small, self-contained shape.
+class AyahWithSurah {
+  final int numberInSurah;
+  final String text;
+  final int surahNumber;
+  final String surahEnglishName;
+  final String surahArabicName;
+
+  const AyahWithSurah({
+    required this.numberInSurah,
+    required this.text,
+    required this.surahNumber,
+    required this.surahEnglishName,
+    required this.surahArabicName,
+  });
+
+  factory AyahWithSurah.fromJson(Map<String, dynamic> json) {
+    final surah = json['surah'] as Map<String, dynamic>;
+    return AyahWithSurah(
+      numberInSurah: json['numberInSurah'] as int,
+      text: json['text'] as String,
+      surahNumber: surah['number'] as int,
+      surahEnglishName: surah['englishName'] as String,
+      surahArabicName: surah['name'] as String,
+    );
+  }
+}
+
+/// One selectable Quran translation edition (language + identifier), from
+/// Al Quran Cloud's /edition?format=text&type=translation — not codegen-
+/// backed since it's a small, self-contained shape.
+class TranslationEdition {
+  final String identifier;
+  final String language;
+  final String name;
+  final String englishName;
+
+  const TranslationEdition({
+    required this.identifier,
+    required this.language,
+    required this.name,
+    required this.englishName,
+  });
+
+  factory TranslationEdition.fromJson(Map<String, dynamic> json) => TranslationEdition(
+    identifier: json['identifier'] as String,
+    language: json['language'] as String,
+    name: json['name'] as String,
+    englishName: json['englishName'] as String,
+  );
+}
+
+/// A single ayah's tafsir (per-verse exegesis), from Al Quran Cloud's
+/// /ayah/{surah}:{ayah}/{edition} endpoint — not codegen-backed since it's
+/// a small, self-contained shape.
+class AyahTafsir {
+  final String text;
+  final String editionName;
+
+  const AyahTafsir({required this.text, required this.editionName});
+
+  factory AyahTafsir.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return AyahTafsir(
+      text: data['text'] as String,
+      editionName: data['edition']['englishName'] as String,
+    );
+  }
+}

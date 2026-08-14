@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
+import '../../models/quran_models.dart';
 import '../controllers/quran_providers.dart';
+import '../widgets/tajweed_legend_sheet.dart';
+import '../widgets/tajweed_text.dart';
+import '../widgets/translation_selection_widget.dart';
 import 'quran_verse_detail_page.dart';
 
 class QuranChapterDetailPage extends ConsumerStatefulWidget {
@@ -84,9 +89,9 @@ class _QuranChapterDetailPageState
       // Show loading indicator
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Loading chapter audio...'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.loadingChapterAudio),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -104,9 +109,9 @@ class _QuranChapterDetailPageState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chapter audio started playing'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(context.l10n.chapterAudioStartedPlaying),
+            duration: const Duration(seconds: 2),
             backgroundColor: Colors.green,
           ),
         );
@@ -116,10 +121,10 @@ class _QuranChapterDetailPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to play chapter audio. Please try again.'),
+            content: Text(context.l10n.failedToPlayChapterAudioRetry),
             backgroundColor: Colors.red,
             action: SnackBarAction(
-              label: 'Retry',
+              label: context.l10n.retryAction,
               textColor: Colors.white,
               onPressed: _playChapterAudio,
             ),
@@ -156,21 +161,59 @@ class _QuranChapterDetailPageState
   @override
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(chapterProvider(widget.chapterNumber));
+    final l10n = context.l10n;
+    final selectedEdition = ref.watch(selectedTranslationProvider);
+    final translationAsync = ref.watch(
+      chapterTranslationProvider((
+        chapterNumber: widget.chapterNumber,
+        editionIdentifier: selectedEdition.identifier,
+      )),
+    );
+    final translationByVerse = translationAsync.maybeWhen(
+      data: (r) => {for (final v in r.data.ayahs ?? <QuranVerse>[]) v.numberInSurah: v.text},
+      orElse: () => const <int, String>{},
+    );
+    final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
+    final tajweedAsync =
+        tajweedEnabled
+            ? ref.watch(chapterTajweedProvider(widget.chapterNumber))
+            : null;
+    final tajweedByVerse =
+        tajweedAsync?.maybeWhen(
+          data: (r) => {for (final v in r.data.ayahs ?? <QuranVerse>[]) v.numberInSurah: v.text},
+          orElse: () => const <int, String>{},
+        ) ??
+        const <int, String>{};
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chapter ${widget.chapterNumber}: ${widget.chapterName}'),
+        title: Text(l10n.chapterWithNameTitle(widget.chapterNumber, widget.chapterName)),
         centerTitle: true,
         actions: [
           IconButton(
+            icon: Icon(
+              tajweedEnabled ? Icons.format_color_text : Icons.format_color_reset,
+            ),
+            onPressed:
+                () => ref
+                    .read(tajweedColoringEnabledProvider.notifier)
+                    .setEnabled(!tajweedEnabled),
+            tooltip: l10n.toggleTajweedColoringTooltip,
+          ),
+          IconButton(
+            icon: const Icon(Icons.palette_outlined),
+            onPressed: () => showTajweedLegendSheet(context),
+            tooltip: l10n.tajweedLegendTitle,
+          ),
+          IconButton(
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
             onPressed: _playChapterAudio,
-            tooltip: _isPlaying ? 'Pause Chapter Audio' : 'Play Chapter Audio',
+            tooltip: _isPlaying ? l10n.pauseChapterAudioTooltip : l10n.playChapterAudioTooltip,
           ),
           IconButton(
             icon: const Icon(Icons.stop),
             onPressed: _stopAudio,
-            tooltip: 'Stop Audio',
+            tooltip: l10n.stopAudioTooltip,
           ),
         ],
       ),
@@ -207,11 +250,16 @@ class _QuranChapterDetailPageState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${chapterResponse.data.numberOfAyahs} verses • ${chapterResponse.data.revelationType}',
+                        l10n.versesCountRevelationType(
+                          chapterResponse.data.numberOfAyahs,
+                          chapterResponse.data.revelationType,
+                        ),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[500],
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      const TranslationSelectionWidget(),
                     ],
                   ),
                 ),
@@ -243,7 +291,7 @@ class _QuranChapterDetailPageState
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Chapter Audio',
+                              l10n.chapterAudioLabel,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -318,11 +366,28 @@ class _QuranChapterDetailPageState
                               ),
                             ),
                           ),
-                          title: Text(
-                            verse.text,
-                            style: const TextStyle(fontSize: 18, height: 1.5),
-                            textDirection: TextDirection.rtl,
-                            textAlign: TextAlign.right,
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              tajweedByVerse[verse.numberInSurah] != null
+                                  ? TajweedText(
+                                    text: tajweedByVerse[verse.numberInSurah]!,
+                                    style: const TextStyle(fontSize: 18, height: 1.5),
+                                  )
+                                  : Text(
+                                    verse.text,
+                                    style: const TextStyle(fontSize: 18, height: 1.5),
+                                    textDirection: TextDirection.rtl,
+                                    textAlign: TextAlign.right,
+                                  ),
+                              if (translationByVerse[verse.numberInSurah] != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  translationByVerse[verse.numberInSurah]!,
+                                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ],
                           ),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 8),
@@ -335,7 +400,7 @@ class _QuranChapterDetailPageState
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Play Audio',
+                                  l10n.playAudioLabel,
                                   style: TextStyle(
                                     color: Theme.of(context).primaryColor,
                                     fontSize: 12,
@@ -349,7 +414,7 @@ class _QuranChapterDetailPageState
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Tafseer',
+                                  l10n.tafseerLabel,
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 12,
@@ -387,7 +452,7 @@ class _QuranChapterDetailPageState
                   const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
-                    'Failed to load chapter',
+                    l10n.failedToLoadChapter,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
@@ -401,7 +466,7 @@ class _QuranChapterDetailPageState
                     onPressed:
                         () =>
                             ref.refresh(chapterProvider(widget.chapterNumber)),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),

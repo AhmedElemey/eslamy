@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/prayer_times.dart';
 import '../../service/location_service.dart';
 import '../../service/prayer_times_service.dart';
+import '../../../settings/service/settings_database.dart';
+import '../../../../core/notifications/notification_service.dart';
 
 final locationServiceProvider = Provider((ref) => LocationService());
 
@@ -88,9 +91,38 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
         isLoading: false,
         usingFallbackLocation: fallback,
       );
+      unawaited(_scheduleAdhan(lat, lng, results[0] as DailyPrayerTimes));
     } catch (e) {
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Schedules today + tomorrow's Adhan alerts once timings are known.
+  /// Best-effort: failures here must never surface as a prayer-times error.
+  Future<void> _scheduleAdhan(
+    double lat,
+    double lng,
+    DailyPrayerTimes today,
+  ) async {
+    try {
+      final enabled = await SettingsDatabase().getAdhanEnabled();
+      if (!enabled) return;
+      final tomorrow = await _service.fetchTimings(
+        latitude: lat,
+        longitude: lng,
+        date: DateTime.now().add(const Duration(days: 1)),
+      );
+      Map<String, DateTime> asMap(DailyPrayerTimes d) => {
+        for (final p in d.prayers)
+          if (p.name != 'Sunrise') p.name: p.time,
+      };
+      await NotificationService().scheduleAdhan(
+        today: asMap(today),
+        tomorrow: asMap(tomorrow),
+      );
+    } catch (_) {
+      // Adhan scheduling is a side effect — never block or fail the main flow.
     }
   }
 }

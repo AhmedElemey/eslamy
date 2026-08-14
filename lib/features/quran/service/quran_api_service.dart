@@ -62,17 +62,27 @@ class QuranApiService {
     }
   }
 
-  /// Get tafseer for a specific verse
-  Future<QuranChapterResponse> getTafseer(
-    int chapterNumber,
-    int verseNumber,
-  ) async {
+  /// Get a chapter with Tajweed-tagged text (bracket format — see
+  /// tajweed_text_parser.dart) instead of plain Uthmani text.
+  Future<QuranChapterResponse> getChapterTajweed(int chapterNumber) async {
     try {
-      final response = await _dio.get(
-        '/surah/$chapterNumber?edition=ar.muyassar',
-      );
+      final response = await _dio.get('/surah/$chapterNumber/quran-tajweed');
       final Map<String, dynamic> data = response.data;
       return QuranChapterResponse.fromJson(data);
+    } on DioException catch (e) {
+      debugPrint('DioException in getChapterTajweed: ${e.toString()}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Get the tafsir (exegesis) for one specific ayah — ar.jalalayn (Tafsir
+  /// Al-Jalalayn) is a real per-ayah tafsir edition, unlike ar.muyassar
+  /// (a translation) which this used to call by mistake.
+  Future<AyahTafsir> getTafseer(int chapterNumber, int verseNumber) async {
+    try {
+      final response = await _dio.get('/ayah/$chapterNumber:$verseNumber/ar.jalalayn');
+      final Map<String, dynamic> data = response.data;
+      return AyahTafsir.fromJson(data);
     } on DioException catch (e) {
       debugPrint(e.toString());
       throw _handleError(e);
@@ -123,18 +133,69 @@ class QuranApiService {
     }
   }
 
-  /// Get full translation of a chapter
+  /// Get the list of selectable translation editions (100+ languages).
+  Future<List<TranslationEdition>> getTranslationEditions() async {
+    try {
+      final response = await _dio.get('/edition?format=text&type=translation');
+      final List<dynamic> editions = response.data['data'];
+      return editions
+          .map((e) => TranslationEdition.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      debugPrint('DioException in getTranslationEditions: ${e.toString()}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Get a full chapter in the given translation edition (any identifier
+  /// from getTranslationEditions, e.g. 'en.sahih', 'fr.hamidullah').
   Future<QuranChapterResponse> getChapterTranslation(
     int chapterNumber, {
-    String language = 'en',
+    String editionIdentifier = 'en.sahih',
   }) async {
     try {
-      final edition = language == 'en' ? 'en.sahih' : 'ar.muyassar';
-      final response = await _dio.get('/surah/$chapterNumber?edition=$edition');
+      final response = await _dio.get('/surah/$chapterNumber?edition=$editionIdentifier');
       final Map<String, dynamic> data = response.data;
       return QuranChapterResponse.fromJson(data);
     } on DioException catch (e) {
       debugPrint('DioException in getChapterTranslation: ${e.toString()}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Get all ayahs in a Juz (Para), 1-30 — spans surah boundaries.
+  Future<List<AyahWithSurah>> getJuz(int juzNumber) async {
+    try {
+      final response = await _dio.get('/juz/$juzNumber/quran-uthmani');
+      final List<dynamic> ayahs = response.data['data']['ayahs'];
+      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      debugPrint('DioException in getJuz: ${e.toString()}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Get all ayahs on a mushaf page, 1-604 — spans surah boundaries.
+  Future<List<AyahWithSurah>> getPage(int pageNumber) async {
+    try {
+      final response = await _dio.get('/page/$pageNumber/quran-uthmani');
+      final List<dynamic> ayahs = response.data['data']['ayahs'];
+      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      debugPrint('DioException in getPage: ${e.toString()}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Get all ayahs in a Hizb quarter, 1-240 (the API numbers quarters
+  /// directly rather than Hizb-then-quarter).
+  Future<List<AyahWithSurah>> getHizbQuarter(int quarterNumber) async {
+    try {
+      final response = await _dio.get('/hizbQuarter/$quarterNumber/quran-uthmani');
+      final List<dynamic> ayahs = response.data['data']['ayahs'];
+      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      debugPrint('DioException in getHizbQuarter: ${e.toString()}');
       throw _handleError(e);
     }
   }
