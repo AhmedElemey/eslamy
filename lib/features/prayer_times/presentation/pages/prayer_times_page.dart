@@ -1,10 +1,12 @@
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/shell_app_bar.dart';
 import '../controllers/prayer_times_providers.dart';
 import '../widgets/prayer_name_localizer.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'qibla_page.dart';
 
 const _prayerIcons = {
@@ -28,7 +30,7 @@ class PrayerTimesPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
+      appBar: ShellAwareAppBar(
         title: Text(l10n.prayerTimesTitle),
         actions: [
           IconButton(
@@ -88,8 +90,7 @@ class PrayerTimesPage extends ConsumerWidget {
     final timings = state.timings;
     if (timings == null) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF16231F);
+    final textColor = AppColors.heading(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -135,26 +136,32 @@ class PrayerTimesPage extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              gradient: isNext
-                  ? const LinearGradient(
-                      colors: [AppColors.primary, AppColors.violet],
-                    )
-                  : null,
               color: isNext
-                  ? null
-                  : (isDark ? Colors.white.withOpacity(0.04) : Colors.white),
+                  ? AppColors.primary.withValues(alpha: AppColors.isDark(context) ? 0.18 : 0.1)
+                  : AppColors.surface(context),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isNext
-                    ? Colors.transparent
-                    : (isDark ? Colors.white12 : Colors.black.withOpacity(0.06)),
+                    ? AppColors.primary.withValues(alpha: 0.35)
+                    : AppColors.hairline(context),
               ),
             ),
             child: Row(
               children: [
+                Container(
+                  width: 4,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: isNext ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Icon(
                   _prayerIcons[p.name] ?? Icons.access_time,
-                  color: isNext ? Colors.white : AppColors.muted,
+                  color: isNext
+                      ? AppColors.primaryOnBg(context)
+                      : AppColors.mutedText(context),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -163,7 +170,7 @@ class PrayerTimesPage extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: isNext ? FontWeight.w700 : FontWeight.w500,
-                      color: isNext ? Colors.white : textColor,
+                      color: textColor,
                     ),
                   ),
                 ),
@@ -172,7 +179,8 @@ class PrayerTimesPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isNext ? FontWeight.w700 : FontWeight.w500,
-                    color: isNext ? Colors.white : textColor,
+                    color: textColor,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],

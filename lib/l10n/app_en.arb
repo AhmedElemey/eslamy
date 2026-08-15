@@ -42,7 +42,7 @@
   "homeGreetingAssalamuAlaikum": "ASSALAMU ALAIKUM",
   "homeWelcomeBack": "Welcome back",
   "tabSurah": "Surah",
-  "tabPara": "Para",
+  "tabPara": "Juz",
   "tabPage": "Page",
   "tabHizb": "Hizb",
   "quranOriginMeccan": "MECCAN",
@@ -285,5 +285,35 @@
 
   "navHomeLabel": "Home",
   "navQuranLabel": "Quran",
-  "navQiblaLabel": "Qibla"
+  "navQiblaLabel": "Qibla",
+  "navPrayerLabel": "Prayer",
+  "navMoreLabel": "More",
+  "searchSurahHint": "Search by name or number…",
+  "searchJuzHint": "Search by number or starting surah…",
+  "searchPageHint": "Jump to page number…",
+  "searchHizbHint": "Jump to Hizb number…",
+  "developerToolsTitle": "Developer tools",
+
+  "hajjUmrahGuideTitle": "Hajj & Umrah Guide",
+  "hajjUmrahDisclaimer": "Ritual steps and dua text are community-sourced (MIT-licensed), not official Ministry of Hajj guidance. Verify with your group's scholar before relying on this for your pilgrimage.",
+  "umrahTrackLabel": "Umrah",
+  "hajjTrackLabel": "Hajj",
+  "ritualStepsHeading": "Steps",
+  "relevantDuasHeading": "Duas for this step",
+  "edgeCasesHeading": "Exceptions & edge cases",
+  "stepsCompletedLabel": "{done} / {total} steps",
+  "@stepsCompletedLabel": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+
+  "tawafSaiCounterTitle": "Tawaf & Sa'i Counter",
+  "tawafModeLabel": "Tawaf",
+  "saiModeLabel": "Sa'i",
+  "circuitCountLabel": "{count} / {target}",
+  "@circuitCountLabel": {"placeholders": {"count": {"type": "int"}, "target": {"type": "int"}}},
+  "tawafCompleteMessage": "Tawaf complete — pray 2 rakaat behind Maqam Ibrahim",
+  "saiCompleteMessage": "Sa'i complete",
+
+  "pilgrimModeTooltip": "Pilgrim Mode — alerts when near a holy site",
+  "pilgrimModeLocationDenied": "Location permission is needed for Pilgrim Mode alerts",
+  "pilgrimModeNear": "You're near {siteName}",
+  "@pilgrimModeNear": {"placeholders": {"siteName": {"type": "String"}}}
 }

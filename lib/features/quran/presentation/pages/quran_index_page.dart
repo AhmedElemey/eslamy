@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/shell_app_bar.dart';
 import '../../presentation/controllers/quran_providers.dart';
 import '../widgets/juz_list.dart';
 import '../widgets/quran_number_grid.dart';
 import '../widgets/searchable_surah_list.dart';
 
-/// Full-screen "browse the Quran" experience — Surah / Para (Juz) / Page /
-/// Hizb, each with its own search or jump-to-number field. Previously this
-/// was a cramped tab strip wedged into the middle of the scrolling Home
-/// page (four different content shapes squeezed under one Expanded, no way
-/// to search 114 surahs or jump to 1 of 604 pages without endless
-/// scrolling); giving it a dedicated screen fixes both.
 class QuranIndexPage extends StatefulWidget {
   const QuranIndexPage({super.key});
 
@@ -19,34 +15,23 @@ class QuranIndexPage extends StatefulWidget {
   State<QuranIndexPage> createState() => _QuranIndexPageState();
 }
 
-class _QuranIndexPageState extends State<QuranIndexPage> with SingleTickerProviderStateMixin {
+class _QuranIndexPageState extends State<QuranIndexPage>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _searchController = TextEditingController();
   String _query = '';
-
-  static const _tabs = ['Surah', 'Para', 'Page', 'Hizb'];
-  static const _hints = [
-    'Search by name or number…',
-    'Search by number or starting surah…',
-    'Jump to page number…',
-    'Jump to Hizb number…',
-  ];
-
   int _previousTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (_tabController.index != _previousTabIndex) {
         _previousTabIndex = _tabController.index;
-        // Each tab searches something different, so clear rather than carry
-        // a stale query (e.g. a surah name) into a numeric jump field.
         _searchController.clear();
         setState(() => _query = '');
       } else {
-        // Rebuild so the search hint/keyboard type follow mid-swipe too.
         setState(() {});
       }
     });
@@ -61,12 +46,19 @@ class _QuranIndexPageState extends State<QuranIndexPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
+    final tabs = [l10n.tabSurah, l10n.tabPara, l10n.tabPage, l10n.tabHizb];
+    final hints = [
+      l10n.searchSurahHint,
+      l10n.searchJuzHint,
+      l10n.searchPageHint,
+      l10n.searchHizbHint,
+    ];
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: const Text('Digital Mushaf')),
+      appBar: ShellAwareAppBar(title: Text(l10n.digitalMushaf)),
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -76,9 +68,11 @@ class _QuranIndexPageState extends State<QuranIndexPage> with SingleTickerProvid
                 child: TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _query = v),
-                  keyboardType: _tabController.index >= 2 ? TextInputType.number : TextInputType.text,
+                  keyboardType: _tabController.index >= 2
+                      ? TextInputType.number
+                      : TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: _hints[_tabController.index],
+                    hintText: hints[_tabController.index],
                     prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon: _query.isEmpty
                         ? null
@@ -89,23 +83,15 @@ class _QuranIndexPageState extends State<QuranIndexPage> with SingleTickerProvid
                               setState(() => _query = '');
                             },
                           ),
-                    filled: true,
-                    fillColor: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
               TabBar(
                 controller: _tabController,
                 indicatorColor: AppColors.primary,
-                labelColor: isDark ? Colors.white : const Color(0xFF16231F),
-                unselectedLabelColor: isDark ? Colors.white60 : AppColors.muted,
-                tabs: _tabs.map((t) => Tab(text: t)).toList(),
+                labelColor: AppColors.heading(context),
+                unselectedLabelColor: AppColors.mutedText(context),
+                tabs: tabs.map((t) => Tab(text: t)).toList(),
               ),
               Expanded(
                 child: TabBarView(
@@ -115,13 +101,13 @@ class _QuranIndexPageState extends State<QuranIndexPage> with SingleTickerProvid
                     JuzList(query: _query),
                     QuranNumberGrid(
                       count: 604,
-                      labelPrefix: 'Page',
+                      labelPrefix: l10n.tabPage,
                       query: _query,
                       rangeProviderBuilder: (n) => quranPageProvider(n),
                     ),
                     QuranNumberGrid(
                       count: 240,
-                      labelPrefix: 'Hizb',
+                      labelPrefix: l10n.tabHizb,
                       query: _query,
                       rangeProviderBuilder: (n) => hizbQuarterProvider(n),
                     ),

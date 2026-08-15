@@ -119,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabSurah => 'Surah';
 
   @override
-  String get tabPara => 'Para';
+  String get tabPara => 'Juz';
 
   @override
   String get tabPage => 'Page';
@@ -810,4 +810,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navQiblaLabel => 'Qibla';
+
+  @override
+  String get navPrayerLabel => 'Prayer';
+
+  @override
+  String get navMoreLabel => 'More';
+
+  @override
+  String get searchSurahHint => 'Search by name or number…';
+
+  @override
+  String get searchJuzHint => 'Search by number or starting surah…';
+
+  @override
+  String get searchPageHint => 'Jump to page number…';
+
+  @override
+  String get searchHizbHint => 'Jump to Hizb number…';
+
+  @override
+  String get developerToolsTitle => 'Developer tools';
+
+  @override
+  String get hajjUmrahGuideTitle => 'Hajj & Umrah Guide';
+
+  @override
+  String get hajjUmrahDisclaimer =>
+      'Ritual steps and dua text are community-sourced (MIT-licensed), not official Ministry of Hajj guidance. Verify with your group\'s scholar before relying on this for your pilgrimage.';
+
+  @override
+  String get umrahTrackLabel => 'Umrah';
+
+  @override
+  String get hajjTrackLabel => 'Hajj';
+
+  @override
+  String get ritualStepsHeading => 'Steps';
+
+  @override
+  String get relevantDuasHeading => 'Duas for this step';
+
+  @override
+  String get edgeCasesHeading => 'Exceptions & edge cases';
+
+  @override
+  String stepsCompletedLabel(int done, int total) {
+    return '$done / $total steps';
+  }
+
+  @override
+  String get tawafSaiCounterTitle => 'Tawaf & Sa\'i Counter';
+
+  @override
+  String get tawafModeLabel => 'Tawaf';
+
+  @override
+  String get saiModeLabel => 'Sa\'i';
+
+  @override
+  String circuitCountLabel(int count, int target) {
+    return '$count / $target';
+  }
+
+  @override
+  String get tawafCompleteMessage =>
+      'Tawaf complete — pray 2 rakaat behind Maqam Ibrahim';
+
+  @override
+  String get saiCompleteMessage => 'Sa\'i complete';
+
+  @override
+  String get pilgrimModeTooltip =>
+      'Pilgrim Mode — alerts when near a holy site';
+
+  @override
+  String get pilgrimModeLocationDenied =>
+      'Location permission is needed for Pilgrim Mode alerts';
+
+  @override
+  String pilgrimModeNear(String siteName) {
+    return 'You\'re near $siteName';
+  }
 }

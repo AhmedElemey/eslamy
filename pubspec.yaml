@@ -89,6 +89,20 @@ flutter:
     - assets/data/
     - assets/audio/
 
+  fonts:
+    - family: SourceSans3
+      fonts:
+        - asset: assets/fonts/SourceSans3-Regular.ttf
+        - asset: assets/fonts/SourceSans3-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SourceSans3-Bold.ttf
+          weight: 700
+    - family: ScheherazadeNew
+      fonts:
+        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
+        - asset: assets/fonts/ScheherazadeNew-Bold.ttf
+          weight: 700
+
 flutter_launcher_icons:
   android: true
   ios: true

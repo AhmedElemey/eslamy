@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/app_background.dart';
 import '../../../quran/models/quran_models.dart';
 import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../../settings/service/settings_database.dart';
@@ -21,6 +22,8 @@ class HifzPage extends ConsumerWidget {
     final l10n = context.l10n;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(l10n.hifzTrackerTitle),
         actions: [
@@ -31,10 +34,14 @@ class HifzPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: chaptersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(e.toString()))),
-        data: (chapters) => _buildList(context, chapters, memorized, ref),
+      body: AppBackground(
+        child: SafeArea(
+          child: chaptersAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(e.toString()))),
+            data: (chapters) => _buildList(context, chapters, memorized, ref),
+          ),
+        ),
       ),
     );
   }
@@ -65,7 +72,7 @@ class HifzPage extends ConsumerWidget {
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 8,
-                  backgroundColor: AppColors.primary.withOpacity(0.15),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   color: AppColors.primary,
                 ),
               ),

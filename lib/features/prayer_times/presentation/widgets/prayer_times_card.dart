@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../home/presentation/controllers/shell_providers.dart';
 import '../controllers/prayer_times_providers.dart';
-import '../pages/prayer_times_page.dart';
-import 'prayer_name_localizer.dart';
+import '../widgets/prayer_name_localizer.dart';
 
 class PrayerTimesCard extends ConsumerStatefulWidget {
   const PrayerTimesCard({super.key});
@@ -41,9 +41,7 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PrayerTimesPage()),
-        );
+        ref.read(mainTabIndexProvider.notifier).state = 2;
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
@@ -51,10 +49,9 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
           children: [
             Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryDeep, AppColors.primary, AppColors.violet],
-                    stops: [0, 0.55, 1],
+                    colors: AppColors.heroGradient(context),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -66,12 +63,12 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
             Positioned(
               top: -40,
               right: -30,
-              child: _glowCircle(120, AppColors.gold.withOpacity(0.35)),
+              child: _glowCircle(120, AppColors.gold.withValues(alpha: 0.35)),
             ),
             Positioned(
               bottom: -50,
               left: -20,
-              child: _glowCircle(110, Colors.white.withOpacity(0.12)),
+              child: _glowCircle(110, Colors.white.withValues(alpha: 0.12)),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
@@ -89,7 +86,7 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(colors: [color, color.withOpacity(0)]),
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
       ),
     );
   }
@@ -134,9 +131,9 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.16),
+                color: Colors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withOpacity(0.25)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
               ),
               child: const Icon(Icons.mosque, color: Colors.white, size: 22),
             ),
@@ -191,7 +188,7 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.16),
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(

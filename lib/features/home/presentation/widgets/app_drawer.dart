@@ -6,14 +6,14 @@ import '../../../../shared/widgets/islamic_pattern_painter.dart';
 import '../../../duas/presentation/pages/azkar_categories_page.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../hadith/presentation/pages/hadith_books_page.dart';
+import '../../../hajj_umrah/presentation/pages/hajj_umrah_home_page.dart';
 import '../../../hifz/presentation/pages/hifz_page.dart';
 import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
-import '../../../prayer_times/presentation/pages/prayer_times_page.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
-import '../../../quran/presentation/pages/quran_index_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
+import '../controllers/shell_providers.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -26,68 +26,70 @@ class AppDrawer extends ConsumerWidget {
 
     final sections = <_DrawerSection>[
       _DrawerSection(null, [
-        _DrawerItem(Icons.home_rounded, l10n.appTitle, () => null),
+        _DrawerItem(Icons.home_rounded, l10n.navHomeLabel, tabIndex: 0),
       ]),
       _DrawerSection(l10n.drawerSectionWorship, [
         _DrawerItem(
           Icons.access_time_rounded,
           l10n.prayerTimesTitle,
-          () => const PrayerTimesPage(),
+          tabIndex: 2,
         ),
         _DrawerItem(
           Icons.explore_outlined,
           l10n.qiblaDirectionTooltip,
-          () => const QiblaPage(),
+          pageBuilder: () => const QiblaPage(),
         ),
         _DrawerItem(
-          Icons.fingerprint_rounded,
+          Icons.donut_large_outlined,
           l10n.tasbihCounterTitle,
-          () => const TasbihPage(),
+          pageBuilder: () => const TasbihPage(),
         ),
         _DrawerItem(
           Icons.auto_awesome_outlined,
           l10n.duasAzkarTitle,
-          () => const AzkarCategoriesPage(),
+          pageBuilder: () => const AzkarCategoriesPage(),
         ),
         _DrawerItem(
           Icons.calendar_month_outlined,
           l10n.hijriCalendarTitle,
-          () => const HijriCalendarPage(),
+          pageBuilder: () => const HijriCalendarPage(),
+        ),
+        _DrawerItem(
+          Icons.mosque_outlined,
+          l10n.hajjUmrahGuideTitle,
+          pageBuilder: () => const HajjUmrahHomePage(),
         ),
       ]),
       _DrawerSection(l10n.drawerSectionQuranStudy, [
-        _DrawerItem(
-          Icons.menu_book_rounded,
-          l10n.digitalMushaf,
-          () => const QuranIndexPage(),
-        ),
+        _DrawerItem(Icons.menu_book_rounded, l10n.digitalMushaf, tabIndex: 1),
         _DrawerItem(
           Icons.school_outlined,
           l10n.hifzProgress,
-          () => const HifzPage(),
+          pageBuilder: () => const HifzPage(),
         ),
         _DrawerItem(
           Icons.import_contacts_outlined,
           l10n.hadithLabel,
-          () => const HadithBooksPage(),
+          pageBuilder: () => const HadithBooksPage(),
         ),
         _DrawerItem(
           Icons.bookmarks_outlined,
           l10n.favoritesTitle,
-          () => const FavoritesPage(),
+          pageBuilder: () => const FavoritesPage(),
         ),
       ]),
       _DrawerSection(null, [
+        _DrawerItem(Icons.grid_view_outlined, l10n.navMoreLabel, tabIndex: 3),
         _DrawerItem(
           Icons.settings_outlined,
           l10n.settingsTitle,
-          () => const SettingsPage(),
+          pageBuilder: () => const SettingsPage(),
         ),
       ]),
     ];
 
     return Drawer(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppColors.pageBackground(context),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -102,8 +104,8 @@ class AppDrawer extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
                 child: Text(
                   section.title!.toUpperCase(),
-                  style: const TextStyle(
-                    color: AppColors.muted,
+                  style: TextStyle(
+                    color: AppColors.mutedText(context),
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.1,
@@ -117,10 +119,14 @@ class AppDrawer extends ConsumerWidget {
                   height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(item.icon, color: AppColors.primary, size: 19),
+                  child: Icon(
+                    item.icon,
+                    color: AppColors.primaryOnBg(context),
+                    size: 19,
+                  ),
                 ),
                 title: Text(
                   item.label,
@@ -128,7 +134,12 @@ class AppDrawer extends ConsumerWidget {
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
-                  final page = item.pageBuilder();
+                  if (item.tabIndex != null) {
+                    ref.read(mainTabIndexProvider.notifier).state =
+                        item.tabIndex!;
+                    return;
+                  }
+                  final page = item.pageBuilder?.call();
                   if (page == null) return;
                   Navigator.of(
                     context,
@@ -150,10 +161,11 @@ class _DrawerSection {
 }
 
 class _DrawerItem {
-  _DrawerItem(this.icon, this.label, this.pageBuilder);
+  _DrawerItem(this.icon, this.label, {this.pageBuilder, this.tabIndex});
   final IconData icon;
   final String label;
-  final Widget? Function() pageBuilder;
+  final Widget? Function()? pageBuilder;
+  final int? tabIndex;
 }
 
 class _DrawerHeader extends StatelessWidget {
@@ -203,8 +215,11 @@ class _DrawerHeader extends StatelessWidget {
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primaryDeep, AppColors.primary, AppColors.violet],
-          stops: [0, 0.55, 1],
+          colors: [
+            AppColors.primaryDeepest,
+            AppColors.primaryDeep,
+            AppColors.primary,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -221,9 +236,11 @@ class _DrawerHeader extends StatelessWidget {
                   height: 52,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.16),
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.25)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
                   ),
                   child: const Icon(
                     Icons.mosque,
@@ -244,7 +261,7 @@ class _DrawerHeader extends StatelessWidget {
                 Text(
                   '${weekdays[today.weekday - 1]}, ${today.day} ${months[today.month - 1]}',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -253,7 +270,7 @@ class _DrawerHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     hijriDate!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.gold,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,

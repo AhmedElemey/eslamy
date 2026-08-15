@@ -31,7 +31,7 @@ class _SectionHeader extends StatelessWidget {
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
+            color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: AppColors.primary, size: 17),
@@ -42,6 +42,19 @@ class _SectionHeader extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// `FirebaseMessaging.getToken()` throws synchronously on iOS when no APNs
+/// token is set yet (e.g. every simulator, or a device before push
+/// permission round-trips) — an `async` wrapper turns that into a rejected
+/// Future instead of an uncaught exception that would otherwise crash the
+/// FutureBuilder mid-build and trip the app's global error page.
+Future<String?> _fetchFcmToken() async {
+  try {
+    return await FirebaseMessaging.instance.getToken();
+  } catch (_) {
+    return null;
   }
 }
 
@@ -69,7 +82,7 @@ class SettingsPage extends ConsumerWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.violet],
+                  colors: [AppColors.primaryDeep, AppColors.primary],
                 ),
                 borderRadius: BorderRadius.circular(9),
               ),
@@ -97,17 +110,14 @@ class SettingsPage extends ConsumerWidget {
                           ButtonSegment(
                             value: ThemeMode.system,
                             label: Text(l10n.themeSystem),
-                            icon: const Icon(Icons.brightness_auto),
                           ),
                           ButtonSegment(
                             value: ThemeMode.light,
                             label: Text(l10n.themeLight),
-                            icon: const Icon(Icons.light_mode),
                           ),
                           ButtonSegment(
                             value: ThemeMode.dark,
                             label: Text(l10n.themeDark),
-                            icon: const Icon(Icons.dark_mode),
                           ),
                         ],
                         selected: {mode},
@@ -215,10 +225,11 @@ class SettingsPage extends ConsumerWidget {
                       future: SettingsDatabase().getWerdTime(),
                       builder: (context, snap) {
                         final current = snap.data;
-                        return Row(
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
-                            Expanded(
-                              child: OutlinedButton(
+                            OutlinedButton(
                                 onPressed: () async {
                                   final now = TimeOfDay.now();
                                   final picked = await showTimePicker(
@@ -246,9 +257,7 @@ class SettingsPage extends ConsumerWidget {
                                       ? '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}'
                                       : l10n.pickTime,
                                 ),
-                              ),
                             ),
-                            const SizedBox(width: 12),
                             FilledButton(
                               onPressed: () async {
                                 await NotificationService().requestPermissions();
@@ -269,7 +278,6 @@ class SettingsPage extends ConsumerWidget {
                               },
                               child: Text(l10n.scheduleButton),
                             ),
-                            const SizedBox(width: 12),
                             OutlinedButton(
                               onPressed: () async {
                                 await NotificationService().requestPermissions();
@@ -316,45 +324,49 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionHeader(
-                      icon: Icons.notifications_active_outlined,
-                      title: l10n.sectionPushNotificationsFcm,
+              Theme(
+                data: theme.copyWith(dividerColor: Colors.transparent),
+                child: GlassCard(
+                  child: ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      Icons.developer_mode_outlined,
+                      color: AppColors.primaryOnBg(context),
                     ),
-                    const SizedBox(height: 8),
-                    FutureBuilder<String?>(
-                      future: FirebaseMessaging.instance.getToken(),
-                      builder: (context, snap) {
-                        final token = snap.data;
-                        if (snap.connectionState == ConnectionState.waiting) {
-                          return Text(l10n.fetchingFcmToken);
-                        }
-                        if (token == null || token.isEmpty) {
-                          return Text(l10n.noFcmTokenYet);
-                        }
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SelectableText(token, style: theme.textTheme.bodySmall),
-                            const SizedBox(height: 8),
-                            OutlinedButton(
-                              onPressed: () async {
-                                await Clipboard.setData(ClipboardData(text: token));
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.tokenCopied)),
-                                );
-                              },
-                              child: Text(l10n.copyTokenButton),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                    title: Text(l10n.developerToolsTitle),
+                    children: [
+                      FutureBuilder<String?>(
+                        future: _fetchFcmToken(),
+                        builder: (context, snap) {
+                          final token = snap.data;
+                          if (snap.connectionState == ConnectionState.waiting) {
+                            return Text(l10n.fetchingFcmToken);
+                          }
+                          if (token == null || token.isEmpty) {
+                            return Text(l10n.noFcmTokenYet);
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SelectableText(token, style: theme.textTheme.bodySmall),
+                              const SizedBox(height: 8),
+                              OutlinedButton(
+                                onPressed: () async {
+                                  await Clipboard.setData(ClipboardData(text: token));
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(l10n.tokenCopied)),
+                                  );
+                                },
+                                child: Text(l10n.copyTokenButton),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

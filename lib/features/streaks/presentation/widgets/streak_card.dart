@@ -19,7 +19,7 @@ class StreakCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.15),
@@ -27,7 +27,11 @@ class StreakCard extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 28)),
+          Icon(
+            Icons.local_fire_department_outlined,
+            color: AppColors.goldAccent(context),
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

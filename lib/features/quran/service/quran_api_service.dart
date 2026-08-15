@@ -80,7 +80,9 @@ class QuranApiService {
   /// (a translation) which this used to call by mistake.
   Future<AyahTafsir> getTafseer(int chapterNumber, int verseNumber) async {
     try {
-      final response = await _dio.get('/ayah/$chapterNumber:$verseNumber/ar.jalalayn');
+      final response = await _dio.get(
+        '/ayah/$chapterNumber:$verseNumber/ar.jalalayn',
+      );
       final Map<String, dynamic> data = response.data;
       return AyahTafsir.fromJson(data);
     } on DioException catch (e) {
@@ -99,17 +101,6 @@ class QuranApiService {
       return audioEditions.map((edition) => Reciter.fromJson(edition)).toList();
     } on DioException catch (e) {
       debugPrint('DioException in getReciters: ${e.toString()}');
-      throw _handleError(e);
-    }
-  }
-
-  /// Get audio files for a specific chapter
-  Future<String> getChapterAudio(int chapterNumber) async {
-    try {
-      // Use the audio service to get chapter audio
-      return await QuranAudioService.getChapterAudioUrl(chapterNumber);
-    } on DioException catch (e) {
-      debugPrint('DioException in getChapterAudio: ${e.toString()}');
       throw _handleError(e);
     }
   }
@@ -154,7 +145,9 @@ class QuranApiService {
     String editionIdentifier = 'en.sahih',
   }) async {
     try {
-      final response = await _dio.get('/surah/$chapterNumber?edition=$editionIdentifier');
+      final response = await _dio.get(
+        '/surah/$chapterNumber?edition=$editionIdentifier',
+      );
       final Map<String, dynamic> data = response.data;
       return QuranChapterResponse.fromJson(data);
     } on DioException catch (e) {
@@ -168,7 +161,9 @@ class QuranApiService {
     try {
       final response = await _dio.get('/juz/$juzNumber/quran-uthmani');
       final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+      return ayahs
+          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       debugPrint('DioException in getJuz: ${e.toString()}');
       throw _handleError(e);
@@ -180,7 +175,9 @@ class QuranApiService {
     try {
       final response = await _dio.get('/page/$pageNumber/quran-uthmani');
       final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+      return ayahs
+          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       debugPrint('DioException in getPage: ${e.toString()}');
       throw _handleError(e);
@@ -191,9 +188,13 @@ class QuranApiService {
   /// directly rather than Hizb-then-quarter).
   Future<List<AyahWithSurah>> getHizbQuarter(int quarterNumber) async {
     try {
-      final response = await _dio.get('/hizbQuarter/$quarterNumber/quran-uthmani');
+      final response = await _dio.get(
+        '/hizbQuarter/$quarterNumber/quran-uthmani',
+      );
       final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs.map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>)).toList();
+      return ayahs
+          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       debugPrint('DioException in getHizbQuarter: ${e.toString()}');
       throw _handleError(e);

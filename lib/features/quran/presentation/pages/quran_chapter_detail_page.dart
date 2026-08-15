@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/ayah_block.dart';
 import '../../models/quran_models.dart';
 import '../controllers/quran_providers.dart';
+import '../widgets/reciter_selection_widget.dart';
 import '../widgets/tajweed_legend_sheet.dart';
-import '../widgets/tajweed_text.dart';
 import '../widgets/translation_selection_widget.dart';
 import 'quran_verse_detail_page.dart';
 
@@ -27,6 +31,7 @@ class QuranChapterDetailPage extends ConsumerStatefulWidget {
 class _QuranChapterDetailPageState
     extends ConsumerState<QuranChapterDetailPage> {
   late AudioPlayer _audioPlayer;
+  late final ProviderSubscription<Reciter?> _reciterSubscription;
   bool _isPlaying = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
@@ -37,6 +42,17 @@ class _QuranChapterDetailPageState
     super.initState();
     _audioPlayer = AudioPlayer();
     _setupAudioPlayer();
+    // Restart with the new reciter's audio if the chapter is playing when
+    // the user switches reciters (from this page's own picker, or any
+    // other screen).
+    _reciterSubscription = ref.listenManual<Reciter?>(selectedReciterProvider, (
+      previous,
+      next,
+    ) {
+      if (mounted && previous != next && _isPlaying) {
+        _startChapterAudio();
+      }
+    });
   }
 
   void _setupAudioPlayer() {
@@ -75,12 +91,18 @@ class _QuranChapterDetailPageState
   }
 
   Future<void> _playChapterAudio() async {
-    try {
-      if (_isPlaying) {
-        await _pauseAudio();
-        return;
-      }
+    if (_isPlaying) {
+      await _pauseAudio();
+      return;
+    }
+    await _startChapterAudio();
+  }
 
+  /// Fetches the chapter audio URL for the currently selected reciter and
+  /// plays it. Used both by the play button and to restart with a new
+  /// reciter while the chapter is already playing.
+  Future<void> _startChapterAudio() async {
+    try {
       // Stop any current audio before starting new
       if (_currentAudioUrl != null) {
         await _stopAudio();
@@ -96,9 +118,9 @@ class _QuranChapterDetailPageState
         );
       }
 
-      // Get chapter audio URL
+      // Get chapter audio URL for the selected reciter
       final audioUrlAsync = ref.read(
-        chapterAudioProvider(widget.chapterNumber).future,
+        chapterAudioUrlProvider(widget.chapterNumber).future,
       );
       _currentAudioUrl = await audioUrlAsync;
 
@@ -134,6 +156,15 @@ class _QuranChapterDetailPageState
     }
   }
 
+  void _openReciterPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ReciterSelectionDialog(),
+    );
+  }
+
   Future<void> _pauseAudio() async {
     await _audioPlayer.pause();
   }
@@ -154,6 +185,7 @@ class _QuranChapterDetailPageState
 
   @override
   void dispose() {
+    _reciterSubscription.close();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -162,6 +194,7 @@ class _QuranChapterDetailPageState
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(chapterProvider(widget.chapterNumber));
     final l10n = context.l10n;
+    final selectedReciter = ref.watch(selectedReciterProvider);
     final selectedEdition = ref.watch(selectedTranslationProvider);
     final translationAsync = ref.watch(
       chapterTranslationProvider((
@@ -170,7 +203,11 @@ class _QuranChapterDetailPageState
       )),
     );
     final translationByVerse = translationAsync.maybeWhen(
-      data: (r) => {for (final v in r.data.ayahs ?? <QuranVerse>[]) v.numberInSurah: v.text},
+      data:
+          (r) => {
+            for (final v in r.data.ayahs ?? <QuranVerse>[])
+              v.numberInSurah: v.text,
+          },
       orElse: () => const <int, String>{},
     );
     final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
@@ -180,19 +217,34 @@ class _QuranChapterDetailPageState
             : null;
     final tajweedByVerse =
         tajweedAsync?.maybeWhen(
-          data: (r) => {for (final v in r.data.ayahs ?? <QuranVerse>[]) v.numberInSurah: v.text},
+          data:
+              (r) => {
+                for (final v in r.data.ayahs ?? <QuranVerse>[])
+                  v.numberInSurah: v.text,
+              },
           orElse: () => const <int, String>{},
         ) ??
         const <int, String>{};
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(l10n.chapterWithNameTitle(widget.chapterNumber, widget.chapterName)),
+        title: Text(
+          l10n.chapterWithNameTitle(widget.chapterNumber, widget.chapterName),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.record_voice_over),
+            onPressed: _openReciterPicker,
+            tooltip: selectedReciter?.name ?? l10n.quranReciterLabel,
+          ),
+          IconButton(
             icon: Icon(
-              tajweedEnabled ? Icons.format_color_text : Icons.format_color_reset,
+              tajweedEnabled
+                  ? Icons.format_color_text
+                  : Icons.format_color_reset,
             ),
             onPressed:
                 () => ref
@@ -205,224 +257,69 @@ class _QuranChapterDetailPageState
             onPressed: () => showTajweedLegendSheet(context),
             tooltip: l10n.tajweedLegendTitle,
           ),
-          IconButton(
-            icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-            onPressed: _playChapterAudio,
-            tooltip: _isPlaying ? l10n.pauseChapterAudioTooltip : l10n.playChapterAudioTooltip,
-          ),
-          IconButton(
-            icon: const Icon(Icons.stop),
-            onPressed: _stopAudio,
-            tooltip: l10n.stopAudioTooltip,
-          ),
         ],
       ),
-      body: chapterAsync.when(
-        data:
-            (chapterResponse) => Column(
-              children: [
-                // Chapter info header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        chapterResponse.data.englishName,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        chapterResponse.data.englishNameTranslation,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.versesCountRevelationType(
-                          chapterResponse.data.numberOfAyahs,
-                          chapterResponse.data.revelationType,
-                        ),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const TranslationSelectionWidget(),
-                    ],
-                  ),
-                ),
-                // Chapter Audio Player
-                if (_duration.inSeconds > 0 || _isPlaying)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      border: Border(
-                        top: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: 1,
-                        ),
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
+      body: AppBackground(
+        child: SafeArea(
+          child: chapterAsync.when(
+            data: (chapterResponse) {
+              final ayahs = chapterResponse.data.ayahs ?? <QuranVerse>[];
+              final showBasmala =
+                  widget.chapterNumber != 1 && widget.chapterNumber != 9;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.volume_up,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.chapterAudioLabel,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              onPressed:
-                                  _isPlaying ? _pauseAudio : _playChapterAudio,
-                              icon: Icon(
-                                _isPlaying ? Icons.pause : Icons.play_arrow,
-                                size: 32,
-                              ),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Theme.of(context).primaryColor,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              onPressed: _stopAudio,
-                              icon: const Icon(Icons.stop),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.grey[300],
-                                foregroundColor: Colors.grey[700],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          chapterResponse.data.name,
+                          textDirection: TextDirection.rtl,
+                          style: AppTypography.naskh(
+                            size: 28,
+                            weight: FontWeight.w700,
+                            color: AppColors.heading(context),
+                          ),
                         ),
-                        if (_duration.inSeconds > 0) ...[
-                          const SizedBox(height: 12),
-                          Slider(
-                            value: _position.inMilliseconds.toDouble().clamp(
-                              0.0,
-                              _duration.inMilliseconds.toDouble(),
-                            ),
-                            max: _duration.inMilliseconds.toDouble(),
-                            onChanged: (value) {
-                              _audioPlayer.seek(
-                                Duration(milliseconds: value.toInt()),
-                              );
-                            },
+                        Text(
+                          chapterResponse.data.englishNameTranslation,
+                          style: TextStyle(color: AppColors.mutedText(context)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.versesCountRevelationType(
+                            chapterResponse.data.numberOfAyahs,
+                            chapterResponse.data.revelationType,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(_formatDuration(_position)),
-                              Text(_formatDuration(_duration)),
-                            ],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.mutedText(context),
                           ),
-                        ],
+                        ),
+                        const SizedBox(height: 10),
+                        const TranslationSelectionWidget(),
                       ],
                     ),
                   ),
-                // Verses list
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: chapterResponse.data.ayahs?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final verse = chapterResponse.data.ayahs![index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            child: Text(
-                              '${verse.numberInSurah}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      itemCount: ayahs.length + (showBasmala ? 1 : 0),
+                      separatorBuilder:
+                          (_, __) => Divider(
+                            height: 1,
+                            color: AppColors.hairline(context),
                           ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              tajweedByVerse[verse.numberInSurah] != null
-                                  ? TajweedText(
-                                    text: tajweedByVerse[verse.numberInSurah]!,
-                                    style: const TextStyle(fontSize: 18, height: 1.5),
-                                  )
-                                  : Text(
-                                    verse.text,
-                                    style: const TextStyle(fontSize: 18, height: 1.5),
-                                    textDirection: TextDirection.rtl,
-                                    textAlign: TextAlign.right,
-                                  ),
-                              if (translationByVerse[verse.numberInSurah] != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  translationByVerse[verse.numberInSurah]!,
-                                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                                ),
-                              ],
-                            ],
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.play_circle_outline,
-                                  size: 20,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  l10n.playAudioLabel,
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 20,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  l10n.tafseerLabel,
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      itemBuilder: (context, index) {
+                        if (showBasmala && index == 0) {
+                          return const BasmalaHeader();
+                        }
+                        final verse = ayahs[showBasmala ? index - 1 : index];
+                        return AyahBlock(
+                          number: verse.numberInSurah,
+                          arabic: verse.text,
+                          tajweedText: tajweedByVerse[verse.numberInSurah],
+                          translation: translationByVerse[verse.numberInSurah],
                           onTap: () {
                             Navigator.push(
                               context,
@@ -436,41 +333,174 @@ class _QuranChapterDetailPageState
                               ),
                             );
                           },
-                        ),
-                      );
+                          footer: Row(
+                            children: [
+                              Icon(
+                                Icons.play_circle_outline,
+                                size: 18,
+                                color: AppColors.primaryOnBg(context),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.playAudioLabel,
+                                style: TextStyle(
+                                  color: AppColors.primaryOnBg(context),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                Icons.info_outline,
+                                size: 18,
+                                color: AppColors.mutedText(context),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.tafseerLabel,
+                                style: TextStyle(
+                                  color: AppColors.mutedText(context),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  _ChapterAudioBar(
+                    label: l10n.chapterAudioLabel,
+                    isPlaying: _isPlaying,
+                    position: _position,
+                    duration: _duration,
+                    onPlayPause: _isPlaying ? _pauseAudio : _playChapterAudio,
+                    onStop: _stopAudio,
+                    formatDuration: _formatDuration,
+                    onSeek: (value) {
+                      _audioPlayer.seek(Duration(milliseconds: value.toInt()));
                     },
                   ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error:
+                (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.failedToLoadChapter,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.mutedText(context)),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed:
+                            () => ref.refresh(
+                              chapterProvider(widget.chapterNumber),
+                            ),
+                        child: Text(l10n.retry),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChapterAudioBar extends StatelessWidget {
+  const _ChapterAudioBar({
+    required this.label,
+    required this.isPlaying,
+    required this.position,
+    required this.duration,
+    required this.onPlayPause,
+    required this.onStop,
+    required this.formatDuration,
+    required this.onSeek,
+  });
+
+  final String label;
+  final bool isPlaying;
+  final Duration position;
+  final Duration duration;
+  final VoidCallback onPlayPause;
+  final VoidCallback onStop;
+  final String Function(Duration) formatDuration;
+  final ValueChanged<double> onSeek;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxMs = duration.inMilliseconds.toDouble();
+    return Material(
+      color: AppColors.surface(context),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.failedToLoadChapter,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.heading(context),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
+                  IconButton.filled(
+                    onPressed: onPlayPause,
+                    icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed:
-                        () =>
-                            ref.refresh(chapterProvider(widget.chapterNumber)),
-                    child: Text(l10n.retry),
+                  const SizedBox(width: 8),
+                  IconButton.outlined(
+                    onPressed: onStop,
+                    icon: const Icon(Icons.stop),
                   ),
                 ],
               ),
-            ),
+              if (maxMs > 0) ...[
+                Slider(
+                  value: position.inMilliseconds.toDouble().clamp(0.0, maxMs),
+                  max: maxMs,
+                  onChanged: onSeek,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      formatDuration(position),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      formatDuration(duration),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

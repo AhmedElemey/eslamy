@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/app_background.dart';
 import '../../models/quran_models.dart';
 import '../controllers/quran_providers.dart';
+import '../widgets/reciter_selection_widget.dart';
 import '../widgets/tajweed_legend_sheet.dart';
 import '../widgets/tajweed_text.dart';
 
@@ -30,6 +33,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   static const List<int?> _repeatOptions = [1, 3, 5, 10, null];
 
   late AudioPlayer _audioPlayer;
+  late final ProviderSubscription<Reciter?> _reciterSubscription;
   bool _isPlaying = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
@@ -41,6 +45,17 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
     super.initState();
     _audioPlayer = AudioPlayer();
     _setupAudioPlayer();
+    // Restart with the new reciter's audio if the verse is playing when
+    // the user switches reciters (from this page's own picker, or any
+    // other screen).
+    _reciterSubscription = ref.listenManual<Reciter?>(selectedReciterProvider, (
+      previous,
+      next,
+    ) {
+      if (mounted && previous != next && _isPlaying) {
+        _startAudio();
+      }
+    });
   }
 
   void _setupAudioPlayer() {
@@ -97,12 +112,18 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   }
 
   Future<void> _playAudio() async {
-    try {
-      if (_isPlaying) {
-        await _pauseAudio();
-        return;
-      }
+    if (_isPlaying) {
+      await _pauseAudio();
+      return;
+    }
+    await _startAudio();
+  }
 
+  /// Fetches the verse audio URL for the currently selected reciter and
+  /// plays it. Used both by the play button and to restart with a new
+  /// reciter while the verse is already playing.
+  Future<void> _startAudio() async {
+    try {
       // Stop any current audio before starting new
       await _stopAudio();
       _repeatCount = 0;
@@ -128,7 +149,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       if (mounted && selectedReciter != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.playingWithReciter(selectedReciter.name)),
+            content: Text(
+              context.l10n.playingWithReciter(selectedReciter.name),
+            ),
             duration: const Duration(seconds: 2),
             backgroundColor: Colors.blue,
           ),
@@ -152,7 +175,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                context.l10n.realAudioNotAvailableReciter(selectedReciter?.name ?? ''),
+                context.l10n.realAudioNotAvailableReciter(
+                  selectedReciter?.name ?? '',
+                ),
               ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.orange,
@@ -179,7 +204,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.l10n.audioPlaybackErrorWithError(e.toString())),
+              content: Text(
+                context.l10n.audioPlaybackErrorWithError(e.toString()),
+              ),
               duration: const Duration(seconds: 3),
               backgroundColor: Colors.red,
             ),
@@ -224,8 +251,18 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
     _repeatCount = 0;
   }
 
+  void _openReciterPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ReciterSelectionDialog(),
+    );
+  }
+
   @override
   void dispose() {
+    _reciterSubscription.close();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -239,6 +276,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       )),
     );
     final l10n = context.l10n;
+    final selectedReciter = ref.watch(selectedReciterProvider);
     final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
     final tajweedAsync =
         tajweedEnabled
@@ -255,13 +293,24 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
     );
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(l10n.chapterVerseTitle(widget.chapterNumber, widget.verseNumber)),
+        title: Text(
+          l10n.chapterVerseTitle(widget.chapterNumber, widget.verseNumber),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.record_voice_over),
+            onPressed: _openReciterPicker,
+            tooltip: selectedReciter?.name ?? l10n.quranReciterLabel,
+          ),
+          IconButton(
             icon: Icon(
-              tajweedEnabled ? Icons.format_color_text : Icons.format_color_reset,
+              tajweedEnabled
+                  ? Icons.format_color_text
+                  : Icons.format_color_reset,
             ),
             onPressed:
                 () => ref
@@ -276,278 +325,286 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Verse text card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+      body: AppBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Verse text card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: Text(
-                            '${widget.verseNumber}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              child: Text(
+                                '${widget.verseNumber}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                l10n.chapterVerseTitle(
+                                  widget.chapterNumber,
+                                  widget.verseNumber,
+                                ),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l10n.chapterVerseTitle(widget.chapterNumber, widget.verseNumber),
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
+                        const SizedBox(height: 16),
+                        tajweedVerseText != null
+                            ? TajweedText(
+                              text: tajweedVerseText,
+                              style: const TextStyle(fontSize: 20, height: 1.8),
+                            )
+                            : Text(
+                              widget.verseText,
+                              style: const TextStyle(fontSize: 20, height: 1.8),
+                              textDirection: TextDirection.rtl,
+                              textAlign: TextAlign.right,
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Audio player card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.audioRecitationLabel,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: _isPlaying ? _pauseAudio : _playAudio,
+                              icon: Icon(
+                                _isPlaying ? Icons.pause : Icons.play_arrow,
+                                size: 32,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              onPressed: _stopAudio,
+                              icon: const Icon(Icons.stop),
+                              style: IconButton.styleFrom(
+                                backgroundColor: AppColors.pageBackground(
+                                  context,
+                                ),
+                                foregroundColor: AppColors.heading(context),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (_duration.inSeconds > 0) ...[
+                                    Slider(
+                                      value: _position.inMilliseconds
+                                          .toDouble()
+                                          .clamp(
+                                            0.0,
+                                            _duration.inMilliseconds.toDouble(),
+                                          ),
+                                      max: _duration.inMilliseconds.toDouble(),
+                                      onChanged: (value) {
+                                        _audioPlayer.seek(
+                                          Duration(milliseconds: value.toInt()),
+                                        );
+                                      },
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(_formatDuration(_position)),
+                                        Text(_formatDuration(_duration)),
+                                      ],
+                                    ),
+                                  ] else
+                                    Text(
+                                      l10n.tapPlayToLoadAudio,
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.repeatPracticeLabel,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final option in _repeatOptions)
+                              ChoiceChip(
+                                label: Text(option == null ? '∞' : '$option×'),
+                                selected: _repeatTarget == option,
+                                onSelected:
+                                    (_) =>
+                                        setState(() => _repeatTarget = option),
+                              ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    tajweedVerseText != null
-                        ? TajweedText(
-                          text: tajweedVerseText,
-                          style: const TextStyle(fontSize: 20, height: 1.8),
-                        )
-                        : Text(
-                          widget.verseText,
-                          style: const TextStyle(fontSize: 20, height: 1.8),
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.right,
-                        ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // Audio player card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.audioRecitationLabel,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                // Tafseer section
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          onPressed: _isPlaying ? _pauseAudio : _playAudio,
-                          icon: Icon(
-                            _isPlaying ? Icons.pause : Icons.play_arrow,
-                            size: 32,
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                          ),
+                        Text(
+                          l10n.tafseerInterpretationLabel,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          onPressed: _stopAudio,
-                          icon: const Icon(Icons.stop),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            foregroundColor: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_duration.inSeconds > 0) ...[
-                                Slider(
-                                  value: _position.inMilliseconds
-                                      .toDouble()
-                                      .clamp(
-                                        0.0,
-                                        _duration.inMilliseconds.toDouble(),
-                                      ),
-                                  max: _duration.inMilliseconds.toDouble(),
-                                  onChanged: (value) {
-                                    _audioPlayer.seek(
-                                      Duration(milliseconds: value.toInt()),
-                                    );
-                                  },
+                        const SizedBox(height: 12),
+                        tafseerAsync.when(
+                          data: (tafsir) {
+                            if (tafsir.text.isEmpty) {
+                              return Text(
+                                l10n.noTafseerAvailable,
+                                style: TextStyle(color: Colors.grey[600]),
+                              );
+                            }
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tafsir.editionName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    tafsir.text,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      height: 1.5,
+                                    ),
+                                    textDirection: TextDirection.rtl,
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          loading:
+                              () => const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: CircularProgressIndicator(),
                                 ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                              ),
+                          error:
+                              (error, stack) => Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red[200]!),
+                                ),
+                                child: Column(
                                   children: [
-                                    Text(_formatDuration(_position)),
-                                    Text(_formatDuration(_duration)),
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.red[600],
+                                      size: 32,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      l10n.failedToLoadTafseer,
+                                      style: TextStyle(
+                                        color: Colors.red[600],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      error.toString(),
+                                      style: TextStyle(
+                                        color: Colors.red[600],
+                                        fontSize: 12,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton(
+                                      onPressed:
+                                          () => ref.refresh(
+                                            tafseerProvider((
+                                              chapterNumber:
+                                                  widget.chapterNumber,
+                                              verseNumber: widget.verseNumber,
+                                            )),
+                                          ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red[600],
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: Text(l10n.retry),
+                                    ),
                                   ],
                                 ),
-                              ] else
-                                Text(
-                                  l10n.tapPlayToLoadAudio,
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                            ],
-                          ),
+                              ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.repeatPracticeLabel,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        for (final option in _repeatOptions)
-                          ChoiceChip(
-                            label: Text(option == null ? '∞' : '$option×'),
-                            selected: _repeatTarget == option,
-                            onSelected:
-                                (_) => setState(() => _repeatTarget = option),
-                          ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            // Tafseer section
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.tafseerInterpretationLabel,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    tafseerAsync.when(
-                      data: (tafsir) {
-                        if (tafsir.text.isEmpty) {
-                          return Text(
-                            l10n.noTafseerAvailable,
-                            style: TextStyle(color: Colors.grey[600]),
-                          );
-                        }
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[200]!),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tafsir.editionName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                tafsir.text,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  height: 1.5,
-                                ),
-                                textDirection: TextDirection.rtl,
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      loading:
-                          () => const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                      error:
-                          (error, stack) => Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.red[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red[200]!),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: Colors.red[600],
-                                  size: 32,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  l10n.failedToLoadTafseer,
-                                  style: TextStyle(
-                                    color: Colors.red[600],
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  error.toString(),
-                                  style: TextStyle(
-                                    color: Colors.red[600],
-                                    fontSize: 12,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed:
-                                      () => ref.refresh(
-                                        tafseerProvider((
-                                          chapterNumber: widget.chapterNumber,
-                                          verseNumber: widget.verseNumber,
-                                        )),
-                                      ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red[600],
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: Text(l10n.retry),
-                                ),
-                              ],
-                            ),
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

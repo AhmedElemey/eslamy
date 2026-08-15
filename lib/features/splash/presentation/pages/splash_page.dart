@@ -76,20 +76,36 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sealColor = isDark ? Colors.white : AppColors.primaryDeep;
+    final titleColor = isDark ? Colors.white : AppColors.ink;
+    final taglineColor = isDark
+        ? Colors.white.withValues(alpha: 0.82)
+        : AppColors.mutedLight;
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.primaryDeep, AppColors.primary, AppColors.violet],
+            colors: isDark
+                ? const [
+                    AppColors.bgDark,
+                    AppColors.primaryDeepest,
+                    AppColors.primaryDeep,
+                  ]
+                : const [AppColors.bgLight, AppColors.bgLightBottom],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: Stack(
           children: [
-            const Positioned.fill(
-              child: IslamicPatternOverlay(tileSize: 56),
+            Positioned.fill(
+              child: IslamicPatternOverlay(
+                tileSize: 56,
+                color: isDark ? Colors.white : AppColors.primaryDeep,
+                opacity: isDark ? 0.08 : 0.06,
+              ),
             ),
             SafeArea(
               child: Center(
@@ -108,22 +124,15 @@ class _SplashPageState extends State<SplashPage>
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.14),
+                              color: sealColor.withValues(alpha: isDark ? 0.14 : 0.1),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.35),
+                                color: sealColor.withValues(alpha: 0.4),
                                 width: 1.5,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.18),
-                                  blurRadius: 28,
-                                  offset: const Offset(0, 12),
-                                ),
-                              ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.mosque,
-                              color: Colors.white,
+                              color: sealColor,
                               size: 44,
                             ),
                           ),
@@ -136,10 +145,10 @@ class _SplashPageState extends State<SplashPage>
                           opacity: _titleFade,
                           child: Text(
                             l10n.appTitle,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: titleColor,
                               letterSpacing: 0.4,
                             ),
                             textAlign: TextAlign.center,
@@ -155,7 +164,7 @@ class _SplashPageState extends State<SplashPage>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withOpacity(0.82),
+                            color: taglineColor,
                             height: 1.45,
                           ),
                         ),
@@ -177,9 +186,7 @@ class _SplashPageState extends State<SplashPage>
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      valueColor: AlwaysStoppedAnimation(
-                        Colors.white.withOpacity(0.75),
-                      ),
+                      valueColor: AlwaysStoppedAnimation(sealColor),
                     ),
                   ),
                 ),

@@ -39,7 +39,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -255,7 +255,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [primary, AppColors.violet],
+                    colors: [AppColors.primaryDeep, AppColors.primary],
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),

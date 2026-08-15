@@ -12,6 +12,7 @@ class TajweedRule {
   final String englishName;
   final String arabicName;
   final Color color;
+  final Color? darkColor;
 
   const TajweedRule({
     required this.code,
@@ -19,7 +20,15 @@ class TajweedRule {
     required this.englishName,
     required this.arabicName,
     required this.color,
+    this.darkColor,
   });
+
+  Color colorFor(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return darkColor ?? color;
+    }
+    return color;
+  }
 }
 
 /// All 17 Tajweed rules, keyed by their single-letter bracket code.
@@ -35,6 +44,7 @@ const Map<String, TajweedRule> tajweedRules = {
     englishName: 'Hamzat ul Wasl',
     arabicName: 'همزة الوصل',
     color: Color(0xFFAAAAAA),
+    darkColor: Color(0xFFC5C5C5),
   ),
   's': TajweedRule(
     code: 's',
@@ -42,6 +52,7 @@ const Map<String, TajweedRule> tajweedRules = {
     englishName: 'Silent',
     arabicName: 'حرف ساكن',
     color: Color(0xFFAAAAAA),
+    darkColor: Color(0xFFC5C5C5),
   ),
   'l': TajweedRule(
     code: 'l',
@@ -49,6 +60,7 @@ const Map<String, TajweedRule> tajweedRules = {
     englishName: 'Lam Shamsiyyah',
     arabicName: 'اللام الشمسية',
     color: Color(0xFFAAAAAA),
+    darkColor: Color(0xFFC5C5C5),
   ),
   'n': TajweedRule(
     code: 'n',
@@ -70,6 +82,7 @@ const Map<String, TajweedRule> tajweedRules = {
     englishName: 'Necessary Prolongation: 6 Vowels',
     arabicName: 'مد لازم',
     color: Color(0xFF000EBC),
+    darkColor: Color(0xFF7AA2FF),
   ),
   'q': TajweedRule(
     code: 'q',
@@ -84,6 +97,7 @@ const Map<String, TajweedRule> tajweedRules = {
     englishName: 'Obligatory Prolongation: 4-5 Vowels',
     arabicName: 'مد واجب',
     color: Color(0xFF2144C1),
+    darkColor: Color(0xFF6B8CFF),
   ),
   'c': TajweedRule(
     code: 'c',

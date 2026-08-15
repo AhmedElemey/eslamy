@@ -317,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabPara.
   ///
   /// In en, this message translates to:
-  /// **'Para'**
+  /// **'Juz'**
   String get tabPara;
 
   /// No description provided for @tabPage.
@@ -1423,6 +1423,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Qibla'**
   String get navQiblaLabel;
+
+  /// No description provided for @navPrayerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer'**
+  String get navPrayerLabel;
+
+  /// No description provided for @navMoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMoreLabel;
+
+  /// No description provided for @searchSurahHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or number…'**
+  String get searchSurahHint;
+
+  /// No description provided for @searchJuzHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by number or starting surah…'**
+  String get searchJuzHint;
+
+  /// No description provided for @searchPageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to page number…'**
+  String get searchPageHint;
+
+  /// No description provided for @searchHizbHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to Hizb number…'**
+  String get searchHizbHint;
+
+  /// No description provided for @developerToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer tools'**
+  String get developerToolsTitle;
+
+  /// No description provided for @hajjUmrahGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hajj & Umrah Guide'**
+  String get hajjUmrahGuideTitle;
+
+  /// No description provided for @hajjUmrahDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Ritual steps and dua text are community-sourced (MIT-licensed), not official Ministry of Hajj guidance. Verify with your group\'s scholar before relying on this for your pilgrimage.'**
+  String get hajjUmrahDisclaimer;
+
+  /// No description provided for @umrahTrackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Umrah'**
+  String get umrahTrackLabel;
+
+  /// No description provided for @hajjTrackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hajj'**
+  String get hajjTrackLabel;
+
+  /// No description provided for @ritualStepsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get ritualStepsHeading;
+
+  /// No description provided for @relevantDuasHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Duas for this step'**
+  String get relevantDuasHeading;
+
+  /// No description provided for @edgeCasesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceptions & edge cases'**
+  String get edgeCasesHeading;
+
+  /// No description provided for @stepsCompletedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} steps'**
+  String stepsCompletedLabel(int done, int total);
+
+  /// No description provided for @tawafSaiCounterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tawaf & Sa\'i Counter'**
+  String get tawafSaiCounterTitle;
+
+  /// No description provided for @tawafModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tawaf'**
+  String get tawafModeLabel;
+
+  /// No description provided for @saiModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sa\'i'**
+  String get saiModeLabel;
+
+  /// No description provided for @circuitCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {target}'**
+  String circuitCountLabel(int count, int target);
+
+  /// No description provided for @tawafCompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tawaf complete — pray 2 rakaat behind Maqam Ibrahim'**
+  String get tawafCompleteMessage;
+
+  /// No description provided for @saiCompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sa\'i complete'**
+  String get saiCompleteMessage;
+
+  /// No description provided for @pilgrimModeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilgrim Mode — alerts when near a holy site'**
+  String get pilgrimModeTooltip;
+
+  /// No description provided for @pilgrimModeLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is needed for Pilgrim Mode alerts'**
+  String get pilgrimModeLocationDenied;
+
+  /// No description provided for @pilgrimModeNear.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re near {siteName}'**
+  String pilgrimModeNear(String siteName);
 }
 
 class _AppLocalizationsDelegate

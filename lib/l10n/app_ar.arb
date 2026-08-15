@@ -248,5 +248,35 @@
 
   "navHomeLabel": "الرئيسية",
   "navQuranLabel": "القرآن",
-  "navQiblaLabel": "القبلة"
+  "navQiblaLabel": "القبلة",
+  "navPrayerLabel": "الصلاة",
+  "navMoreLabel": "المزيد",
+  "searchSurahHint": "ابحث بالاسم أو الرقم…",
+  "searchJuzHint": "ابحث بالرقم أو باسم السورة…",
+  "searchPageHint": "انتقل إلى رقم الصفحة…",
+  "searchHizbHint": "انتقل إلى رقم الحزب…",
+  "developerToolsTitle": "أدوات المطوّر",
+
+  "hajjUmrahGuideTitle": "دليل الحج والعمرة",
+  "hajjUmrahDisclaimer": "خطوات المناسك ونصوص الأدعية مصدرها مجتمعي (برخصة MIT)، وليست إرشادات رسمية من وزارة الحج والعمرة. يُرجى التحقق من عالم مجموعتك قبل الاعتماد عليها في حجك أو عمرتك.",
+  "umrahTrackLabel": "العمرة",
+  "hajjTrackLabel": "الحج",
+  "ritualStepsHeading": "الخطوات",
+  "relevantDuasHeading": "أدعية لهذه الخطوة",
+  "edgeCasesHeading": "استثناءات وحالات خاصة",
+  "stepsCompletedLabel": "{done} / {total} خطوة",
+  "@stepsCompletedLabel": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+
+  "tawafSaiCounterTitle": "عداد الطواف والسعي",
+  "tawafModeLabel": "الطواف",
+  "saiModeLabel": "السعي",
+  "circuitCountLabel": "{count} / {target}",
+  "@circuitCountLabel": {"placeholders": {"count": {"type": "int"}, "target": {"type": "int"}}},
+  "tawafCompleteMessage": "اكتمل الطواف — صلِّ ركعتين خلف مقام إبراهيم",
+  "saiCompleteMessage": "اكتمل السعي",
+
+  "pilgrimModeTooltip": "وضع الحاج — تنبيهات عند الاقتراب من موقع مقدس",
+  "pilgrimModeLocationDenied": "يلزم إذن الموقع لتفعيل تنبيهات وضع الحاج",
+  "pilgrimModeNear": "أنت بالقرب من {siteName}",
+  "@pilgrimModeNear": {"placeholders": {"siteName": {"type": "String"}}}
 }

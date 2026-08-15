@@ -56,7 +56,7 @@ class _BookTile extends ConsumerWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.violet],
+                colors: [AppColors.primaryDeep, AppColors.primary],
               ),
               borderRadius: BorderRadius.circular(12),
             ),

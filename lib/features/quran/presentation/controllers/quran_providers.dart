@@ -18,19 +18,28 @@ final chaptersProvider = FutureProvider<List<QuranChapter>>((ref) async {
 });
 
 // Juz (Para) ayahs provider — 1..30
-final juzProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, juzNumber) async {
+final juzProvider = FutureProvider.family<List<AyahWithSurah>, int>((
+  ref,
+  juzNumber,
+) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getJuz(juzNumber);
 });
 
 // Mushaf page ayahs provider — 1..604
-final quranPageProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, pageNumber) async {
+final quranPageProvider = FutureProvider.family<List<AyahWithSurah>, int>((
+  ref,
+  pageNumber,
+) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getPage(pageNumber);
 });
 
 // Hizb quarter ayahs provider — 1..240
-final hizbQuarterProvider = FutureProvider.family<List<AyahWithSurah>, int>((ref, quarterNumber) async {
+final hizbQuarterProvider = FutureProvider.family<List<AyahWithSurah>, int>((
+  ref,
+  quarterNumber,
+) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getHizbQuarter(quarterNumber);
 });
@@ -54,23 +63,23 @@ final verseProvider = FutureProvider.family<
 });
 
 // Tafseer provider
-final tafseerProvider = FutureProvider.family<
-  AyahTafsir,
-  ({int chapterNumber, int verseNumber})
->((ref, params) async {
-  final service = ref.read(quranApiServiceProvider);
-  return await service.getTafseer(params.chapterNumber, params.verseNumber);
-});
+final tafseerProvider =
+    FutureProvider.family<AyahTafsir, ({int chapterNumber, int verseNumber})>((
+      ref,
+      params,
+    ) async {
+      final service = ref.read(quranApiServiceProvider);
+      return await service.getTafseer(params.chapterNumber, params.verseNumber);
+    });
 
 // Chapter Tajweed provider — same shape as chapterProvider, but verse text
 // carries Tajweed bracket tags instead of plain Uthmani text.
-final chapterTajweedProvider = FutureProvider.family<QuranChapterResponse, int>((
-  ref,
-  chapterNumber,
-) async {
-  final service = ref.read(quranApiServiceProvider);
-  return await service.getChapterTajweed(chapterNumber);
-});
+final chapterTajweedProvider = FutureProvider.family<QuranChapterResponse, int>(
+  (ref, chapterNumber) async {
+    final service = ref.read(quranApiServiceProvider);
+    return await service.getChapterTajweed(chapterNumber);
+  },
+);
 
 final tajweedPreferencesServiceProvider = Provider(
   (ref) => TajweedPreferencesService(),
@@ -100,7 +109,9 @@ class TajweedColoringNotifier extends StateNotifier<bool> {
 
 final tajweedColoringEnabledProvider =
     StateNotifierProvider<TajweedColoringNotifier, bool>((ref) {
-      return TajweedColoringNotifier(ref.watch(tajweedPreferencesServiceProvider));
+      return TajweedColoringNotifier(
+        ref.watch(tajweedPreferencesServiceProvider),
+      );
     });
 
 // Reciters provider
@@ -117,15 +128,6 @@ final recitersProvider = FutureProvider<List<Reciter>>((ref) async {
         ),
       )
       .toList();
-});
-
-// Chapter audio provider
-final chapterAudioProvider = FutureProvider.family<String, int>((
-  ref,
-  chapterNumber,
-) async {
-  final service = ref.read(quranApiServiceProvider);
-  return await service.getChapterAudio(chapterNumber);
 });
 
 // Verse audio URL provider
@@ -166,7 +168,9 @@ final chapterTranslationProvider = FutureProvider.family<
 });
 
 // All selectable translation editions (100+ languages)
-final translationEditionsProvider = FutureProvider<List<TranslationEdition>>((ref) async {
+final translationEditionsProvider = FutureProvider<List<TranslationEdition>>((
+  ref,
+) async {
   final service = ref.read(quranApiServiceProvider);
   return await service.getTranslationEditions();
 });
@@ -220,7 +224,9 @@ class SelectedTranslationNotifier extends StateNotifier<TranslationEdition> {
 }
 
 final selectedTranslationProvider =
-    StateNotifierProvider<SelectedTranslationNotifier, TranslationEdition>((ref) {
+    StateNotifierProvider<SelectedTranslationNotifier, TranslationEdition>((
+      ref,
+    ) {
       return SelectedTranslationNotifier(
         ref.watch(translationPreferencesServiceProvider),
         ref.watch(quranApiServiceProvider),

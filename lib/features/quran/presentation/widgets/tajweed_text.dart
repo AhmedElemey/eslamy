@@ -82,7 +82,7 @@ class _TajweedTextState extends State<TajweedText> {
                 : TextSpan(
                     text: _segments[i].text,
                     style: baseStyle.copyWith(
-                      color: _segments[i].rule!.color,
+                      color: _segments[i].rule!.colorFor(context),
                       fontWeight: FontWeight.w600,
                     ),
                     recognizer: _recognizers[i],
@@ -115,7 +115,7 @@ class _TajweedRuleInfoSheet extends StatelessWidget {
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: rule.color,
+                    color: rule.colorFor(context),
                     shape: BoxShape.circle,
                   ),
                 ),

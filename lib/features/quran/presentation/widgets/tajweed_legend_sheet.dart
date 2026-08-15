@@ -54,7 +54,7 @@ class _TajweedLegendSheet extends StatelessWidget {
                         width: 16,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: rule.color,
+                          color: rule.colorFor(context),
                           shape: BoxShape.circle,
                         ),
                       ),

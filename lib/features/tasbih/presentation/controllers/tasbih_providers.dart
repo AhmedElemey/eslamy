@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/dhikr_preset.dart';
 import '../../service/tasbih_preferences_service.dart';
 
-final tasbihPreferencesServiceProvider = Provider((ref) => TasbihPreferencesService());
+final tasbihPreferencesServiceProvider = Provider(
+  (ref) => TasbihPreferencesService(),
+);
 
 class TasbihState {
   final DhikrPreset preset;
@@ -11,12 +13,16 @@ class TasbihState {
   const TasbihState({required this.preset, required this.count});
 
   TasbihState copyWith({DhikrPreset? preset, int? count}) {
-    return TasbihState(preset: preset ?? this.preset, count: count ?? this.count);
+    return TasbihState(
+      preset: preset ?? this.preset,
+      count: count ?? this.count,
+    );
   }
 }
 
 class TasbihNotifier extends StateNotifier<TasbihState> {
-  TasbihNotifier(this._prefs) : super(TasbihState(preset: dhikrPresets.first, count: 0)) {
+  TasbihNotifier(this._prefs)
+    : super(TasbihState(preset: dhikrPresets.first, count: 0)) {
     _restore();
   }
 
@@ -52,6 +58,8 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
   }
 }
 
-final tasbihProvider = StateNotifierProvider<TasbihNotifier, TasbihState>((ref) {
+final tasbihProvider = StateNotifierProvider<TasbihNotifier, TasbihState>((
+  ref,
+) {
   return TasbihNotifier(ref.watch(tasbihPreferencesServiceProvider));
 });

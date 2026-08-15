@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../models/hijri_models.dart';
+import '../../models/islamic_holiday.dart';
 import '../controllers/hijri_calendar_providers.dart';
 
 List<String> _monthNames(AppLocalizations l10n) => [
@@ -157,30 +158,55 @@ class _MonthGrid extends StatelessWidget {
               final isToday = day.gregorian.year == today.year &&
                   day.gregorian.month == today.month &&
                   day.gregorian.day == today.day;
+              final isHoliday = islamicHolidays.any(
+                (h) => h.hijriDay == day.hijriDay && h.hijriMonth == day.hijriMonth,
+              );
               return Container(
                 margin: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isToday ? AppColors.primary : Colors.transparent,
+                  color: Colors.transparent,
+                  border: isToday
+                      ? Border.all(color: AppColors.primary, width: 2)
+                      : null,
                 ),
                 alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Text(
-                      '${day.gregorian.day}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: isToday ? Colors.white : null,
-                      ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${day.gregorian.day}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: isToday ? AppColors.primaryOnBg(context) : null,
+                          ),
+                        ),
+                        Text(
+                          '${day.hijriDay}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isToday
+                                ? AppColors.primaryOnBg(context)
+                                : AppColors.mutedText(context),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${day.hijriDay}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isToday ? Colors.white70 : AppColors.muted,
+                    if (isHoliday)
+                      Positioned(
+                        bottom: 2,
+                        child: Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            color: AppColors.goldDeep,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               );
@@ -214,7 +240,22 @@ class _UpcomingTile extends StatelessWidget {
           const Icon(Icons.mosque_outlined, color: AppColors.gold),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(item.holiday.localizedName(l10n), style: const TextStyle(fontWeight: FontWeight.w600)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.holiday.localizedName(l10n),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '${item.holiday.hijriDay} / ${item.holiday.hijriMonth}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.mutedText(context),
+                  ),
+                ),
+              ],
+            ),
           ),
           Text(label, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/number_seal.dart';
 import '../../data/juz_starting_points.dart';
 import '../controllers/quran_providers.dart';
 import '../pages/quran_range_detail_page.dart';
@@ -60,31 +61,15 @@ class JuzList extends ConsumerWidget {
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white12
-                  : Colors.black.withOpacity(0.06),
-            ),
+            border: Border.all(color: AppColors.hairline(context)),
           ),
           child: ListTile(
-            leading: Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.violet]),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '$juzNumber',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-              ),
-            ),
+            leading: NumberSeal(label: '$juzNumber'),
             title: Text('Juz $juzNumber', style: const TextStyle(fontWeight: FontWeight.w700)),
             subtitle: Text(
               startSurahName != null ? 'Starts at $startSurahName $startSurah:$startAyah' : 'Loading…',
             ),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            trailing: Icon(chevronFor(context)),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(

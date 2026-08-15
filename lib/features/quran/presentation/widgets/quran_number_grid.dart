@@ -78,9 +78,8 @@ class _NumberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+      color: AppColors.surface(context),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),

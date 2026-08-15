@@ -85,7 +85,7 @@ class _CompassView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: aligned ? Colors.green : AppColors.primary,
+                color: aligned ? AppColors.goldAccent(context) : AppColors.primaryOnBg(context),
               ),
             ),
             const SizedBox(height: 24),
@@ -97,12 +97,17 @@ class _CompassView extends StatelessWidget {
                 children: [
                   Transform.rotate(
                     angle: -heading * (math.pi / 180),
-                    child: _CompassDial(qiblaDirection: qiblaDirection),
+                    child: _CompassDial(
+                      qiblaDirection: qiblaDirection,
+                      aligned: aligned,
+                    ),
                   ),
                   Icon(
                     Icons.arrow_drop_up,
-                    size: 40,
-                    color: aligned ? Colors.green : Colors.grey[400],
+                    size: 48,
+                    color: aligned
+                        ? AppColors.goldAccent(context)
+                        : AppColors.primaryOnBg(context),
                   ),
                 ],
               ),
@@ -123,37 +128,32 @@ class _CompassView extends StatelessWidget {
 }
 
 class _CompassDial extends StatelessWidget {
-  const _CompassDial({required this.qiblaDirection});
+  const _CompassDial({required this.qiblaDirection, required this.aligned});
 
   final double qiblaDirection;
+  final bool aligned;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Theme.of(context).cardColor,
-        border: Border.all(color: AppColors.gold.withOpacity(0.5), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+    return CustomPaint(
+      painter: _DialPainter(
+        tickColor: AppColors.mutedText(context),
+        rimColor: aligned
+            ? AppColors.goldAccent(context)
+            : AppColors.gold.withValues(alpha: 0.5),
+        fillColor: AppColors.surface(context),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           for (final label in const ['N', 'E', 'S', 'W'])
-            _directionLabel(label),
+            _directionLabel(context, label),
           Transform.rotate(
             angle: qiblaDirection * (math.pi / 180),
-            child: Align(
+            child: const Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 24),
+                padding: EdgeInsets.only(top: 24),
                 child: Icon(Icons.mosque, color: AppColors.gold, size: 32),
               ),
             ),
@@ -163,7 +163,7 @@ class _CompassDial extends StatelessWidget {
     );
   }
 
-  Widget _directionLabel(String label) {
+  Widget _directionLabel(BuildContext context, String label) {
     const angles = {'N': 0.0, 'E': 90.0, 'S': 180.0, 'W': 270.0};
     final angle = angles[label]! * (math.pi / 180);
     return Transform.rotate(
@@ -178,7 +178,9 @@ class _CompassDial extends StatelessWidget {
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: label == 'N' ? AppColors.primary : AppColors.muted,
+                color: label == 'N'
+                    ? AppColors.primaryOnBg(context)
+                    : AppColors.mutedText(context),
               ),
             ),
           ),
@@ -186,4 +188,50 @@ class _CompassDial extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DialPainter extends CustomPainter {
+  _DialPainter({
+    required this.tickColor,
+    required this.rimColor,
+    required this.fillColor,
+  });
+
+  final Color tickColor;
+  final Color rimColor;
+  final Color fillColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 4;
+    canvas.drawCircle(center, radius, Paint()..color = fillColor);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = rimColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = alignedWidth,
+    );
+    for (var i = 0; i < 36; i++) {
+      final major = i % 9 == 0;
+      final angle = i * 10 * math.pi / 180;
+      final inner = radius - (major ? 14 : 8);
+      final p = Paint()
+        ..color = tickColor.withValues(alpha: major ? 0.8 : 0.35)
+        ..strokeWidth = major ? 2 : 1;
+      canvas.drawLine(
+        Offset(center.dx + inner * math.cos(angle), center.dy + inner * math.sin(angle)),
+        Offset(center.dx + radius * math.cos(angle), center.dy + radius * math.sin(angle)),
+        p,
+      );
+    }
+  }
+
+  static const alignedWidth = 3.0;
+
+  @override
+  bool shouldRepaint(covariant _DialPainter oldDelegate) =>
+      oldDelegate.rimColor != rimColor || oldDelegate.fillColor != fillColor;
 }

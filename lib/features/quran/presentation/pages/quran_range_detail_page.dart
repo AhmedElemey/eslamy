@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/ayah_block.dart';
 import '../../models/quran_models.dart';
 import 'quran_verse_detail_page.dart';
 
@@ -39,49 +40,32 @@ class QuranRangeDetailPage extends ConsumerWidget {
               ),
             ),
             data: (ayahs) => ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(bottom: 16),
               itemCount: ayahs.length,
               itemBuilder: (context, i) {
                 final ayah = ayahs[i];
-                final isNewSurah = i == 0 || ayahs[i - 1].surahNumber != ayah.surahNumber;
+                final isNewSurah =
+                    i == 0 || ayahs[i - 1].surahNumber != ayah.surahNumber;
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (isNewSurah) _SurahHeader(ayah: ayah),
-                    Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: Text(
-                            '${ayah.numberInSurah}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                    AyahBlock(
+                      number: ayah.numberInSurah,
+                      arabic: ayah.text,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => QuranVerseDetailPage(
+                              chapterNumber: ayah.surahNumber,
+                              verseNumber: ayah.numberInSurah,
+                              verseText: ayah.text,
                             ),
                           ),
-                        ),
-                        title: Text(
-                          ayah.text,
-                          style: const TextStyle(fontSize: 18, height: 1.5),
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.right,
-                        ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => QuranVerseDetailPage(
-                                chapterNumber: ayah.surahNumber,
-                                verseNumber: ayah.numberInSurah,
-                                verseText: ayah.text,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                        );
+                      },
                     ),
+                    Divider(height: 1, color: AppColors.hairline(context)),
                   ],
                 );
               },
@@ -107,13 +91,19 @@ class _SurahHeader extends StatelessWidget {
           Expanded(
             child: Text(
               '${ayah.surahNumber}. ${ayah.surahEnglishName}',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary),
+              style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryOnBg(context),
+            ),
             ),
           ),
           Text(
             ayah.surahArabicName,
             textDirection: TextDirection.rtl,
-            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryOnBg(context),
+            ),
           ),
         ],
       ),

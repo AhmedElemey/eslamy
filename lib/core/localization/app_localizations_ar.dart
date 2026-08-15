@@ -825,4 +825,86 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navQiblaLabel => 'القبلة';
+
+  @override
+  String get navPrayerLabel => 'الصلاة';
+
+  @override
+  String get navMoreLabel => 'المزيد';
+
+  @override
+  String get searchSurahHint => 'ابحث بالاسم أو الرقم…';
+
+  @override
+  String get searchJuzHint => 'ابحث بالرقم أو باسم السورة…';
+
+  @override
+  String get searchPageHint => 'انتقل إلى رقم الصفحة…';
+
+  @override
+  String get searchHizbHint => 'انتقل إلى رقم الحزب…';
+
+  @override
+  String get developerToolsTitle => 'أدوات المطوّر';
+
+  @override
+  String get hajjUmrahGuideTitle => 'دليل الحج والعمرة';
+
+  @override
+  String get hajjUmrahDisclaimer =>
+      'خطوات المناسك ونصوص الأدعية مصدرها مجتمعي (برخصة MIT)، وليست إرشادات رسمية من وزارة الحج والعمرة. يُرجى التحقق من عالم مجموعتك قبل الاعتماد عليها في حجك أو عمرتك.';
+
+  @override
+  String get umrahTrackLabel => 'العمرة';
+
+  @override
+  String get hajjTrackLabel => 'الحج';
+
+  @override
+  String get ritualStepsHeading => 'الخطوات';
+
+  @override
+  String get relevantDuasHeading => 'أدعية لهذه الخطوة';
+
+  @override
+  String get edgeCasesHeading => 'استثناءات وحالات خاصة';
+
+  @override
+  String stepsCompletedLabel(int done, int total) {
+    return '$done / $total خطوة';
+  }
+
+  @override
+  String get tawafSaiCounterTitle => 'عداد الطواف والسعي';
+
+  @override
+  String get tawafModeLabel => 'الطواف';
+
+  @override
+  String get saiModeLabel => 'السعي';
+
+  @override
+  String circuitCountLabel(int count, int target) {
+    return '$count / $target';
+  }
+
+  @override
+  String get tawafCompleteMessage =>
+      'اكتمل الطواف — صلِّ ركعتين خلف مقام إبراهيم';
+
+  @override
+  String get saiCompleteMessage => 'اكتمل السعي';
+
+  @override
+  String get pilgrimModeTooltip =>
+      'وضع الحاج — تنبيهات عند الاقتراب من موقع مقدس';
+
+  @override
+  String get pilgrimModeLocationDenied =>
+      'يلزم إذن الموقع لتفعيل تنبيهات وضع الحاج';
+
+  @override
+  String pilgrimModeNear(String siteName) {
+    return 'أنت بالقرب من $siteName';
+  }
 }

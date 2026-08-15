@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'features/home/presentation/pages/main_shell.dart';
 import 'features/error/presentation/pages/error_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
@@ -163,7 +163,7 @@ class MyApp extends ConsumerWidget {
       },
       routes: {
         '/': (_) => const SplashPage(),
-        '/home': (_) => const HomePage(),
+        '/home': (_) => const MainShell(),
         '/settings': (_) => const SettingsPage(),
         '/quran': (_) => const QuranIndexPage(),
         '/quran-test': (_) => const QuranTestPage(),
