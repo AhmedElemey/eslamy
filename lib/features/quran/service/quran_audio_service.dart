@@ -129,7 +129,9 @@ class QuranAudioService {
     String? reciterId,
   }) async {
     final reciterKey = reciterId ?? 'Abdul_Basit_Mujawwad';
-    final server = _reciters[reciterKey]?['server'] ?? _reciters['Abdul_Basit_Murattal']!['server']!;
+    final server =
+        _reciters[reciterKey]?['server'] ??
+        _reciters['Abdul_Basit_Murattal']!['server']!;
     final formattedChapterNumber = chapterNumber.toString().padLeft(3, '0');
     return '$server$formattedChapterNumber.mp3';
   }

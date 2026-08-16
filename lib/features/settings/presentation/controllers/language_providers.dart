@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../service/settings_database.dart';
 
-enum AppLanguage { english, arabic }
+enum AppLanguage { english, arabic, italian }
 
 extension AppLanguageLocale on AppLanguage {
   Locale get locale => switch (this) {
-        AppLanguage.english => const Locale('en'),
-        AppLanguage.arabic => const Locale('ar'),
-      };
+    AppLanguage.english => const Locale('en'),
+    AppLanguage.arabic => const Locale('ar'),
+    AppLanguage.italian => const Locale('it'),
+  };
 }
 
 class LanguageController extends AsyncNotifier<AppLanguage> {
@@ -29,10 +30,12 @@ class LanguageController extends AsyncNotifier<AppLanguage> {
 
   AppLanguage _fromString(String? value) {
     switch (value) {
-      case 'arabic':
-        return AppLanguage.arabic;
-      default:
+      case 'english':
         return AppLanguage.english;
+      case 'italian':
+        return AppLanguage.italian;
+      default:
+        return AppLanguage.arabic;
     }
   }
 }

@@ -3,6 +3,7 @@ import '../../models/hadith.dart';
 import '../../models/hadith_book.dart';
 import '../../service/hadith_api_service.dart';
 import '../../service/hadith_cache_database.dart';
+import '../../../settings/presentation/controllers/language_providers.dart';
 
 final hadithCacheDbProvider = Provider((ref) => HadithCacheDatabase());
 
@@ -49,7 +50,7 @@ class BookHadithsState {
 /// autoDispose: a downloaded book's ~4-8k hadiths are only worth holding in
 /// memory while the user is actually browsing it.
 class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
-  BookHadithsNotifier(this._api, this._db, this.book)
+  BookHadithsNotifier(this._api, this._db, this.book, this.editionSlug)
     : super(const BookHadithsState()) {
     _init();
   }
@@ -57,11 +58,12 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
   final HadithApiService _api;
   final HadithCacheDatabase _db;
   final HadithBook book;
+  final String editionSlug;
 
   Future<void> _init() async {
-    final count = await _db.countForBook(book.slug);
+    final count = await _db.countForBook(editionSlug);
     if (count > 0) {
-      final items = await _db.getBookHadiths(book.slug, book.name);
+      final items = await _db.getBookHadiths(editionSlug, book.slug, book.name);
       if (!mounted) return;
       state = state.copyWith(allCached: items, visible: items, isCached: true);
     } else {
@@ -74,12 +76,13 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
     try {
       final items = await _api.fetchBook(
         book,
+        editionSlug: editionSlug,
         onProgress: (received, total) {
           if (!mounted || total <= 0) return;
           state = state.copyWith(downloadProgress: received / total);
         },
       );
-      await _db.cacheBook(book.slug, items);
+      await _db.cacheBook(editionSlug, items);
       if (!mounted) return;
       state = state.copyWith(
         allCached: items,
@@ -115,7 +118,11 @@ final bookHadithsProvider = StateNotifierProvider.autoDispose
     .family<BookHadithsNotifier, BookHadithsState, HadithBook>((ref, book) {
       final api = ref.watch(hadithApiServiceProvider);
       final db = ref.watch(hadithCacheDbProvider);
-      return BookHadithsNotifier(api, db, book);
+      // Watched so switching app language rebuilds this with the matching
+      // edition slug (a fresh notifier — the family key is still just
+      // `book`, so this doesn't fragment the family).
+      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
+      return BookHadithsNotifier(api, db, book, editionSlugFor(book, appLanguage));
     });
 
 /// Per-book cached status for the books browse page (name shown, downloaded
@@ -124,6 +131,7 @@ final bookHadithsProvider = StateNotifierProvider.autoDispose
 final bookCachedStatusProvider = FutureProvider.autoDispose
     .family<bool, HadithBook>((ref, book) async {
       final db = ref.watch(hadithCacheDbProvider);
-      final count = await db.countForBook(book.slug);
+      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
+      final count = await db.countForBook(editionSlugFor(book, appLanguage));
       return count > 0;
     });

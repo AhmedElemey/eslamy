@@ -39,7 +39,7 @@ class ErrorPage extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.errorContainer.withOpacity(0.2),
+                    color: theme.colorScheme.errorContainer.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

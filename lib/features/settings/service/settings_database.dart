@@ -79,5 +79,6 @@ class SettingsDatabase {
     return val != '0'; // enabled by default until explicitly turned off
   }
 
-  Future<void> setAdhanEnabled(bool enabled) => setValue('adhan_enabled', enabled ? '1' : '0');
+  Future<void> setAdhanEnabled(bool enabled) =>
+      setValue('adhan_enabled', enabled ? '1' : '0');
 }

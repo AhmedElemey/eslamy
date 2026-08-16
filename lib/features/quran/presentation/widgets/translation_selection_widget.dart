@@ -14,12 +14,13 @@ class TranslationSelectionWidget extends ConsumerWidget {
     final selected = ref.watch(selectedTranslationProvider);
 
     return OutlinedButton.icon(
-      onPressed: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const _TranslationSelectionSheet(),
-      ),
+      onPressed:
+          () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const _TranslationSelectionSheet(),
+          ),
       icon: const Icon(Icons.translate_rounded, size: 18),
       label: Text(selected.englishName),
     );
@@ -74,7 +75,10 @@ class _TranslationSelectionSheetState
                 Expanded(
                   child: Text(
                     context.l10n.chooseTranslationTitle,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -92,7 +96,9 @@ class _TranslationSelectionSheetState
               decoration: InputDecoration(
                 hintText: context.l10n.searchLanguageHint,
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 isDense: true,
               ),
             ),
@@ -101,21 +107,32 @@ class _TranslationSelectionSheetState
           Expanded(
             child: editionsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text(context.l10n.couldNotLoadLanguagesWithError(e.toString()))),
+              error:
+                  (e, _) => Center(
+                    child: Text(
+                      context.l10n.couldNotLoadLanguagesWithError(e.toString()),
+                    ),
+                  ),
               data: (editions) {
-                final filtered = _query.isEmpty
-                    ? editions
-                    : editions
-                        .where((e) =>
-                            e.englishName.toLowerCase().contains(_query) ||
-                            e.language.toLowerCase().contains(_query))
-                        .toList();
+                final filtered =
+                    _query.isEmpty
+                        ? editions
+                        : editions
+                            .where(
+                              (e) =>
+                                  e.englishName.toLowerCase().contains(
+                                    _query,
+                                  ) ||
+                                  e.language.toLowerCase().contains(_query),
+                            )
+                            .toList();
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final edition = filtered[i];
-                    final isSelected = edition.identifier == selected.identifier;
+                    final isSelected =
+                        edition.identifier == selected.identifier;
                     return ListTile(
                       title: Text(
                         edition.englishName,
@@ -125,9 +142,13 @@ class _TranslationSelectionSheetState
                         ),
                       ),
                       subtitle: Text(edition.language.toUpperCase()),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle, color: AppColors.primary)
-                          : null,
+                      trailing:
+                          isSelected
+                              ? const Icon(
+                                Icons.check_circle,
+                                color: AppColors.primary,
+                              )
+                              : null,
                       onTap: () async {
                         await ref
                             .read(selectedTranslationProvider.notifier)

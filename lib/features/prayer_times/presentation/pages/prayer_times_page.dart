@@ -1,4 +1,3 @@
-import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
@@ -37,9 +36,9 @@ class PrayerTimesPage extends ConsumerWidget {
             icon: const Icon(Icons.explore_outlined),
             tooltip: l10n.qiblaDirectionTooltip,
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const QiblaPage()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const QiblaPage()));
             },
           ),
         ],
@@ -72,7 +71,9 @@ class PrayerTimesPage extends ConsumerWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              context.l10n.failedToLoadPrayerTimesWithError(state.error.toString()),
+              context.l10n.failedToLoadPrayerTimesWithError(
+                state.error.toString(),
+              ),
               textAlign: TextAlign.center,
             ),
           ),
@@ -100,7 +101,7 @@ class PrayerTimesPage extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.15),
+              color: AppColors.gold.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -136,14 +137,18 @@ class PrayerTimesPage extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isNext
-                  ? AppColors.primary.withValues(alpha: AppColors.isDark(context) ? 0.18 : 0.1)
-                  : AppColors.surface(context),
+              color:
+                  isNext
+                      ? AppColors.primary.withValues(
+                        alpha: AppColors.isDark(context) ? 0.18 : 0.1,
+                      )
+                      : AppColors.surface(context),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isNext
-                    ? AppColors.primary.withValues(alpha: 0.35)
-                    : AppColors.hairline(context),
+                color:
+                    isNext
+                        ? AppColors.primary.withValues(alpha: 0.35)
+                        : AppColors.hairline(context),
               ),
             ),
             child: Row(
@@ -159,9 +164,10 @@ class PrayerTimesPage extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Icon(
                   _prayerIcons[p.name] ?? Icons.access_time,
-                  color: isNext
-                      ? AppColors.primaryOnBg(context)
-                      : AppColors.mutedText(context),
+                  color:
+                      isNext
+                          ? AppColors.primaryOnBg(context)
+                          : AppColors.mutedText(context),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -190,9 +196,9 @@ class PrayerTimesPage extends ConsumerWidget {
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const QiblaPage()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const QiblaPage()));
           },
           icon: const Icon(Icons.explore_outlined),
           label: Text(context.l10n.findQiblaDirection),

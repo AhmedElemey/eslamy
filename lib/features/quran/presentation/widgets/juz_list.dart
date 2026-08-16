@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../data/juz_starting_points.dart';
@@ -17,10 +18,14 @@ class JuzList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final chaptersAsync = ref.watch(chaptersProvider);
     final q = query.trim().toLowerCase();
 
-    final entries = <(int juzNumber, int startSurah, int startAyah, String? startSurahName)>[];
+    final entries =
+        <
+          (int juzNumber, int startSurah, int startAyah, String? startSurahName)
+        >[];
     for (var i = 0; i < juzStartingPoints.length; i++) {
       final (startSurah, startAyah) = juzStartingPoints[i];
       final startSurahName = chaptersAsync.maybeWhen(
@@ -35,18 +40,25 @@ class JuzList extends ConsumerWidget {
       entries.add((i + 1, startSurah, startAyah, startSurahName));
     }
 
-    final filtered = q.isEmpty
-        ? entries
-        : entries
-            .where((e) =>
-                '${e.$1}' == q || (e.$4?.toLowerCase().contains(q) ?? false))
-            .toList();
+    final filtered =
+        q.isEmpty
+            ? entries
+            : entries
+                .where(
+                  (e) =>
+                      '${e.$1}' == q ||
+                      (e.$4?.toLowerCase().contains(q) ?? false),
+                )
+                .toList();
 
     if (filtered.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('No Juz matches "$query"', textAlign: TextAlign.center),
+          child: Text(
+            l10n.noItemsMatchQuery(l10n.tabPara, query),
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -56,7 +68,8 @@ class JuzList extends ConsumerWidget {
       itemCount: filtered.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
-        final (juzNumber, startSurah, startAyah, startSurahName) = filtered[index];
+        final (juzNumber, startSurah, startAyah, startSurahName) =
+            filtered[index];
 
         return Container(
           decoration: BoxDecoration(
@@ -65,18 +78,28 @@ class JuzList extends ConsumerWidget {
           ),
           child: ListTile(
             leading: NumberSeal(label: '$juzNumber'),
-            title: Text('Juz $juzNumber', style: const TextStyle(fontWeight: FontWeight.w700)),
+            title: Text(
+              l10n.juzNumberLabel(juzNumber),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
             subtitle: Text(
-              startSurahName != null ? 'Starts at $startSurahName $startSurah:$startAyah' : 'Loading…',
+              startSurahName != null
+                  ? l10n.startsAtSurahAyah(
+                    startSurahName,
+                    startSurah,
+                    startAyah,
+                  )
+                  : l10n.loadingEllipsis,
             ),
             trailing: Icon(chevronFor(context)),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => QuranRangeDetailPage(
-                    title: 'Juz $juzNumber',
-                    rangeProvider: juzProvider(juzNumber),
-                  ),
+                  builder:
+                      (_) => QuranRangeDetailPage(
+                        title: l10n.juzNumberLabel(juzNumber),
+                        rangeProvider: juzProvider(juzNumber),
+                      ),
                 ),
               );
             },

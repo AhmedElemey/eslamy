@@ -61,7 +61,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
                       hintText: l10n.searchBookHint(widget.book.name),
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
-                      fillColor: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+                      fillColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -167,7 +167,7 @@ class _HadithCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

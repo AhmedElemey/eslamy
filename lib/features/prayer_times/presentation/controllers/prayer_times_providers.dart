@@ -35,7 +35,8 @@ class PrayerTimesState {
       qiblaDirection: qiblaDirection ?? this.qiblaDirection,
       isLoading: isLoading ?? this.isLoading,
       error: error,
-      usingFallbackLocation: usingFallbackLocation ?? this.usingFallbackLocation,
+      usingFallbackLocation:
+          usingFallbackLocation ?? this.usingFallbackLocation,
     );
   }
 }
@@ -96,6 +97,25 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Applies an Adhan Alerts on/off change immediately — called when the
+  /// user flips the toggle in Settings, so alerts start or stop firing
+  /// right away instead of waiting for the next cold-start prayer-times
+  /// load. Schedules using already-known timings/location when available;
+  /// if timings haven't loaded yet, the next [load] call will schedule
+  /// them (it already checks the saved enabled flag).
+  Future<void> applyAdhanEnabledChange(bool enabled) async {
+    if (!enabled) {
+      await NotificationService().cancelAdhan();
+      return;
+    }
+    final today = state.timings;
+    if (today == null) return;
+    final cached = await _locationService.getCachedPosition();
+    if (cached == null) return;
+    final (lat, lng) = cached;
+    await _scheduleAdhan(lat, lng, today);
   }
 
   /// Schedules today + tomorrow's Adhan alerts once timings are known.

@@ -20,12 +20,12 @@ class ThemeModeController extends AsyncNotifier<ThemeMode> {
 
   ThemeMode _fromString(String? value) {
     switch (value) {
-      case 'light':
-        return ThemeMode.light;
+      case 'system':
+        return ThemeMode.system;
       case 'dark':
         return ThemeMode.dark;
       default:
-        return ThemeMode.system;
+        return ThemeMode.light;
     }
   }
 }

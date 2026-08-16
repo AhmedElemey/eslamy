@@ -1,10 +1,13 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../service/quran_api_service.dart';
+import '../../service/quran_audio_handler.dart';
 import '../../service/quran_audio_service.dart';
 import '../../service/reciter_preferences_service.dart';
 import '../../service/tajweed_preferences_service.dart';
 import '../../service/translation_preferences_service.dart';
 import '../../models/quran_models.dart';
+import '../../../settings/presentation/controllers/language_providers.dart';
 
 // Service provider
 final quranApiServiceProvider = Provider<QuranApiService>((ref) {
@@ -143,18 +146,6 @@ final verseAudioUrlProvider = FutureProvider.family<
   );
 });
 
-// Chapter audio URL provider with selected reciter
-final chapterAudioUrlProvider = FutureProvider.family<String, int>((
-  ref,
-  chapterNumber,
-) async {
-  final selectedReciter = ref.watch(selectedReciterProvider);
-  return await QuranAudioService.getChapterAudioUrl(
-    chapterNumber,
-    reciterId: selectedReciter?.relativePath,
-  );
-});
-
 // Chapter translation provider
 final chapterTranslationProvider = FutureProvider.family<
   QuranChapterResponse,
@@ -181,16 +172,37 @@ final translationPreferencesServiceProvider = Provider(
 
 /// Selected translation edition, defaulting to Sahih International (English)
 /// until the editions list has loaded and any saved choice can be resolved.
+/// The Quran text is already Arabic, so the API has no true Arabic
+/// "translation" edition — `ar.muyassar` (a well-known plain-language
+/// tafsir) fills that role here by deliberate choice, not a literal
+/// translation. Italian has exactly one clean edition; English keeps the
+/// long-standing default.
+TranslationEdition defaultTranslationForLanguage(AppLanguage language) {
+  return switch (language) {
+    AppLanguage.arabic => const TranslationEdition(
+      identifier: 'ar.muyassar',
+      language: 'ar',
+      name: 'التفسير الميسر',
+      englishName: 'Al-Muyassar (Tafsir)',
+    ),
+    AppLanguage.italian => const TranslationEdition(
+      identifier: 'it.piccardo',
+      language: 'it',
+      name: 'Hamza Roberto Piccardo',
+      englishName: 'Hamza Roberto Piccardo',
+    ),
+    AppLanguage.english => const TranslationEdition(
+      identifier: 'en.sahih',
+      language: 'en',
+      name: 'Sahih International',
+      englishName: 'Sahih International',
+    ),
+  };
+}
+
 class SelectedTranslationNotifier extends StateNotifier<TranslationEdition> {
-  SelectedTranslationNotifier(this._prefs, this._service)
-    : super(
-        const TranslationEdition(
-          identifier: 'en.sahih',
-          language: 'en',
-          name: 'Sahih International',
-          englishName: 'Sahih International',
-        ),
-      ) {
+  SelectedTranslationNotifier(this._prefs, this._service, AppLanguage appLanguage)
+    : super(defaultTranslationForLanguage(appLanguage)) {
     _restore();
   }
 
@@ -198,6 +210,9 @@ class SelectedTranslationNotifier extends StateNotifier<TranslationEdition> {
   final QuranApiService _service;
 
   Future<void> _restore() async {
+    // No explicit save yet — the language-based default from the
+    // constructor already stands, and should keep tracking app-language
+    // changes until the user actually picks an edition themselves.
     final savedId = await _prefs.loadSelectedEdition();
     if (savedId == null || savedId == state.identifier) return;
     try {
@@ -227,84 +242,39 @@ final selectedTranslationProvider =
     StateNotifierProvider<SelectedTranslationNotifier, TranslationEdition>((
       ref,
     ) {
+      // Watched (not read) so a fresh notifier — and thus a fresh
+      // language-based default — is created whenever app language changes,
+      // same pattern relied on for the reciter/translation restore flow.
+      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
       return SelectedTranslationNotifier(
         ref.watch(translationPreferencesServiceProvider),
         ref.watch(quranApiServiceProvider),
+        appLanguage,
       );
     });
 
-// Current playing audio state
-class AudioPlayerState {
-  final bool isPlaying;
-  final String? currentAudioUrl;
-  final int? currentChapterNumber;
-  final int? currentVerseNumber;
-  final Duration position;
-  final Duration duration;
+// The single app-wide audio session, overridden with a real instance once
+// `AudioService.init` resolves in `main.dart`. Reading this before that
+// override is a programming error (there's no sensible "no handler yet"
+// fallback), hence the throw.
+final quranAudioHandlerProvider = Provider<QuranAudioHandler>((ref) {
+  throw UnimplementedError(
+    'quranAudioHandlerProvider must be overridden in main.dart after '
+    'AudioService.init() resolves.',
+  );
+});
 
-  const AudioPlayerState({
-    this.isPlaying = false,
-    this.currentAudioUrl,
-    this.currentChapterNumber,
-    this.currentVerseNumber,
-    this.position = Duration.zero,
-    this.duration = Duration.zero,
-  });
+// Currently loaded surah, or null when nothing is playing/paused. Drives the
+// persistent FAB's visibility and the Now Playing page's title/reciter.
+final currentMediaItemProvider = StreamProvider<MediaItem?>((ref) {
+  return ref.watch(quranAudioHandlerProvider).mediaItem;
+});
 
-  AudioPlayerState copyWith({
-    bool? isPlaying,
-    String? currentAudioUrl,
-    int? currentChapterNumber,
-    int? currentVerseNumber,
-    Duration? position,
-    Duration? duration,
-  }) {
-    return AudioPlayerState(
-      isPlaying: isPlaying ?? this.isPlaying,
-      currentAudioUrl: currentAudioUrl ?? this.currentAudioUrl,
-      currentChapterNumber: currentChapterNumber ?? this.currentChapterNumber,
-      currentVerseNumber: currentVerseNumber ?? this.currentVerseNumber,
-      position: position ?? this.position,
-      duration: duration ?? this.duration,
-    );
-  }
-}
-
-// Audio player state notifier
-class AudioPlayerNotifier extends StateNotifier<AudioPlayerState> {
-  AudioPlayerNotifier() : super(const AudioPlayerState());
-
-  void playAudio(String audioUrl, {int? chapterNumber, int? verseNumber}) {
-    state = state.copyWith(
-      isPlaying: true,
-      currentAudioUrl: audioUrl,
-      currentChapterNumber: chapterNumber,
-      currentVerseNumber: verseNumber,
-    );
-  }
-
-  void pauseAudio() {
-    state = state.copyWith(isPlaying: false);
-  }
-
-  void stopAudio() {
-    state = const AudioPlayerState();
-  }
-
-  void updatePosition(Duration position) {
-    state = state.copyWith(position: position);
-  }
-
-  void updateDuration(Duration duration) {
-    state = state.copyWith(duration: duration);
-  }
-}
-
-// Audio player provider
-final audioPlayerProvider =
-    StateNotifierProvider<AudioPlayerNotifier, AudioPlayerState>((ref) {
-      return AudioPlayerNotifier();
-    });
+// Play/pause/processing state, used for the FAB icon, the Now Playing page's
+// controls, and per-chapter "is this the surah currently playing" checks.
+final playbackStateProvider = StreamProvider<PlaybackState>((ref) {
+  return ref.watch(quranAudioHandlerProvider).playbackState;
+});
 
 // Selected reciter state with persistence
 final selectedReciterProvider =

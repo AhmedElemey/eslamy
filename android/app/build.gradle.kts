@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -49,4 +50,9 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+    // BubbleOverlayService talks to audio_service's MediaSession via
+    // MediaBrowserCompat/MediaControllerCompat — audio_service depends on
+    // this itself but only as `implementation`, so it isn't exposed
+    // transitively; declare it directly.
+    implementation("androidx.media:media:1.8.0")
 }

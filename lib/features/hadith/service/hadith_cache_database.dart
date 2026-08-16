@@ -35,23 +35,27 @@ class HadithCacheDatabase {
     await db.execute('CREATE INDEX idx_book_slug ON hadith_cache(book_slug)');
   }
 
-  Future<int> countForBook(String bookSlug) async {
+  // `cacheKey` is the edition slug (e.g. `eng-bukhari`/`ara-bukhari`), not
+  // the bare book slug — different languages are different text and must
+  // not collide in the cache, or switching app language could silently
+  // show one language's hadith text while the picker/UI still says another.
+  Future<int> countForBook(String cacheKey) async {
     final db = await database;
     final result = await db.rawQuery(
       'SELECT COUNT(*) as count FROM hadith_cache WHERE book_slug = ?',
-      [bookSlug],
+      [cacheKey],
     );
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  Future<void> cacheBook(String bookSlug, List<HadithItem> items) async {
+  Future<void> cacheBook(String cacheKey, List<HadithItem> items) async {
     final db = await database;
     final batch = db.batch();
-    batch.delete('hadith_cache', where: 'book_slug = ?', whereArgs: [bookSlug]);
+    batch.delete('hadith_cache', where: 'book_slug = ?', whereArgs: [cacheKey]);
     for (final item in items) {
       batch.insert('hadith_cache', {
         'id': item.id,
-        'book_slug': bookSlug,
+        'book_slug': cacheKey,
         'hadith_number': item.hadithNumber,
         'narrator': item.narrator,
         'body': item.body ?? '',
@@ -60,12 +64,19 @@ class HadithCacheDatabase {
     await batch.commit(noResult: true);
   }
 
-  Future<List<HadithItem>> getBookHadiths(String bookSlug, String bookName) async {
+  // `bookSlug`/`bookName` here are the real (bare) book identity, used only
+  // to rebuild each HadithItem's display fields — kept edition-independent
+  // so favorites/ids stay stable across a language switch.
+  Future<List<HadithItem>> getBookHadiths(
+    String cacheKey,
+    String bookSlug,
+    String bookName,
+  ) async {
     final db = await database;
     final maps = await db.query(
       'hadith_cache',
       where: 'book_slug = ?',
-      whereArgs: [bookSlug],
+      whereArgs: [cacheKey],
       orderBy: 'hadith_number ASC',
     );
     return maps

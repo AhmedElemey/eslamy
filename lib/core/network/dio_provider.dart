@@ -21,7 +21,6 @@ final dioProvider = Provider<Dio>((ref) {
       ),
     )
     ..interceptors.addAll([
-      StopIfNoInternetInterceptor(),
       SessionExpiredInterceptor(),
       RateLimitInterceptor(),
       SimpleLogInterceptor(),
@@ -39,6 +38,7 @@ extension DioExceptionX on DioException {
       case DioExceptionType.receiveTimeout:
         return 'Response timeout, try again later';
       case DioExceptionType.badResponse:
+        if (response == null && error is String) return error as String;
         switch (response?.statusCode) {
           case 401:
             return '[${response?.statusCode}] Unauthorized';
@@ -68,10 +68,12 @@ class RateLimitInterceptor implements Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 429) {
-      throw DioException(
-        requestOptions: err.requestOptions,
-        type: DioExceptionType.badResponse,
-        error: 'Rate limit exceeded, try again later',
+      handler.reject(
+        DioException(
+          requestOptions: err.requestOptions,
+          type: DioExceptionType.badResponse,
+          error: 'Rate limit exceeded, try again later',
+        ),
       );
     } else {
       handler.next(err);

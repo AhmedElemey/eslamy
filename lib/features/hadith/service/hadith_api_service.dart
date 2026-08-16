@@ -24,10 +24,11 @@ class HadithApiService {
 
   Future<List<HadithItem>> fetchBook(
     HadithBook book, {
+    required String editionSlug,
     ProgressCallback? onProgress,
   }) async {
     final response = await requests.get(
-      '/editions/${book.editionSlug}.min.json',
+      '/editions/$editionSlug.min.json',
       baseUrl: _cdnBase,
       onReceiveProgress: onProgress,
     );

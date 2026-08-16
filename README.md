@@ -1,193 +1,106 @@
-# 🕌 Eslamy - Flutter Islamic App
+# 🕌 Eslamy
 
-A beautiful Flutter application for Islamic content with Hadith collection and favorites system.
+A Flutter Islamic companion app: Quran reading and audio, prayer times and
+Qibla, Hadith, daily Duas & Azkar, a Hifz (memorization) tracker, Hijri
+calendar, a Hajj & Umrah guide, and a nearby-mosque locator — in Arabic,
+English, and Italian.
 
 ## ✨ Features
 
-- **🎨 Modern UI Design** - Clean, intuitive interface with beautiful animations
-- **📱 Splash Screen** - Auto-navigation to home screen
-- **📖 Hadith Collection** - Browse through authentic hadiths with pagination
-- **❤️ Favorites System** - Save your favorite hadiths with SQLite storage
-- **🔄 Real-time Updates** - Instant UI updates with Riverpod state management
-- **📱 Responsive Design** - Optimized for both iOS and Android
+- **Digital Mushaf** — browse by Surah, Juz, Hizb, or page; tajweed-colored
+  text, per-ayah and full-surah audio playback with reciter selection,
+  translations, and Al-Muyassar tafsir. Playback continues in the
+  background with a persistent "now playing" mini-player and (on Android)
+  a floating bubble.
+- **Prayer Times & Qibla** — location-based prayer times with Adhan
+  notifications, a compass-based Qibla direction, and a nearby-mosque
+  locator (OpenStreetMap/Overpass, with an on-device cache so a flaky free
+  API degrades to "last known results" instead of an empty screen).
+- **Hadith** — browse hadith books with search, and save favorites locally.
+- **Duas & Azkar**, **Tasbih counter**, **Hijri calendar**, **Hajj & Umrah
+  guide**.
+- **Hifz tracker** — mark Surahs memorized and track progress toward all
+  114, plus a daily streak.
+- **Settings** — light/dark/system theme, Arabic/English/Italian, an
+  app-wide text-size slider, and a schedulable daily Wird reminder.
+- Fully localized UI (RTL-aware) in Arabic, English, and Italian.
 
 ## 🛠️ Tech Stack
 
-- **Flutter** - Cross-platform mobile development
-- **Riverpod** - State management
-- **Dio** - HTTP networking with interceptors
-- **SQLite** - Local database for favorites
-- **Material Design** - Modern UI components
-
-## 📦 Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.8
-  dio: ^5.9.0
-  flutter_riverpod: ^2.6.1
-  sqflite: ^2.4.1
-  path: ^1.9.0
-```
+- **Flutter** / **Riverpod** for state management
+- **Dio** for networking, **sqflite** + **shared_preferences** for local
+  storage
+- **just_audio** / **audio_service** for background Quran playback
+- **Firebase** (Messaging + Crashlytics)
+- **geolocator** / **flutter_compass** for prayer times, Qibla, and the
+  mosque locator
+- **flutter_local_notifications** + **workmanager** (Android) for Adhan
+  alerts that survive a reboot
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (3.7.2 or higher)
-- Dart SDK
-- iOS Simulator or Android Emulator
-- Xcode (for iOS development)
-- Android Studio (for Android development)
+- Flutter SDK (3.7.2+) and Dart SDK
+- Xcode (iOS) / Android Studio (Android)
+- Firebase project config: `ios/Runner/GoogleService-Info.plist` and
+  `android/app/google-services.json` (not checked in — get these from the
+  project's Firebase console)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/eslamy-flutter-app.git
-   cd eslamy-flutter-app
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run the app**
-   ```bash
-   flutter run
-   ```
+```bash
+flutter pub get
+flutter gen-l10n   # regenerate localization sources after editing lib/l10n/*.arb
+flutter run
+```
 
 ## 📱 App Structure
 
+Feature-first layout under `lib/features/<feature>/`, each with its own
+`models/`, `service/`, and `presentation/{controllers,pages,widgets}/`.
+Cross-cutting code lives in `lib/core/` (localization, navigation, network,
+notifications, theme) and `lib/shared/widgets/`.
+
 ```
 lib/
-├── core/
-│   └── network/
-│       └── dio_provider.dart          # HTTP client configuration
+├── core/                # localization, navigation, network, notifications, theme
 ├── features/
-│   ├── splash/
-│   │   └── presentation/pages/
-│   │       └── splash_page.dart       # Splash screen
-│   ├── home/
-│   │   └── presentation/pages/
-│   │       └── home_page.dart         # Main home screen
-│   ├── hadith/
-│   │   ├── models/
-│   │   │   └── hadith.dart           # Hadith data models
-│   │   ├── service/
-│   │   │   └── hadith_service.dart   # API service
-│   │   ├── presentation/
-│   │   │   ├── controllers/
-│   │   │   │   └── hadith_providers.dart
-│   │   │   └── pages/
-│   │   │       └── hadith_list_page.dart
-│   │   └── hadith_constants.dart     # API configuration
-│   └── favorites/
-│       ├── models/
-│       │   └── favorite_hadith.dart  # Favorite data models
-│       ├── service/
-│       │   ├── favorites_service.dart
-│       │   └── favorites_database.dart # SQLite database
-│       └── presentation/
-│           ├── controllers/
-│           │   └── favorites_providers.dart
-│           └── pages/
-│               └── favorites_page.dart
-└── main.dart                         # App entry point
+│   ├── quran/           # Mushaf, audio playback, tajweed, translations
+│   ├── prayer_times/     # prayer times + Qibla
+│   ├── mosque_locator/   # nearby mosques (Overpass + local cache)
+│   ├── hadith/           # hadith books + search
+│   ├── favorites/        # saved hadiths (SQLite)
+│   ├── duas/             # duas & azkar
+│   ├── tasbih/            # tasbih counter
+│   ├── hifz/              # memorization tracker
+│   ├── hijri_calendar/
+│   ├── hajj_umrah/
+│   ├── streaks/
+│   ├── settings/          # theme, language, text size, Wird schedule
+│   ├── home/, splash/, error/
+└── main.dart
 ```
 
-## 🎯 Key Features
+## 🧪 Testing
 
-### 🏠 Home Screen
-- Beautiful welcome interface
-- Navigation to different sections
-- Modern card-based design
-
-### 📖 Hadith Collection
-- **Infinite Scroll** - Load more hadiths as you scroll
-- **Pull to Refresh** - Refresh the list manually
-- **Error Handling** - Graceful error states with retry options
-- **Modern Cards** - Each hadith displayed in a beautiful card
-
-### ❤️ Favorites System
-- **Heart Icons** - Tap to add/remove from favorites
-- **SQLite Storage** - Persistent local storage
-- **Visual Feedback** - Floating snackbars with icons
-- **Favorites Page** - View all your saved hadiths
-- **Remove Options** - Remove individual items or clear all
-
-### 🔧 State Management
-- **Riverpod Providers** - Clean state management
-- **Real-time Updates** - Instant UI updates
-- **Error Handling** - Comprehensive error states
-
-## 🎨 UI/UX Features
-
-- **Material Design 3** - Modern design language
-- **Smooth Animations** - Delightful user interactions
-- **Responsive Layout** - Works on all screen sizes
-- **Dark/Light Theme** - System theme support
-- **Accessibility** - Proper touch targets and semantics
-
-## 📊 Database Schema
-
-```sql
-CREATE TABLE favorites (
-  id TEXT PRIMARY KEY,
-  hadith_id INTEGER NOT NULL,
-  title TEXT,
-  narrator TEXT,
-  body TEXT,
-  saved_at TEXT NOT NULL
-);
-
-CREATE INDEX idx_hadith_id ON favorites(hadith_id);
+```bash
+flutter analyze
+flutter test
 ```
 
-## 🔗 API Integration
+Test coverage is currently focused on pure logic (Overpass response
+parsing, the mosque-locator cache, tajweed text parsing) rather than full
+widget/integration coverage — see `test/` for what exists today.
 
-- **Hadith API** - Integration with hadithapi.com
-- **Dio Interceptors** - Rate limiting and error handling
-- **Pagination** - Efficient data loading
-- **Offline Support** - Favorites work without internet
+## 🔭 Roadmap ideas
 
-## 🚀 Future Enhancements
-
-- [ ] Search functionality
-- [ ] Categories and filters
-- [ ] Audio playback for hadiths
-- [ ] Sharing functionality
-- [ ] Push notifications
-- [ ] User authentication
-- [ ] Cloud sync for favorites
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- [ ] Cloud sync for favorites / hifz progress
+- [ ] Push notifications for new content
+- [ ] Wider widget/integration test coverage
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Ahmed Taha**
-- GitHub: [@yourusername](https://github.com/yourusername)
-
-## 🙏 Acknowledgments
-
-- [Hadith API](https://www.hadithapi.com/) for providing authentic hadith data
-- Flutter team for the amazing framework
-- Riverpod team for excellent state management
-- Material Design for beautiful UI components
-
----
-
-⭐ **Star this repository if you found it helpful!**
+No license file is currently included (`pubspec.yaml` marks the package
+`publish_to: 'none'`, i.e. private). Add a `LICENSE` file once a license is
+chosen.

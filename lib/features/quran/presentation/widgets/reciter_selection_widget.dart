@@ -40,7 +40,8 @@ class ReciterSelectionWidget extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    selectedReciter?.name ?? context.l10n.selectReciterPlaceholder,
+                    selectedReciter?.name ??
+                        context.l10n.selectReciterPlaceholder,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -140,14 +141,16 @@ class ReciterSelectionDialog extends ConsumerWidget {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.1)
-                        : AppColors.pageBackground(context),
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.pageBackground(context),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.hairline(context),
+                      color:
+                          isSelected
+                              ? AppColors.primary
+                              : AppColors.hairline(context),
                       width: isSelected ? 2 : 1,
                     ),
                   ),
@@ -161,7 +164,10 @@ class ReciterSelectionDialog extends ConsumerWidget {
                       reciter['englishName']!,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? AppColors.primaryOnBg(context) : heading,
+                        color:
+                            isSelected
+                                ? AppColors.primaryOnBg(context)
+                                : heading,
                       ),
                     ),
                     subtitle: Column(
@@ -180,13 +186,14 @@ class ReciterSelectionDialog extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: AppColors.primaryOnBg(context),
-                            size: 24,
-                          )
-                        : null,
+                    trailing:
+                        isSelected
+                            ? Icon(
+                              Icons.check_circle,
+                              color: AppColors.primaryOnBg(context),
+                              size: 24,
+                            )
+                            : null,
                     onTap: () async {
                       await ref
                           .read(selectedReciterProvider.notifier)

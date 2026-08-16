@@ -22,7 +22,7 @@ class StreakCard extends ConsumerWidget {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.15),
+          color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -60,7 +60,7 @@ class StreakCard extends ConsumerWidget {
                           shape: BoxShape.circle,
                           color: active
                               ? AppColors.primary
-                              : (isDark ? Colors.white10 : Colors.grey.withOpacity(0.15)),
+                              : (isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.15)),
                         ),
                       ),
                     );

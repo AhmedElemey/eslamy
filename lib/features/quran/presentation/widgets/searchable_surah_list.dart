@@ -21,28 +21,38 @@ class SearchableSurahList extends ConsumerWidget {
 
     return chaptersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text('Could not load surahs\n$e', textAlign: TextAlign.center),
-        ),
-      ),
+      error:
+          (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                l10n.failedToLoadSurahsWithError(e.toString()),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
       data: (chapters) {
         final q = query.trim().toLowerCase();
-        final filtered = q.isEmpty
-            ? chapters
-            : chapters
-                .where((c) =>
-                    c.englishName.toLowerCase().contains(q) ||
-                    c.name.contains(query.trim()) ||
-                    '${c.number}' == q)
-                .toList();
+        final filtered =
+            q.isEmpty
+                ? chapters
+                : chapters
+                    .where(
+                      (c) =>
+                          c.englishName.toLowerCase().contains(q) ||
+                          c.name.contains(query.trim()) ||
+                          '${c.number}' == q,
+                    )
+                    .toList();
 
         if (filtered.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('No surahs match "$query"', textAlign: TextAlign.center),
+              child: Text(
+                l10n.noSurahsMatchQuery(query),
+                textAlign: TextAlign.center,
+              ),
             ),
           );
         }
@@ -53,9 +63,10 @@ class SearchableSurahList extends ConsumerWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (_, i) {
             final chapter = filtered[i];
-            final origin = chapter.revelationType == 'Meccan'
-                ? l10n.quranOriginMeccan
-                : l10n.quranOriginMedinian;
+            final origin =
+                chapter.revelationType == 'Meccan'
+                    ? l10n.quranOriginMeccan
+                    : l10n.quranOriginMedinian;
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -65,7 +76,10 @@ class SearchableSurahList extends ConsumerWidget {
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: NumberSeal(label: '${chapter.number}'),
-                title: Text(chapter.englishName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                title: Text(
+                  chapter.englishName,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
                 subtitle: Text(
                   '$origin • ${l10n.versesCountCaps(chapter.numberOfAyahs)}',
                   style: TextStyle(color: textMuted),
@@ -73,15 +87,19 @@ class SearchableSurahList extends ConsumerWidget {
                 trailing: Text(
                   chapter.name,
                   textDirection: TextDirection.rtl,
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => QuranChapterDetailPage(
-                        chapterNumber: chapter.number,
-                        chapterName: chapter.englishName,
-                      ),
+                      builder:
+                          (_) => QuranChapterDetailPage(
+                            chapterNumber: chapter.number,
+                            chapterName: chapter.englishName,
+                          ),
                     ),
                   );
                 },

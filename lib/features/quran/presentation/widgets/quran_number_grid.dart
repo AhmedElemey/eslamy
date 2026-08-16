@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../models/quran_models.dart';
 import '../pages/quran_range_detail_page.dart';
@@ -21,7 +22,8 @@ class QuranNumberGrid extends StatelessWidget {
 
   final int count;
   final String labelPrefix;
-  final ProviderListenable<AsyncValue<List<AyahWithSurah>>> Function(int number) rangeProviderBuilder;
+  final ProviderListenable<AsyncValue<List<AyahWithSurah>>> Function(int number)
+  rangeProviderBuilder;
   final String query;
 
   @override
@@ -36,7 +38,10 @@ class QuranNumberGrid extends StatelessWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('No $labelPrefix matches "$query"', textAlign: TextAlign.center),
+          child: Text(
+            context.l10n.noItemsMatchQuery(labelPrefix, query),
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -57,10 +62,11 @@ class QuranNumberGrid extends StatelessWidget {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => QuranRangeDetailPage(
-                  title: '$labelPrefix $number',
-                  rangeProvider: rangeProviderBuilder(number),
-                ),
+                builder:
+                    (_) => QuranRangeDetailPage(
+                      title: '$labelPrefix $number',
+                      rangeProvider: rangeProviderBuilder(number),
+                    ),
               ),
             );
           },
@@ -87,7 +93,10 @@ class _NumberTile extends StatelessWidget {
         child: Center(
           child: Text(
             '$number',
-            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
           ),
         ),
       ),

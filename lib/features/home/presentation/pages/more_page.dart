@@ -10,6 +10,7 @@ import '../../../hadith/presentation/pages/hadith_books_page.dart';
 import '../../../hajj_umrah/presentation/pages/hajj_umrah_home_page.dart';
 import '../../../hifz/presentation/pages/hifz_page.dart';
 import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
+import '../../../mosque_locator/presentation/pages/mosque_locator_page.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
 import '../../../quran/presentation/widgets/reciter_selection_widget.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
@@ -42,6 +43,11 @@ class MorePage extends StatelessWidget {
         Icons.explore_outlined,
         l10n.qiblaDirectionTitle,
         const QiblaPage(),
+      ),
+      _MoreItem(
+        Icons.near_me_outlined,
+        l10n.mosqueLocatorTitle,
+        const MosqueLocatorPage(),
       ),
       _MoreItem(
         Icons.import_contacts_outlined,

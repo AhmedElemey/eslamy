@@ -236,12 +236,13 @@ class TranslationEdition {
     required this.englishName,
   });
 
-  factory TranslationEdition.fromJson(Map<String, dynamic> json) => TranslationEdition(
-    identifier: json['identifier'] as String,
-    language: json['language'] as String,
-    name: json['name'] as String,
-    englishName: json['englishName'] as String,
-  );
+  factory TranslationEdition.fromJson(Map<String, dynamic> json) =>
+      TranslationEdition(
+        identifier: json['identifier'] as String,
+        language: json['language'] as String,
+        name: json['name'] as String,
+        englishName: json['englishName'] as String,
+      );
 }
 
 /// A single ayah's tafsir (per-verse exegesis), from Al Quran Cloud's

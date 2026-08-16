@@ -29,7 +29,9 @@ class QiblaPage extends ConsumerWidget {
                         : Padding(
                           padding: const EdgeInsets.all(24),
                           child: Text(
-                            context.l10n.qiblaUnavailableWithError(state.error ?? ''),
+                            context.l10n.qiblaUnavailableWithError(
+                              state.error ?? '',
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         )
@@ -85,7 +87,10 @@ class _CompassView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: aligned ? AppColors.goldAccent(context) : AppColors.primaryOnBg(context),
+                color:
+                    aligned
+                        ? AppColors.goldAccent(context)
+                        : AppColors.primaryOnBg(context),
               ),
             ),
             const SizedBox(height: 24),
@@ -105,9 +110,10 @@ class _CompassView extends StatelessWidget {
                   Icon(
                     Icons.arrow_drop_up,
                     size: 48,
-                    color: aligned
-                        ? AppColors.goldAccent(context)
-                        : AppColors.primaryOnBg(context),
+                    color:
+                        aligned
+                            ? AppColors.goldAccent(context)
+                            : AppColors.primaryOnBg(context),
                   ),
                 ],
               ),
@@ -138,9 +144,10 @@ class _CompassDial extends StatelessWidget {
     return CustomPaint(
       painter: _DialPainter(
         tickColor: AppColors.mutedText(context),
-        rimColor: aligned
-            ? AppColors.goldAccent(context)
-            : AppColors.gold.withValues(alpha: 0.5),
+        rimColor:
+            aligned
+                ? AppColors.goldAccent(context)
+                : AppColors.gold.withValues(alpha: 0.5),
         fillColor: AppColors.surface(context),
       ),
       child: Stack(
@@ -178,9 +185,10 @@ class _CompassDial extends StatelessWidget {
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: label == 'N'
-                    ? AppColors.primaryOnBg(context)
-                    : AppColors.mutedText(context),
+                color:
+                    label == 'N'
+                        ? AppColors.primaryOnBg(context)
+                        : AppColors.mutedText(context),
               ),
             ),
           ),
@@ -218,12 +226,19 @@ class _DialPainter extends CustomPainter {
       final major = i % 9 == 0;
       final angle = i * 10 * math.pi / 180;
       final inner = radius - (major ? 14 : 8);
-      final p = Paint()
-        ..color = tickColor.withValues(alpha: major ? 0.8 : 0.35)
-        ..strokeWidth = major ? 2 : 1;
+      final p =
+          Paint()
+            ..color = tickColor.withValues(alpha: major ? 0.8 : 0.35)
+            ..strokeWidth = major ? 2 : 1;
       canvas.drawLine(
-        Offset(center.dx + inner * math.cos(angle), center.dy + inner * math.sin(angle)),
-        Offset(center.dx + radius * math.cos(angle), center.dy + radius * math.sin(angle)),
+        Offset(
+          center.dx + inner * math.cos(angle),
+          center.dy + inner * math.sin(angle),
+        ),
+        Offset(
+          center.dx + radius * math.cos(angle),
+          center.dy + radius * math.sin(angle),
+        ),
         p,
       );
     }

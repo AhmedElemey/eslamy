@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/ayah_block.dart';
@@ -33,43 +34,49 @@ class QuranRangeDetailPage extends ConsumerWidget {
         child: SafeArea(
           child: ayahsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Could not load this section\n$e', textAlign: TextAlign.center),
-              ),
-            ),
-            data: (ayahs) => ListView.builder(
-              padding: const EdgeInsets.only(bottom: 16),
-              itemCount: ayahs.length,
-              itemBuilder: (context, i) {
-                final ayah = ayahs[i];
-                final isNewSurah =
-                    i == 0 || ayahs[i - 1].surahNumber != ayah.surahNumber;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (isNewSurah) _SurahHeader(ayah: ayah),
-                    AyahBlock(
-                      number: ayah.numberInSurah,
-                      arabic: ayah.text,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => QuranVerseDetailPage(
-                              chapterNumber: ayah.surahNumber,
-                              verseNumber: ayah.numberInSurah,
-                              verseText: ayah.text,
-                            ),
-                          ),
-                        );
-                      },
+            error:
+                (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      context.l10n.couldNotLoadSectionWithError(e.toString()),
+                      textAlign: TextAlign.center,
                     ),
-                    Divider(height: 1, color: AppColors.hairline(context)),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ),
+            data:
+                (ayahs) => ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  itemCount: ayahs.length,
+                  itemBuilder: (context, i) {
+                    final ayah = ayahs[i];
+                    final isNewSurah =
+                        i == 0 || ayahs[i - 1].surahNumber != ayah.surahNumber;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isNewSurah) _SurahHeader(ayah: ayah),
+                        AyahBlock(
+                          number: ayah.numberInSurah,
+                          arabic: ayah.text,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => QuranVerseDetailPage(
+                                      chapterNumber: ayah.surahNumber,
+                                      verseNumber: ayah.numberInSurah,
+                                      verseText: ayah.text,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        Divider(height: 1, color: AppColors.hairline(context)),
+                      ],
+                    );
+                  },
+                ),
           ),
         ),
       ),
@@ -92,9 +99,9 @@ class _SurahHeader extends StatelessWidget {
             child: Text(
               '${ayah.surahNumber}. ${ayah.surahEnglishName}',
               style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryOnBg(context),
-            ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryOnBg(context),
+              ),
             ),
           ),
           Text(

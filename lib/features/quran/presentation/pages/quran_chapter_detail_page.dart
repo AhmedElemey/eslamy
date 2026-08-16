@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/ayah_block.dart';
 import '../../models/quran_models.dart';
+import '../../service/quran_audio_handler.dart';
 import '../controllers/quran_providers.dart';
 import '../widgets/reciter_selection_widget.dart';
 import '../widgets/tajweed_legend_sheet.dart';
@@ -30,85 +30,11 @@ class QuranChapterDetailPage extends ConsumerStatefulWidget {
 
 class _QuranChapterDetailPageState
     extends ConsumerState<QuranChapterDetailPage> {
-  late AudioPlayer _audioPlayer;
-  late final ProviderSubscription<Reciter?> _reciterSubscription;
-  bool _isPlaying = false;
-  Duration _duration = Duration.zero;
-  Duration _position = Duration.zero;
-  String? _currentAudioUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _audioPlayer = AudioPlayer();
-    _setupAudioPlayer();
-    // Restart with the new reciter's audio if the chapter is playing when
-    // the user switches reciters (from this page's own picker, or any
-    // other screen).
-    _reciterSubscription = ref.listenManual<Reciter?>(selectedReciterProvider, (
-      previous,
-      next,
-    ) {
-      if (mounted && previous != next && _isPlaying) {
-        _startChapterAudio();
-      }
-    });
-  }
-
-  void _setupAudioPlayer() {
-    _audioPlayer.playerStateStream.listen((state) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = state.playing;
-        });
-
-        // Reset position to start when playback completes
-        if (state.processingState == ProcessingState.completed) {
-          _audioPlayer.seek(Duration.zero);
-          setState(() {
-            _position = Duration.zero;
-            _isPlaying = false;
-          });
-        }
-      }
-    });
-
-    _audioPlayer.durationStream.listen((duration) {
-      if (mounted) {
-        setState(() {
-          _duration = duration ?? Duration.zero;
-        });
-      }
-    });
-
-    _audioPlayer.positionStream.listen((position) {
-      if (mounted) {
-        setState(() {
-          _position = position;
-        });
-      }
-    });
-  }
-
-  Future<void> _playChapterAudio() async {
-    if (_isPlaying) {
-      await _pauseAudio();
-      return;
-    }
-    await _startChapterAudio();
-  }
-
-  /// Fetches the chapter audio URL for the currently selected reciter and
-  /// plays it. Used both by the play button and to restart with a new
-  /// reciter while the chapter is already playing.
-  Future<void> _startChapterAudio() async {
+  /// Plays this chapter on the shared handler (any other chapter already
+  /// playing is replaced — matches the old page-local "stop current before
+  /// starting new" behavior, now app-wide instead of per-screen).
+  Future<void> _startChapterAudio(QuranAudioHandler handler) async {
     try {
-      // Stop any current audio before starting new
-      if (_currentAudioUrl != null) {
-        await _stopAudio();
-      }
-
-      // Show loading indicator
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -118,16 +44,11 @@ class _QuranChapterDetailPageState
         );
       }
 
-      // Get chapter audio URL for the selected reciter
-      final audioUrlAsync = ref.read(
-        chapterAudioUrlProvider(widget.chapterNumber).future,
+      await handler.playSurah(
+        widget.chapterNumber,
+        reciter: ref.read(selectedReciterProvider),
+        chapterName: widget.chapterName,
       );
-      _currentAudioUrl = await audioUrlAsync;
-
-      debugPrint('Playing chapter audio from URL: $_currentAudioUrl');
-
-      await _audioPlayer.setUrl(_currentAudioUrl!);
-      await _audioPlayer.play();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -148,7 +69,7 @@ class _QuranChapterDetailPageState
             action: SnackBarAction(
               label: context.l10n.retryAction,
               textColor: Colors.white,
-              onPressed: _playChapterAudio,
+              onPressed: () => _startChapterAudio(handler),
             ),
           ),
         );
@@ -165,17 +86,6 @@ class _QuranChapterDetailPageState
     );
   }
 
-  Future<void> _pauseAudio() async {
-    await _audioPlayer.pause();
-  }
-
-  Future<void> _stopAudio() async {
-    await _audioPlayer.stop();
-    setState(() {
-      _position = Duration.zero;
-    });
-  }
-
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
@@ -184,17 +94,17 @@ class _QuranChapterDetailPageState
   }
 
   @override
-  void dispose() {
-    _reciterSubscription.close();
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(chapterProvider(widget.chapterNumber));
     final l10n = context.l10n;
     final selectedReciter = ref.watch(selectedReciterProvider);
+    final handler = ref.watch(quranAudioHandlerProvider);
+    final activeMediaItem = ref.watch(currentMediaItemProvider).valueOrNull;
+    final isThisChapterActive =
+        activeMediaItem?.extras?['chapterNumber'] == widget.chapterNumber;
+    final isPlaying =
+        isThisChapterActive &&
+        (ref.watch(playbackStateProvider).valueOrNull?.playing ?? false);
     final selectedEdition = ref.watch(selectedTranslationProvider);
     final translationAsync = ref.watch(
       chapterTranslationProvider((
@@ -289,7 +199,9 @@ class _QuranChapterDetailPageState
                         Text(
                           l10n.versesCountRevelationType(
                             chapterResponse.data.numberOfAyahs,
-                            chapterResponse.data.revelationType,
+                            chapterResponse.data.revelationType == 'Meccan'
+                                ? l10n.quranOriginMeccan
+                                : l10n.quranOriginMedinian,
                           ),
                           style: TextStyle(
                             fontSize: 12,
@@ -368,16 +280,32 @@ class _QuranChapterDetailPageState
                       },
                     ),
                   ),
-                  _ChapterAudioBar(
-                    label: l10n.chapterAudioLabel,
-                    isPlaying: _isPlaying,
-                    position: _position,
-                    duration: _duration,
-                    onPlayPause: _isPlaying ? _pauseAudio : _playChapterAudio,
-                    onStop: _stopAudio,
-                    formatDuration: _formatDuration,
-                    onSeek: (value) {
-                      _audioPlayer.seek(Duration(milliseconds: value.toInt()));
+                  StreamBuilder<Duration>(
+                    stream: handler.player.positionStream,
+                    builder: (context, snapshot) {
+                      final position =
+                          isThisChapterActive
+                              ? (snapshot.data ?? Duration.zero)
+                              : Duration.zero;
+                      final duration =
+                          isThisChapterActive
+                              ? (handler.player.duration ?? Duration.zero)
+                              : Duration.zero;
+                      return _ChapterAudioBar(
+                        label: l10n.chapterAudioLabel,
+                        isPlaying: isPlaying,
+                        position: position,
+                        duration: duration,
+                        onPlayPause:
+                            isPlaying
+                                ? handler.pause
+                                : () => _startChapterAudio(handler),
+                        onStop: handler.stop,
+                        formatDuration: _formatDuration,
+                        onSeek: (value) {
+                          handler.seek(Duration(milliseconds: value.toInt()));
+                        },
+                      );
                     },
                   ),
                 ],

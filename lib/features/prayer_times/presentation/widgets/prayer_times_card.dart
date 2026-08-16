@@ -107,12 +107,18 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
           Expanded(
             child: Text(
               context.l10n.couldntLoadPrayerTimes,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
             onPressed: () => ref.read(prayerTimesProvider.notifier).load(),
-            child: Text(context.l10n.retry, style: const TextStyle(color: Colors.white)),
+            child: Text(
+              context.l10n.retry,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       );
@@ -139,7 +145,9 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
             ),
             const SizedBox(width: 12),
             Text(
-              next == null ? context.l10n.allPrayersDoneLabel : context.l10n.nextPrayerLabel,
+              next == null
+                  ? context.l10n.allPrayersDoneLabel
+                  : context.l10n.nextPrayerLabel,
               style: TextStyle(
                 color: AppColors.gold,
                 fontSize: 11,
@@ -155,7 +163,11 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
         if (next == null)
           Text(
             context.l10n.fajrResumesAfterMidnight,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           )
         else
           Row(
@@ -186,7 +198,10 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(30),

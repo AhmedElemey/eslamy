@@ -68,21 +68,23 @@ class _QuranIndexPageState extends State<QuranIndexPage>
                 child: TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _query = v),
-                  keyboardType: _tabController.index >= 2
-                      ? TextInputType.number
-                      : TextInputType.text,
+                  keyboardType:
+                      _tabController.index >= 2
+                          ? TextInputType.number
+                          : TextInputType.text,
                   decoration: InputDecoration(
                     hintText: hints[_tabController.index],
                     prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: _query.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _query = '');
-                            },
-                          ),
+                    suffixIcon:
+                        _query.isEmpty
+                            ? null
+                            : IconButton(
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                            ),
                   ),
                 ),
               ),

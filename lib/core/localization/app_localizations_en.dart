@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageArabic => 'Arabic';
 
   @override
+  String get languageItalian => 'Italian';
+
+  @override
   String get sectionTextSize => 'Text size';
 
   @override
@@ -67,7 +70,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Adjust the text size across the app. 0 is default.';
 
   @override
-  String get sectionDailyWerdTime => 'Daily Werd time';
+  String get sectionDailyWerdTime => 'Daily Wird time';
 
   @override
   String get pickTime => 'Pick time';
@@ -76,7 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleButton => 'Schedule';
 
   @override
-  String get werdTimeSavedAndScheduled => 'Werd time saved and scheduled';
+  String get werdTimeSavedAndScheduled => 'Wird time saved and scheduled';
 
   @override
   String get reminderScheduled => 'Reminder scheduled';
@@ -93,21 +96,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get testNotificationBody => 'If you see this, notifications work';
-
-  @override
-  String get sectionPushNotificationsFcm => 'Push notifications (FCM)';
-
-  @override
-  String get fetchingFcmToken => 'Fetching FCM token...';
-
-  @override
-  String get noFcmTokenYet => 'No token yet. Ensure notifications are allowed.';
-
-  @override
-  String get copyTokenButton => 'Copy token';
-
-  @override
-  String get tokenCopied => 'Token copied';
 
   @override
   String get homeGreetingAssalamuAlaikum => 'ASSALAMU ALAIKUM';
@@ -299,6 +287,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String failedToLoadSurahsWithError(String error) {
     return 'Failed to load surahs\n$error';
   }
+
+  @override
+  String noSurahsMatchQuery(String query) {
+    return 'No surahs match \"$query\"';
+  }
+
+  @override
+  String noItemsMatchQuery(String label, String query) {
+    return 'No $label matches \"$query\"';
+  }
+
+  @override
+  String juzNumberLabel(int number) {
+    return 'Juz $number';
+  }
+
+  @override
+  String startsAtSurahAyah(String surahName, int surah, int ayah) {
+    return 'Starts at $surahName $surah:$ayah';
+  }
+
+  @override
+  String get loadingEllipsis => 'Loading…';
 
   @override
   String surahsMemorizedProgress(int memorized, int total) {
@@ -830,9 +841,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchHizbHint => 'Jump to Hizb number…';
 
   @override
-  String get developerToolsTitle => 'Developer tools';
-
-  @override
   String get hajjUmrahGuideTitle => 'Hajj & Umrah Guide';
 
   @override
@@ -892,4 +900,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String pilgrimModeNear(String siteName) {
     return 'You\'re near $siteName';
   }
+
+  @override
+  String get nowPlayingTitle => 'Now Playing';
+
+  @override
+  String get nowPlayingNextSurahTooltip => 'Next Surah';
+
+  @override
+  String get nowPlayingPreviousSurahTooltip => 'Previous Surah';
+
+  @override
+  String get nowPlayingStopTooltip => 'Stop';
+
+  @override
+  String get overlayPermissionTitle => 'Show floating player?';
+
+  @override
+  String get overlayPermissionBody =>
+      'Eslamy can show a small floating bubble over other apps so you can control playback without switching back. Enable it?';
+
+  @override
+  String get overlayPermissionAllow => 'Enable';
+
+  @override
+  String get overlayPermissionNotNow => 'Not now';
+
+  @override
+  String get mosqueLocatorTitle => 'Mosque Locator';
+
+  @override
+  String get mosqueLocatorDirections => 'Directions';
+
+  @override
+  String mosqueLocatorDistance(String distance) {
+    return '$distance away';
+  }
+
+  @override
+  String get mosqueLocatorEmpty => 'No mosques found nearby. Try again later.';
+
+  @override
+  String mosqueLocatorFailedWithError(String error) {
+    return 'Couldn\'t load nearby mosques\n$error';
+  }
+
+  @override
+  String get mosqueLocatorUnnamedMosque => 'Mosque';
+
+  @override
+  String get mosqueLocatorApproximateLocation =>
+      'Showing results for your approximate location. Enable precise location for better results.';
+
+  @override
+  String get mosqueLocatorCouldNotOpenMaps => 'Couldn\'t open Maps';
+
+  @override
+  String get mosqueLocatorStaleCache =>
+      'Couldn\'t refresh — showing previously saved results. Pull down to try again.';
 }

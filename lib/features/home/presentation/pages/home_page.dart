@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -12,6 +13,7 @@ import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
 import '../../../prayer_times/presentation/widgets/prayer_times_card.dart';
+import '../../../settings/presentation/controllers/language_providers.dart';
 import '../../../streaks/presentation/controllers/streak_providers.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
 
@@ -35,8 +37,9 @@ class HomePage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_outlined, color: headingColor),
-            onPressed: () => Navigator.of(context).pushNamed('/settings'),
+            icon: Icon(Icons.language_outlined, color: headingColor),
+            tooltip: l10n.sectionLanguage,
+            onPressed: () => _showLanguagePicker(context, ref),
           ),
         ],
       ),
@@ -114,6 +117,77 @@ class HomePage extends ConsumerWidget {
     );
   }
 }
+
+void _showLanguagePicker(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    l10n.sectionLanguage,
+                    style: Theme.of(sheetContext).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final languageAsync = ref.watch(languageProvider);
+                  return languageAsync.when(
+                    data: (current) => Column(
+                      children: [
+                        for (final language in AppLanguage.values)
+                          ListTile(
+                            title: Text(_languageLabel(l10n, language)),
+                            trailing: current == language
+                                ? Icon(
+                                    Icons.check_rounded,
+                                    color: AppColors.primaryOnBg(context),
+                                  )
+                                : null,
+                            onTap: () {
+                              ref
+                                  .read(languageProvider.notifier)
+                                  .setLanguage(language);
+                              Navigator.of(sheetContext).pop();
+                            },
+                          ),
+                      ],
+                    ),
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, _) => const SizedBox.shrink(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+String _languageLabel(AppLocalizations l10n, AppLanguage language) =>
+    switch (language) {
+      AppLanguage.english => l10n.languageEnglish,
+      AppLanguage.arabic => l10n.languageArabic,
+      AppLanguage.italian => l10n.languageItalian,
+    };
 
 class _QuickAccessRow extends StatelessWidget {
   const _QuickAccessRow();

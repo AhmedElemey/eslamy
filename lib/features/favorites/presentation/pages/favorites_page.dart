@@ -66,7 +66,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: primary.withOpacity(0.1),
+                        color: primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(Icons.favorite, color: primary, size: 28),
@@ -144,7 +144,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
@@ -201,7 +201,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
@@ -301,7 +301,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.15),
+                color: AppColors.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -323,7 +323,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey[50],
+                color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey[50],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDark ? Colors.white12 : Colors.grey[200]!,

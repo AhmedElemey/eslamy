@@ -9,10 +9,9 @@ import '../../service/settings_database.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/services.dart';
 
 /// Icon-badge + title used at the top of every settings card, matching the
 /// icon-in-rounded-box language used in the drawer and quick-access tiles.
@@ -42,19 +41,6 @@ class _SectionHeader extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-/// `FirebaseMessaging.getToken()` throws synchronously on iOS when no APNs
-/// token is set yet (e.g. every simulator, or a device before push
-/// permission round-trips) — an `async` wrapper turns that into a rejected
-/// Future instead of an uncaught exception that would otherwise crash the
-/// FutureBuilder mid-build and trip the app's global error page.
-Future<String?> _fetchFcmToken() async {
-  try {
-    return await FirebaseMessaging.instance.getToken();
-  } catch (_) {
-    return null;
   }
 }
 
@@ -102,33 +88,39 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(icon: Icons.brightness_6_outlined, title: l10n.sectionAppearance),
+                    _SectionHeader(
+                      icon: Icons.brightness_6_outlined,
+                      title: l10n.sectionAppearance,
+                    ),
                     const SizedBox(height: 12),
                     themeModeAsync.when(
-                      data: (mode) => SegmentedButton<ThemeMode>(
-                        segments: [
-                          ButtonSegment(
-                            value: ThemeMode.system,
-                            label: Text(l10n.themeSystem),
+                      data:
+                          (mode) => SegmentedButton<ThemeMode>(
+                            segments: [
+                              ButtonSegment(
+                                value: ThemeMode.system,
+                                label: Text(l10n.themeSystem),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.light,
+                                label: Text(l10n.themeLight),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.dark,
+                                label: Text(l10n.themeDark),
+                              ),
+                            ],
+                            selected: {mode},
+                            onSelectionChanged: (selection) {
+                              ref
+                                  .read(themeModeProvider.notifier)
+                                  .setThemeMode(selection.first);
+                            },
                           ),
-                          ButtonSegment(
-                            value: ThemeMode.light,
-                            label: Text(l10n.themeLight),
-                          ),
-                          ButtonSegment(
-                            value: ThemeMode.dark,
-                            label: Text(l10n.themeDark),
-                          ),
-                        ],
-                        selected: {mode},
-                        onSelectionChanged: (selection) {
-                          ref
-                              .read(themeModeProvider.notifier)
-                              .setThemeMode(selection.first);
-                        },
-                      ),
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
+                      error:
+                          (e, _) =>
+                              Text(l10n.genericErrorWithMessage(e.toString())),
                     ),
                   ],
                 ),
@@ -138,29 +130,39 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(icon: Icons.translate_rounded, title: l10n.sectionLanguage),
+                    _SectionHeader(
+                      icon: Icons.translate_rounded,
+                      title: l10n.sectionLanguage,
+                    ),
                     const SizedBox(height: 12),
                     languageAsync.when(
-                      data: (language) => SegmentedButton<AppLanguage>(
-                        segments: [
-                          ButtonSegment(
-                            value: AppLanguage.english,
-                            label: Text(l10n.languageEnglish),
+                      data:
+                          (language) => SegmentedButton<AppLanguage>(
+                            segments: [
+                              ButtonSegment(
+                                value: AppLanguage.english,
+                                label: Text(l10n.languageEnglish),
+                              ),
+                              ButtonSegment(
+                                value: AppLanguage.arabic,
+                                label: Text(l10n.languageArabic),
+                              ),
+                              ButtonSegment(
+                                value: AppLanguage.italian,
+                                label: Text(l10n.languageItalian),
+                              ),
+                            ],
+                            selected: {language},
+                            onSelectionChanged: (selection) {
+                              ref
+                                  .read(languageProvider.notifier)
+                                  .setLanguage(selection.first);
+                            },
                           ),
-                          ButtonSegment(
-                            value: AppLanguage.arabic,
-                            label: Text(l10n.languageArabic),
-                          ),
-                        ],
-                        selected: {language},
-                        onSelectionChanged: (selection) {
-                          ref
-                              .read(languageProvider.notifier)
-                              .setLanguage(selection.first);
-                        },
-                      ),
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
+                      error:
+                          (e, _) =>
+                              Text(l10n.genericErrorWithMessage(e.toString())),
                     ),
                   ],
                 ),
@@ -170,7 +172,10 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(icon: Icons.format_size_rounded, title: l10n.sectionTextSize),
+                    _SectionHeader(
+                      icon: Icons.format_size_rounded,
+                      title: l10n.sectionTextSize,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       l10n.textSizeDescription,
@@ -193,7 +198,10 @@ class SettingsPage extends ConsumerWidget {
                               divisions: options.length - 1,
                               label: options[currentIndex].toString(),
                               onChanged: (v) {
-                                final idx = v.round().clamp(0, options.length - 1);
+                                final idx = v.round().clamp(
+                                  0,
+                                  options.length - 1,
+                                );
                                 final delta = options[idx];
                                 ref
                                     .read(textSizeProvider.notifier)
@@ -203,13 +211,17 @@ class SettingsPage extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children:
-                                  options.map((e) => Text(e.toString())).toList(),
+                                  options
+                                      .map((e) => Text(e.toString()))
+                                      .toList(),
                             ),
                           ],
                         );
                       },
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => Text(l10n.genericErrorWithMessage(e.toString())),
+                      error:
+                          (e, _) =>
+                              Text(l10n.genericErrorWithMessage(e.toString())),
                     ),
                   ],
                 ),
@@ -219,7 +231,10 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(icon: Icons.auto_stories_outlined, title: l10n.sectionDailyWerdTime),
+                    _SectionHeader(
+                      icon: Icons.auto_stories_outlined,
+                      title: l10n.sectionDailyWerdTime,
+                    ),
                     const SizedBox(height: 8),
                     FutureBuilder<TimeOfDay?>(
                       future: SettingsDatabase().getWerdTime(),
@@ -230,38 +245,43 @@ class SettingsPage extends ConsumerWidget {
                           runSpacing: 8,
                           children: [
                             OutlinedButton(
-                                onPressed: () async {
-                                  final now = TimeOfDay.now();
-                                  final picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: current ?? now,
+                              onPressed: () async {
+                                final now = TimeOfDay.now();
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: current ?? now,
+                                );
+                                if (picked != null) {
+                                  await SettingsDatabase().setWerdTime(picked);
+                                  await NotificationService()
+                                      .requestPermissions();
+                                  await NotificationService().scheduleDaily(
+                                    time: picked,
+                                    title: l10n.sectionDailyWerdTime,
+                                    body: l10n.werdTimeSavedAndScheduled,
                                   );
-                                  if (picked != null) {
-                                    await SettingsDatabase().setWerdTime(picked);
-                                    await NotificationService().requestPermissions();
-                                    await NotificationService().scheduleDaily(
-                                      time: picked,
-                                      title: l10n.sectionDailyWerdTime,
-                                      body: l10n.werdTimeSavedAndScheduled,
-                                    );
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(l10n.werdTimeSavedAndScheduled),
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.werdTimeSavedAndScheduled,
                                       ),
-                                    );
-                                  }
-                                },
-                                child: Text(
-                                  current != null
-                                      ? '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}'
-                                      : l10n.pickTime,
-                                ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                current != null
+                                    ? '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}'
+                                    : l10n.pickTime,
+                              ),
                             ),
                             FilledButton(
                               onPressed: () async {
-                                await NotificationService().requestPermissions();
-                                final t = await SettingsDatabase().getWerdTime();
+                                await NotificationService()
+                                    .requestPermissions();
+                                final t =
+                                    await SettingsDatabase().getWerdTime();
                                 if (t != null) {
                                   await NotificationService().scheduleDaily(
                                     time: t,
@@ -280,7 +300,8 @@ class SettingsPage extends ConsumerWidget {
                             ),
                             OutlinedButton(
                               onPressed: () async {
-                                await NotificationService().requestPermissions();
+                                await NotificationService()
+                                    .requestPermissions();
                                 final enabled =
                                     await NotificationService()
                                         .areNotificationsEnabled();
@@ -288,7 +309,9 @@ class SettingsPage extends ConsumerWidget {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(l10n.notificationsDisabledMessage),
+                                      content: Text(
+                                        l10n.notificationsDisabledMessage,
+                                      ),
                                     ),
                                   );
                                   return;
@@ -312,7 +335,10 @@ class SettingsPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionHeader(icon: Icons.mosque, title: l10n.adhanAlertsTitle),
+                    _SectionHeader(
+                      icon: Icons.mosque,
+                      title: l10n.adhanAlertsTitle,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       l10n.adhanAlertsDescription,
@@ -323,52 +349,6 @@ class SettingsPage extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-              Theme(
-                data: theme.copyWith(dividerColor: Colors.transparent),
-                child: GlassCard(
-                  child: ExpansionTile(
-                    tilePadding: EdgeInsets.zero,
-                    childrenPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.developer_mode_outlined,
-                      color: AppColors.primaryOnBg(context),
-                    ),
-                    title: Text(l10n.developerToolsTitle),
-                    children: [
-                      FutureBuilder<String?>(
-                        future: _fetchFcmToken(),
-                        builder: (context, snap) {
-                          final token = snap.data;
-                          if (snap.connectionState == ConnectionState.waiting) {
-                            return Text(l10n.fetchingFcmToken);
-                          }
-                          if (token == null || token.isEmpty) {
-                            return Text(l10n.noFcmTokenYet);
-                          }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SelectableText(token, style: theme.textTheme.bodySmall),
-                              const SizedBox(height: 8),
-                              OutlinedButton(
-                                onPressed: () async {
-                                  await Clipboard.setData(ClipboardData(text: token));
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(l10n.tokenCopied)),
-                                  );
-                                },
-                                child: Text(l10n.copyTokenButton),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -377,14 +357,14 @@ class SettingsPage extends ConsumerWidget {
   }
 }
 
-class _AdhanToggleRow extends StatefulWidget {
+class _AdhanToggleRow extends ConsumerStatefulWidget {
   const _AdhanToggleRow();
 
   @override
-  State<_AdhanToggleRow> createState() => _AdhanToggleRowState();
+  ConsumerState<_AdhanToggleRow> createState() => _AdhanToggleRowState();
 }
 
-class _AdhanToggleRowState extends State<_AdhanToggleRow> {
+class _AdhanToggleRowState extends ConsumerState<_AdhanToggleRow> {
   bool? _enabled;
 
   @override
@@ -402,6 +382,11 @@ class _AdhanToggleRowState extends State<_AdhanToggleRow> {
     if (value) {
       await NotificationService().requestPermissions();
     }
+    if (!mounted) return;
+    // Apply immediately — schedule or cancel alerts right away instead of
+    // waiting for the next cold-start prayer-times load to notice the
+    // saved flag.
+    await ref.read(prayerTimesProvider.notifier).applyAdhanEnabledChange(value);
   }
 
   @override
@@ -471,8 +456,11 @@ class _AdhanPreviewButtonState extends State<_AdhanPreviewButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: _playing ? context.l10n.stopTooltip : context.l10n.previewTooltip,
-      icon: Icon(_playing ? Icons.stop_circle_outlined : Icons.play_circle_outline),
+      tooltip:
+          _playing ? context.l10n.stopTooltip : context.l10n.previewTooltip,
+      icon: Icon(
+        _playing ? Icons.stop_circle_outlined : Icons.play_circle_outline,
+      ),
       onPressed: _toggle,
     );
   }

@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Eslamy uses your location to show accurate prayer times and the Qibla direction for your area.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 </dict>
 </plist>

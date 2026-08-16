@@ -1,3 +1,5 @@
+import '../../settings/presentation/controllers/language_providers.dart';
+
 class HadithBook {
   final String slug;
   final String name;
@@ -30,4 +32,14 @@ const hadithBooks = <HadithBook>[
 int syntheticHadithId(String bookSlug, int hadithNumber) {
   final index = hadithBooks.indexWhere((b) => b.slug == bookSlug) + 1;
   return index * 1000000 + hadithNumber;
+}
+
+/// Every book has a full `ara-<slug>` Arabic edition on the dataset, so
+/// Arabic gets real translated text. Italian has no edition for any book on
+/// this dataset — it silently falls back to English (`book.editionSlug`)
+/// rather than showing an error, matching how the rest of the app degrades
+/// when a language just isn't available for a given content source.
+String editionSlugFor(HadithBook book, AppLanguage language) {
+  if (language == AppLanguage.arabic) return 'ara-${book.slug}';
+  return book.editionSlug;
 }

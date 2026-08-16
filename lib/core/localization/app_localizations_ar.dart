@@ -60,6 +60,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageArabic => 'العربية';
 
   @override
+  String get languageItalian => 'الإيطالية';
+
+  @override
   String get sectionTextSize => 'حجم الخط';
 
   @override
@@ -93,21 +96,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get testNotificationBody => 'إذا رأيت هذا، فإن الإشعارات تعمل';
-
-  @override
-  String get sectionPushNotificationsFcm => 'إشعارات الدفع (FCM)';
-
-  @override
-  String get fetchingFcmToken => 'جارٍ جلب رمز FCM...';
-
-  @override
-  String get noFcmTokenYet => 'لا يوجد رمز بعد. تأكد من السماح بالإشعارات.';
-
-  @override
-  String get copyTokenButton => 'نسخ الرمز';
-
-  @override
-  String get tokenCopied => 'تم نسخ الرمز';
 
   @override
   String get homeGreetingAssalamuAlaikum => 'السلام عليكم';
@@ -314,6 +302,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String failedToLoadSurahsWithError(String error) {
     return 'فشل تحميل السور\n$error';
   }
+
+  @override
+  String noSurahsMatchQuery(String query) {
+    return 'لا توجد سور تطابق \"$query\"';
+  }
+
+  @override
+  String noItemsMatchQuery(String label, String query) {
+    return 'لا يوجد $label يطابق \"$query\"';
+  }
+
+  @override
+  String juzNumberLabel(int number) {
+    return 'الجزء $number';
+  }
+
+  @override
+  String startsAtSurahAyah(String surahName, int surah, int ayah) {
+    return 'يبدأ من $surahName $surah:$ayah';
+  }
+
+  @override
+  String get loadingEllipsis => 'جارٍ التحميل…';
 
   @override
   String surahsMemorizedProgress(int memorized, int total) {
@@ -845,9 +856,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchHizbHint => 'انتقل إلى رقم الحزب…';
 
   @override
-  String get developerToolsTitle => 'أدوات المطوّر';
-
-  @override
   String get hajjUmrahGuideTitle => 'دليل الحج والعمرة';
 
   @override
@@ -907,4 +915,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String pilgrimModeNear(String siteName) {
     return 'أنت بالقرب من $siteName';
   }
+
+  @override
+  String get nowPlayingTitle => 'يتم التشغيل الآن';
+
+  @override
+  String get nowPlayingNextSurahTooltip => 'السورة التالية';
+
+  @override
+  String get nowPlayingPreviousSurahTooltip => 'السورة السابقة';
+
+  @override
+  String get nowPlayingStopTooltip => 'إيقاف';
+
+  @override
+  String get overlayPermissionTitle => 'إظهار مشغل عائم؟';
+
+  @override
+  String get overlayPermissionBody =>
+      'يمكن لتطبيق إسلامي إظهار فقاعة صغيرة عائمة فوق التطبيقات الأخرى للتحكم في التشغيل دون الرجوع إلى التطبيق. هل تريد التفعيل؟';
+
+  @override
+  String get overlayPermissionAllow => 'تفعيل';
+
+  @override
+  String get overlayPermissionNotNow => 'ليس الآن';
+
+  @override
+  String get mosqueLocatorTitle => 'أقرب المساجد';
+
+  @override
+  String get mosqueLocatorDirections => 'الاتجاهات';
+
+  @override
+  String mosqueLocatorDistance(String distance) {
+    return 'على بعد $distance';
+  }
+
+  @override
+  String get mosqueLocatorEmpty => 'لا توجد مساجد قريبة. حاول مرة أخرى لاحقًا.';
+
+  @override
+  String mosqueLocatorFailedWithError(String error) {
+    return 'تعذّر تحميل المساجد القريبة\n$error';
+  }
+
+  @override
+  String get mosqueLocatorUnnamedMosque => 'مسجد';
+
+  @override
+  String get mosqueLocatorApproximateLocation =>
+      'تُعرض النتائج بناءً على موقعك التقريبي. فعّل تحديد الموقع الدقيق لنتائج أفضل.';
+
+  @override
+  String get mosqueLocatorCouldNotOpenMaps => 'تعذّر فتح تطبيق الخرائط';
+
+  @override
+  String get mosqueLocatorStaleCache =>
+      'تعذّر التحديث — تُعرض آخر نتائج محفوظة. اسحب للأسفل للمحاولة مرة أخرى.';
 }

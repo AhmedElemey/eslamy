@@ -21,19 +21,23 @@ class NotificationService {
         importance: Importance.high,
       );
 
-  // A full adhan recording (assets/audio/adhan_alafasy.mp3, played in-app via
-  // just_audio — see settings_page.dart's preview button) is bundled, but OS
-  // notification sounds can't use it directly: Android/iOS both expect a
-  // short (iOS: <=30s, .caf/.wav/.aiff) clip placed as a *native* resource
-  // (android/app/src/main/res/raw, ios/Runner bundle), not an arbitrary
-  // Flutter asset. Trim a short opening clip into those native folders and
-  // reference its filename here to get a custom sound on the lock screen.
+  // The full adhan recording (assets/audio/adhan_alafasy.mp3, played in-app
+  // via just_audio — see settings_page.dart's preview button) is a Flutter
+  // asset, which OS notification sounds can't reference directly: Android
+  // and iOS both need a short native-resource clip instead (android/app/src
+  // /main/res/raw/adhan_call.wav, ios/Runner/adhan_call.caf, an 18s trim of
+  // the opening takbir with a fade-out — regenerate both from the source
+  // mp3 if a different excerpt is wanted). Channel id carries a _v2 suffix
+  // because Android locks a channel's sound at creation time; bump it again
+  // if the sound file ever changes, or existing installs won't hear it.
   static const AndroidNotificationChannel _adhanChannel =
       AndroidNotificationChannel(
-        'adhan_calls',
+        'adhan_calls_v2',
         'Adhan',
         description: 'Call-to-prayer alert at each prayer time',
         importance: Importance.max,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('adhan_call'),
       );
 
   static const _adhanPrayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -70,6 +74,9 @@ class NotificationService {
     if (androidImpl != null) {
       await androidImpl.createNotificationChannel(_dailyChannel);
       await androidImpl.createNotificationChannel(_adhanChannel);
+      // Drop the pre-_v2 channel so it doesn't linger as a dead entry in
+      // system settings for installs upgrading from the default-sound version.
+      await androidImpl.deleteNotificationChannel('adhan_calls');
     }
     _initialized = true;
   }
@@ -85,6 +92,14 @@ class NotificationService {
     if (androidImpl != null) {
       final granted = await androidImpl.requestNotificationsPermission();
       androidGranted = granted ?? true;
+      // Android 12+ requires separate "Alarms & reminders" access for
+      // exactAllowWhileIdle scheduling; without it, scheduleAdhan() would
+      // silently degrade to inexact delivery. Send the user to the system
+      // settings screen for it up front, same as the notification prompt.
+      final canScheduleExact = await androidImpl.canScheduleExactNotifications();
+      if (canScheduleExact == false) {
+        await androidImpl.requestExactAlarmsPermission();
+      }
     }
 
     final ios =
@@ -201,6 +216,22 @@ class NotificationService {
       await _plugin.cancel(_adhanBaseId + i);
     }
 
+    // Exact-alarm access can be off (never granted, or revoked later in
+    // system settings) even though notification permission is granted.
+    // Fall back to inexact delivery rather than let zonedSchedule throw and
+    // have the alert vanish silently — a few minutes late beats never.
+    final androidImpl =
+        _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+    final canScheduleExact =
+        await androidImpl?.canScheduleExactNotifications() ?? true;
+    final scheduleMode =
+        canScheduleExact
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle;
+
     final androidDetails = AndroidNotificationDetails(
       _adhanChannel.id,
       _adhanChannel.name,
@@ -212,8 +243,12 @@ class NotificationService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: 'adhan_call.caf',
     );
-    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     final now = tz.TZDateTime.now(tz.local);
     var id = _adhanBaseId;
@@ -233,9 +268,21 @@ class NotificationService {
           details,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: scheduleMode,
         );
       }
+    }
+  }
+
+  /// Cancels all pending Adhan alerts (today + tomorrow), e.g. when the
+  /// user turns Adhan Alerts off — otherwise already-scheduled alerts
+  /// would keep firing until they naturally expire.
+  Future<void> cancelAdhan() async {
+    if (!_initialized) {
+      await init();
+    }
+    for (var i = 0; i < _adhanPrayerNames.length * 2; i++) {
+      await _plugin.cancel(_adhanBaseId + i);
     }
   }
 

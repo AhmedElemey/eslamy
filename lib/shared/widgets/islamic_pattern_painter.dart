@@ -21,7 +21,7 @@ class IslamicPatternOverlay extends StatelessWidget {
     return IgnorePointer(
       child: CustomPaint(
         painter: _IslamicLatticePainter(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           tileSize: tileSize,
         ),
         size: Size.infinite,

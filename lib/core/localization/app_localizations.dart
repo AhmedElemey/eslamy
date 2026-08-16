@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_ar.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_it.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +97,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
+    Locale('it'),
   ];
 
   /// App display name, kept as a brand name across locales
@@ -200,6 +202,12 @@ abstract class AppLocalizations {
   /// **'Arabic'**
   String get languageArabic;
 
+  /// No description provided for @languageItalian.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get languageItalian;
+
   /// No description provided for @sectionTextSize.
   ///
   /// In en, this message translates to:
@@ -215,7 +223,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionDailyWerdTime.
   ///
   /// In en, this message translates to:
-  /// **'Daily Werd time'**
+  /// **'Daily Wird time'**
   String get sectionDailyWerdTime;
 
   /// No description provided for @pickTime.
@@ -233,7 +241,7 @@ abstract class AppLocalizations {
   /// No description provided for @werdTimeSavedAndScheduled.
   ///
   /// In en, this message translates to:
-  /// **'Werd time saved and scheduled'**
+  /// **'Wird time saved and scheduled'**
   String get werdTimeSavedAndScheduled;
 
   /// No description provided for @reminderScheduled.
@@ -265,36 +273,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you see this, notifications work'**
   String get testNotificationBody;
-
-  /// No description provided for @sectionPushNotificationsFcm.
-  ///
-  /// In en, this message translates to:
-  /// **'Push notifications (FCM)'**
-  String get sectionPushNotificationsFcm;
-
-  /// No description provided for @fetchingFcmToken.
-  ///
-  /// In en, this message translates to:
-  /// **'Fetching FCM token...'**
-  String get fetchingFcmToken;
-
-  /// No description provided for @noFcmTokenYet.
-  ///
-  /// In en, this message translates to:
-  /// **'No token yet. Ensure notifications are allowed.'**
-  String get noFcmTokenYet;
-
-  /// No description provided for @copyTokenButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy token'**
-  String get copyTokenButton;
-
-  /// No description provided for @tokenCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Token copied'**
-  String get tokenCopied;
 
   /// No description provided for @homeGreetingAssalamuAlaikum.
   ///
@@ -541,6 +519,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load surahs\n{error}'**
   String failedToLoadSurahsWithError(String error);
+
+  /// No description provided for @noSurahsMatchQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No surahs match \"{query}\"'**
+  String noSurahsMatchQuery(String query);
+
+  /// No description provided for @noItemsMatchQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No {label} matches \"{query}\"'**
+  String noItemsMatchQuery(String label, String query);
+
+  /// No description provided for @juzNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz {number}'**
+  String juzNumberLabel(int number);
+
+  /// No description provided for @startsAtSurahAyah.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts at {surahName} {surah}:{ayah}'**
+  String startsAtSurahAyah(String surahName, int surah, int ayah);
+
+  /// No description provided for @loadingEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get loadingEllipsis;
 
   /// No description provided for @surahsMemorizedProgress.
   ///
@@ -1460,12 +1468,6 @@ abstract class AppLocalizations {
   /// **'Jump to Hizb number…'**
   String get searchHizbHint;
 
-  /// No description provided for @developerToolsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Developer tools'**
-  String get developerToolsTitle;
-
   /// No description provided for @hajjUmrahGuideTitle.
   ///
   /// In en, this message translates to:
@@ -1567,6 +1569,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'re near {siteName}'**
   String pilgrimModeNear(String siteName);
+
+  /// No description provided for @nowPlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing'**
+  String get nowPlayingTitle;
+
+  /// No description provided for @nowPlayingNextSurahTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Surah'**
+  String get nowPlayingNextSurahTooltip;
+
+  /// No description provided for @nowPlayingPreviousSurahTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Surah'**
+  String get nowPlayingPreviousSurahTooltip;
+
+  /// No description provided for @nowPlayingStopTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get nowPlayingStopTooltip;
+
+  /// No description provided for @overlayPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show floating player?'**
+  String get overlayPermissionTitle;
+
+  /// No description provided for @overlayPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Eslamy can show a small floating bubble over other apps so you can control playback without switching back. Enable it?'**
+  String get overlayPermissionBody;
+
+  /// No description provided for @overlayPermissionAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get overlayPermissionAllow;
+
+  /// No description provided for @overlayPermissionNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get overlayPermissionNotNow;
+
+  /// No description provided for @mosqueLocatorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mosque Locator'**
+  String get mosqueLocatorTitle;
+
+  /// No description provided for @mosqueLocatorDirections.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get mosqueLocatorDirections;
+
+  /// No description provided for @mosqueLocatorDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} away'**
+  String mosqueLocatorDistance(String distance);
+
+  /// No description provided for @mosqueLocatorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No mosques found nearby. Try again later.'**
+  String get mosqueLocatorEmpty;
+
+  /// No description provided for @mosqueLocatorFailedWithError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load nearby mosques\n{error}'**
+  String mosqueLocatorFailedWithError(String error);
+
+  /// No description provided for @mosqueLocatorUnnamedMosque.
+  ///
+  /// In en, this message translates to:
+  /// **'Mosque'**
+  String get mosqueLocatorUnnamedMosque;
+
+  /// No description provided for @mosqueLocatorApproximateLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing results for your approximate location. Enable precise location for better results.'**
+  String get mosqueLocatorApproximateLocation;
+
+  /// No description provided for @mosqueLocatorCouldNotOpenMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open Maps'**
+  String get mosqueLocatorCouldNotOpenMaps;
+
+  /// No description provided for @mosqueLocatorStaleCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t refresh — showing previously saved results. Pull down to try again.'**
+  String get mosqueLocatorStaleCache;
 }
 
 class _AppLocalizationsDelegate
@@ -1580,7 +1684,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['ar', 'en'].contains(locale.languageCode);
+      <String>['ar', 'en', 'it'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1593,6 +1697,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsAr();
     case 'en':
       return AppLocalizationsEn();
+    case 'it':
+      return AppLocalizationsIt();
   }
 
   throw FlutterError(

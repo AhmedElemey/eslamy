@@ -46,7 +46,8 @@ class _TajweedTextState extends State<TajweedText> {
       for (final segment in _segments)
         segment.rule == null
             ? null
-            : (TapGestureRecognizer()..onTap = () => _showRuleInfo(segment.rule!)),
+            : (TapGestureRecognizer()
+              ..onTap = () => _showRuleInfo(segment.rule!)),
     ];
   }
 
@@ -80,13 +81,13 @@ class _TajweedTextState extends State<TajweedText> {
             _segments[i].rule == null
                 ? TextSpan(text: _segments[i].text, style: baseStyle)
                 : TextSpan(
-                    text: _segments[i].text,
-                    style: baseStyle.copyWith(
-                      color: _segments[i].rule!.colorFor(context),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    recognizer: _recognizers[i],
+                  text: _segments[i].text,
+                  style: baseStyle.copyWith(
+                    color: _segments[i].rule!.colorFor(context),
+                    fontWeight: FontWeight.w600,
                   ),
+                  recognizer: _recognizers[i],
+                ),
         ],
       ),
       textDirection: TextDirection.rtl,
