@@ -1006,6 +1006,18 @@ abstract class AppLocalizations {
   /// **'Choose Reciter'**
   String get chooseReciterTitle;
 
+  /// No description provided for @searchReciterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search reciter by name'**
+  String get searchReciterHint;
+
+  /// No description provided for @noRecitersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No reciters found'**
+  String get noRecitersFound;
+
   /// No description provided for @splashTagline.
   ///
   /// In en, this message translates to:

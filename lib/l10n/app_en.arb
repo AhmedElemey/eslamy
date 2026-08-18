@@ -199,6 +199,8 @@
   "selectReciterPlaceholder": "Select Reciter",
   "activeForAudioLabel": "Active for Audio",
   "chooseReciterTitle": "Choose Reciter",
+  "searchReciterHint": "Search reciter by name",
+  "noRecitersFound": "No reciters found",
 
   "splashTagline": "Your companion for Quran, prayer\n& daily worship",
 

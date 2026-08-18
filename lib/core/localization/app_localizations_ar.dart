@@ -608,6 +608,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chooseReciterTitle => 'اختر القارئ';
 
   @override
+  String get searchReciterHint => 'ابحث عن القارئ بالاسم';
+
+  @override
+  String get noRecitersFound => 'لا يوجد قراء مطابقون';
+
+  @override
   String get splashTagline => 'رفيقك للقرآن والصلاة\nوالعبادة اليومية';
 
   @override

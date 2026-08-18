@@ -599,6 +599,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get chooseReciterTitle => 'Scegli il recitatore';
 
   @override
+  String get searchReciterHint => 'Cerca recitatore per nome';
+
+  @override
+  String get noRecitersFound => 'Nessun recitatore trovato';
+
+  @override
   String get splashTagline =>
       'Il tuo compagno per il Corano, la preghiera\ne il culto quotidiano';
 

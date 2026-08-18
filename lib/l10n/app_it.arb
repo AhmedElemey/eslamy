@@ -166,6 +166,8 @@
   "selectReciterPlaceholder": "Seleziona un recitatore",
   "activeForAudioLabel": "Attivo per l'audio",
   "chooseReciterTitle": "Scegli il recitatore",
+  "searchReciterHint": "Cerca recitatore per nome",
+  "noRecitersFound": "Nessun recitatore trovato",
 
   "splashTagline": "Il tuo compagno per il Corano, la preghiera\ne il culto quotidiano",
 

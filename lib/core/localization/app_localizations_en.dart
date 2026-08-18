@@ -591,6 +591,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseReciterTitle => 'Choose Reciter';
 
   @override
+  String get searchReciterHint => 'Search reciter by name';
+
+  @override
+  String get noRecitersFound => 'No reciters found';
+
+  @override
   String get splashTagline =>
       'Your companion for Quran, prayer\n& daily worship';
 

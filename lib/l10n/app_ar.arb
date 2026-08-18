@@ -166,6 +166,8 @@
   "selectReciterPlaceholder": "اختر القارئ",
   "activeForAudioLabel": "مفعّل للصوت",
   "chooseReciterTitle": "اختر القارئ",
+  "searchReciterHint": "ابحث عن القارئ بالاسم",
+  "noRecitersFound": "لا يوجد قراء مطابقون",
 
   "splashTagline": "رفيقك للقرآن والصلاة\nوالعبادة اليومية",
 
