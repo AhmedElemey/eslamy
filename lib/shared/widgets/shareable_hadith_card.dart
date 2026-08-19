@@ -60,7 +60,7 @@ class ShareableHadithCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   hadith.bookName != null
-                      ? '${hadith.bookName} #${hadith.hadithNumber}'
+                      ? '${hadith.bookName} #${formatHadithNumber(hadith.hadithNumber)}'
                       : hadith.title,
                   style: const TextStyle(
                     color: Colors.white70,

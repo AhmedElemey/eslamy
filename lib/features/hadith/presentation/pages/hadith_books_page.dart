@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -65,7 +66,7 @@ class _BookTile extends ConsumerWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              book.name,
+              localizedHadithBookName(context.l10n, book.slug, book.name),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

@@ -38,7 +38,7 @@ class FavoriteHadith {
         body: hadithData['body'] as String?,
         book: hadithData['book'] as String?,
         bookName: hadithData['bookName'] as String?,
-        hadithNumber: hadithData['hadithNumber'] as int?,
+        hadithNumber: hadithData['hadithNumber'] as num?,
       ),
       savedAt: DateTime.parse(json['savedAt'] as String),
     );

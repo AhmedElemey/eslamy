@@ -10,6 +10,7 @@ import '../../features/prayer_times/service/location_service.dart';
 import '../../features/prayer_times/service/prayer_times_service.dart';
 import '../../features/settings/service/settings_database.dart';
 import '../network/request_controller.dart';
+import '../../features/settings/presentation/controllers/language_providers.dart';
 import 'notification_service.dart';
 
 /// scheduleAdhan() only ever covers today + tomorrow, and is otherwise only
@@ -82,6 +83,7 @@ class _AdhanRescheduleFlutterApi extends WorkmanagerFlutterApi {
       await NotificationService().scheduleAdhan(
         today: asMap(today),
         tomorrow: asMap(tomorrow),
+        l10n: await loadStoredLocalizations(),
       );
     } catch (_) {
       // Best-effort background refresh — leave whatever was already

@@ -154,6 +154,18 @@ abstract class AppLocalizations {
   /// **'Go Home'**
   String get goHome;
 
+  /// No description provided for @noNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connection'**
+  String get noNetworkTitle;
+
+  /// No description provided for @noNetworkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please connect to the internet and try again.'**
+  String get noNetworkMessage;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -1006,6 +1018,138 @@ abstract class AppLocalizations {
   /// **'Choose Reciter'**
   String get chooseReciterTitle;
 
+  /// No description provided for @searchReciterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search reciter by name'**
+  String get searchReciterHint;
+
+  /// No description provided for @noRecitersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No reciters found'**
+  String get noRecitersFound;
+
+  /// No description provided for @openAyahRangePlayerTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Play surah or ayah range'**
+  String get openAyahRangePlayerTooltip;
+
+  /// No description provided for @playFullSurahLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Surah'**
+  String get playFullSurahLabel;
+
+  /// No description provided for @playAyahRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayah Range'**
+  String get playAyahRangeLabel;
+
+  /// No description provided for @ayahRangeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayah {from}–{to} • {count} verses'**
+  String ayahRangeSummary(int from, int to, int count);
+
+  /// No description provided for @fromAyahLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From {ayah}'**
+  String fromAyahLabel(int ayah);
+
+  /// No description provided for @toAyahLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To {ayah}'**
+  String toAyahLabel(int ayah);
+
+  /// No description provided for @reciterRangeFallbackNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This reciter has no separate ayah recordings, so the full surah audio plays instead for this range.'**
+  String get reciterRangeFallbackNotice;
+
+  /// No description provided for @reciterRangeUnavailableNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This reciter doesn\'t have separate recordings for each ayah, so an ayah range can\'t be selected. Please choose a different reciter.'**
+  String get reciterRangeUnavailableNotice;
+
+  /// No description provided for @nowPlayingRangeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayah {ayah} • range {from}–{to}'**
+  String nowPlayingRangeSubtitle(int ayah, int from, int to);
+
+  /// No description provided for @nowPlayingPreviousAyahTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Ayah'**
+  String get nowPlayingPreviousAyahTooltip;
+
+  /// No description provided for @nowPlayingNextAyahTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Ayah'**
+  String get nowPlayingNextAyahTooltip;
+
+  /// No description provided for @mushafPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page}'**
+  String mushafPageLabel(int page);
+
+  /// No description provided for @mushafJuzLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Juz {juz}'**
+  String mushafJuzLabel(int juz);
+
+  /// No description provided for @mushafPreviousPageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Page'**
+  String get mushafPreviousPageTooltip;
+
+  /// No description provided for @mushafNextPageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Page'**
+  String get mushafNextPageTooltip;
+
+  /// No description provided for @jumpToPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Page'**
+  String get jumpToPageTitle;
+
+  /// No description provided for @fromAyahFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get fromAyahFieldLabel;
+
+  /// No description provided for @toAyahFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get toAyahFieldLabel;
+
+  /// No description provided for @pageNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Page number'**
+  String get pageNumberHint;
+
+  /// No description provided for @pageNotInThisSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'This page isn\'t part of this surah'**
+  String get pageNotInThisSurah;
+
   /// No description provided for @splashTagline.
   ///
   /// In en, this message translates to:
@@ -1671,6 +1815,744 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t refresh — showing previously saved results. Pull down to try again.'**
   String get mosqueLocatorStaleCache;
+
+  /// No description provided for @mosqueLocatorLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is needed to find mosques near you.'**
+  String get mosqueLocatorLocationDenied;
+
+  /// No description provided for @mosqueLocatorLocationDeniedForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is turned off for Eslamy. Enable it in Settings to find nearby mosques.'**
+  String get mosqueLocatorLocationDeniedForever;
+
+  /// No description provided for @mosqueLocatorLocationServicesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Location Services to find mosques near you.'**
+  String get mosqueLocatorLocationServicesOff;
+
+  /// No description provided for @mosqueLocatorOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get mosqueLocatorOpenSettings;
+
+  /// No description provided for @mosqueLocatorUsingLastKnownLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Using your last known location. Distances may be approximate.'**
+  String get mosqueLocatorUsingLastKnownLocation;
+
+  /// No description provided for @notificationChannelDailyWerd.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Wird'**
+  String get notificationChannelDailyWerd;
+
+  /// No description provided for @notificationChannelDailyWerdDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder for your Wird'**
+  String get notificationChannelDailyWerdDescription;
+
+  /// No description provided for @notificationChannelAdhan.
+  ///
+  /// In en, this message translates to:
+  /// **'Adhan'**
+  String get notificationChannelAdhan;
+
+  /// No description provided for @notificationChannelAdhanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Call-to-prayer alert at each prayer time'**
+  String get notificationChannelAdhanDescription;
+
+  /// No description provided for @notificationChannelQuranPlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Quran playback'**
+  String get notificationChannelQuranPlayback;
+
+  /// No description provided for @adhanNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adhan — {name}'**
+  String adhanNotificationTitle(String name);
+
+  /// No description provided for @adhanNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is time for {name} prayer'**
+  String adhanNotificationBody(String name);
+
+  /// No description provided for @notificationFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notificationFallbackTitle;
+
+  /// No description provided for @errorConnectionTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection timeout. Please check your internet connection.'**
+  String get errorConnectionTimeout;
+
+  /// No description provided for @errorRequestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timeout, try again later'**
+  String get errorRequestTimeout;
+
+  /// No description provided for @errorResponseTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Response timeout, try again later'**
+  String get errorResponseTimeout;
+
+  /// No description provided for @errorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Unauthorized'**
+  String get errorUnauthorized;
+
+  /// No description provided for @errorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Forbidden'**
+  String get errorForbidden;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested resource not found.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorInternalServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal server error'**
+  String get errorInternalServer;
+
+  /// No description provided for @errorRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate limit exceeded, try again later'**
+  String get errorRateLimit;
+
+  /// No description provided for @errorServerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get errorServerError;
+
+  /// No description provided for @errorRequestCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request was cancelled.'**
+  String get errorRequestCancelled;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred'**
+  String get errorUnknown;
+
+  /// No description provided for @errorNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please check your network.'**
+  String get errorNoInternet;
+
+  /// No description provided for @errorRequestFailedWithStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed with status: {statusCode}'**
+  String errorRequestFailedWithStatus(String statusCode);
+
+  /// No description provided for @distanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} m'**
+  String distanceMeters(int count);
+
+  /// No description provided for @distanceKilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} km'**
+  String distanceKilometers(String count);
+
+  /// No description provided for @surahNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {number}'**
+  String surahNumberLabel(int number);
+
+  /// No description provided for @pageNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {number}'**
+  String pageNumberLabel(int number);
+
+  /// No description provided for @hizbNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hizb {number}'**
+  String hizbNumberLabel(int number);
+
+  /// No description provided for @dhikrSubhanAllah.
+  ///
+  /// In en, this message translates to:
+  /// **'SubhanAllah'**
+  String get dhikrSubhanAllah;
+
+  /// No description provided for @dhikrAlhamdulillah.
+  ///
+  /// In en, this message translates to:
+  /// **'Alhamdulillah'**
+  String get dhikrAlhamdulillah;
+
+  /// No description provided for @dhikrAllahuAkbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Allahu Akbar'**
+  String get dhikrAllahuAkbar;
+
+  /// No description provided for @dhikrLaIlahaIllaAllah.
+  ///
+  /// In en, this message translates to:
+  /// **'La ilaha illa Allah'**
+  String get dhikrLaIlahaIllaAllah;
+
+  /// No description provided for @dhikrAstaghfirullah.
+  ///
+  /// In en, this message translates to:
+  /// **'Astaghfirullah'**
+  String get dhikrAstaghfirullah;
+
+  /// No description provided for @dhikrCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get dhikrCustom;
+
+  /// No description provided for @tajweedHamzatUlWasl.
+  ///
+  /// In en, this message translates to:
+  /// **'Hamzat ul Wasl'**
+  String get tajweedHamzatUlWasl;
+
+  /// No description provided for @tajweedSilent.
+  ///
+  /// In en, this message translates to:
+  /// **'Silent'**
+  String get tajweedSilent;
+
+  /// No description provided for @tajweedLamShamsiyyah.
+  ///
+  /// In en, this message translates to:
+  /// **'Lam Shamsiyyah'**
+  String get tajweedLamShamsiyyah;
+
+  /// No description provided for @tajweedMaddaNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal Prolongation: 2 Vowels'**
+  String get tajweedMaddaNormal;
+
+  /// No description provided for @tajweedMaddaPermissible.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissible Prolongation: 2, 4, 6 Vowels'**
+  String get tajweedMaddaPermissible;
+
+  /// No description provided for @tajweedMaddaNecessary.
+  ///
+  /// In en, this message translates to:
+  /// **'Necessary Prolongation: 6 Vowels'**
+  String get tajweedMaddaNecessary;
+
+  /// No description provided for @tajweedQalqalah.
+  ///
+  /// In en, this message translates to:
+  /// **'Qalqalah'**
+  String get tajweedQalqalah;
+
+  /// No description provided for @tajweedMaddaObligatory.
+  ///
+  /// In en, this message translates to:
+  /// **'Obligatory Prolongation: 4-5 Vowels'**
+  String get tajweedMaddaObligatory;
+
+  /// No description provided for @tajweedIkhfaShafawi.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikhfa\' Shafawi - With Meem'**
+  String get tajweedIkhfaShafawi;
+
+  /// No description provided for @tajweedIkhfa.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikhfa\''**
+  String get tajweedIkhfa;
+
+  /// No description provided for @tajweedIdghamShafawi.
+  ///
+  /// In en, this message translates to:
+  /// **'Idgham Shafawi - With Meem'**
+  String get tajweedIdghamShafawi;
+
+  /// No description provided for @tajweedIqlab.
+  ///
+  /// In en, this message translates to:
+  /// **'Iqlab'**
+  String get tajweedIqlab;
+
+  /// No description provided for @tajweedIdghamGhunnah.
+  ///
+  /// In en, this message translates to:
+  /// **'Idgham - With Ghunnah'**
+  String get tajweedIdghamGhunnah;
+
+  /// No description provided for @tajweedIdghamNoGhunnah.
+  ///
+  /// In en, this message translates to:
+  /// **'Idgham - Without Ghunnah'**
+  String get tajweedIdghamNoGhunnah;
+
+  /// No description provided for @tajweedIdghamMutajanisayn.
+  ///
+  /// In en, this message translates to:
+  /// **'Idgham - Mutajanisayn'**
+  String get tajweedIdghamMutajanisayn;
+
+  /// No description provided for @tajweedIdghamMutaqaribayn.
+  ///
+  /// In en, this message translates to:
+  /// **'Idgham - Mutaqaribayn'**
+  String get tajweedIdghamMutaqaribayn;
+
+  /// No description provided for @tajweedGhunnah.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghunnah: 2 Vowels'**
+  String get tajweedGhunnah;
+
+  /// No description provided for @hadithBookBukhari.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahih al-Bukhari'**
+  String get hadithBookBukhari;
+
+  /// No description provided for @hadithBookMuslim.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahih Muslim'**
+  String get hadithBookMuslim;
+
+  /// No description provided for @hadithBookAbuDawud.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunan Abu Dawud'**
+  String get hadithBookAbuDawud;
+
+  /// No description provided for @hadithBookTirmidhi.
+  ///
+  /// In en, this message translates to:
+  /// **'Jami At-Tirmidhi'**
+  String get hadithBookTirmidhi;
+
+  /// No description provided for @hadithBookNasai.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunan an-Nasai'**
+  String get hadithBookNasai;
+
+  /// No description provided for @hadithBookIbnMajah.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunan Ibn Majah'**
+  String get hadithBookIbnMajah;
+
+  /// No description provided for @hadithBookMalik.
+  ///
+  /// In en, this message translates to:
+  /// **'Muwatta Malik'**
+  String get hadithBookMalik;
+
+  /// No description provided for @hadithBookNawawi.
+  ///
+  /// In en, this message translates to:
+  /// **'An-Nawawi\'s 40 Hadith'**
+  String get hadithBookNawawi;
+
+  /// No description provided for @hadithBookQudsi.
+  ///
+  /// In en, this message translates to:
+  /// **'40 Hadith Qudsi'**
+  String get hadithBookQudsi;
+
+  /// No description provided for @hadithBookDehlawi.
+  ///
+  /// In en, this message translates to:
+  /// **'Shah Waliullah\'s 40 Hadith'**
+  String get hadithBookDehlawi;
+
+  /// No description provided for @reciterStyleMujawwadMelodic.
+  ///
+  /// In en, this message translates to:
+  /// **'Mujawwad (Melodic)'**
+  String get reciterStyleMujawwadMelodic;
+
+  /// No description provided for @reciterStyleMurattalSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Murattal (Slow)'**
+  String get reciterStyleMurattalSlow;
+
+  /// No description provided for @reciterStyleModern.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern'**
+  String get reciterStyleModern;
+
+  /// No description provided for @reciterStyleTraditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Traditional'**
+  String get reciterStyleTraditional;
+
+  /// No description provided for @reciterStyleMurattal.
+  ///
+  /// In en, this message translates to:
+  /// **'Murattal'**
+  String get reciterStyleMurattal;
+
+  /// No description provided for @azkarCategoryMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning Adhkar'**
+  String get azkarCategoryMorning;
+
+  /// No description provided for @azkarCategoryMorningDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for the morning'**
+  String get azkarCategoryMorningDescription;
+
+  /// No description provided for @azkarCategoryEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening Adhkar'**
+  String get azkarCategoryEvening;
+
+  /// No description provided for @azkarCategoryEveningDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for the evening'**
+  String get azkarCategoryEveningDescription;
+
+  /// No description provided for @azkarCategoryWudu.
+  ///
+  /// In en, this message translates to:
+  /// **'Wudu & Purification'**
+  String get azkarCategoryWudu;
+
+  /// No description provided for @azkarCategoryWuduDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for ablution and purification'**
+  String get azkarCategoryWuduDescription;
+
+  /// No description provided for @azkarCategoryPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'During Prayer'**
+  String get azkarCategoryPrayer;
+
+  /// No description provided for @azkarCategoryPrayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications said during salah'**
+  String get azkarCategoryPrayerDescription;
+
+  /// No description provided for @azkarCategoryAfterPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'After Prayer'**
+  String get azkarCategoryAfterPrayer;
+
+  /// No description provided for @azkarCategoryAfterPrayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhikr and supplications after salah'**
+  String get azkarCategoryAfterPrayerDescription;
+
+  /// No description provided for @azkarCategorySleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get azkarCategorySleep;
+
+  /// No description provided for @azkarCategorySleepDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Before sleeping and upon waking'**
+  String get azkarCategorySleepDescription;
+
+  /// No description provided for @azkarCategoryFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & Drink'**
+  String get azkarCategoryFood;
+
+  /// No description provided for @azkarCategoryFoodDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Before and after eating'**
+  String get azkarCategoryFoodDescription;
+
+  /// No description provided for @azkarCategoryTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get azkarCategoryTravel;
+
+  /// No description provided for @azkarCategoryTravelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for journeys'**
+  String get azkarCategoryTravelDescription;
+
+  /// No description provided for @azkarCategoryHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get azkarCategoryHome;
+
+  /// No description provided for @azkarCategoryHomeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering and leaving the home'**
+  String get azkarCategoryHomeDescription;
+
+  /// No description provided for @azkarCategoryMasjid.
+  ///
+  /// In en, this message translates to:
+  /// **'Masjid'**
+  String get azkarCategoryMasjid;
+
+  /// No description provided for @azkarCategoryMasjidDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering and leaving the mosque'**
+  String get azkarCategoryMasjidDescription;
+
+  /// No description provided for @azkarCategoryDistress.
+  ///
+  /// In en, this message translates to:
+  /// **'Distress & Anxiety'**
+  String get azkarCategoryDistress;
+
+  /// No description provided for @azkarCategoryDistressDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications during hardship'**
+  String get azkarCategoryDistressDescription;
+
+  /// No description provided for @azkarCategoryForgiveness.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgiveness'**
+  String get azkarCategoryForgiveness;
+
+  /// No description provided for @azkarCategoryForgivenessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeking forgiveness from Allah'**
+  String get azkarCategoryForgivenessDescription;
+
+  /// No description provided for @azkarCategoryIllness.
+  ///
+  /// In en, this message translates to:
+  /// **'Illness & Healing'**
+  String get azkarCategoryIllness;
+
+  /// No description provided for @azkarCategoryIllnessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for the sick'**
+  String get azkarCategoryIllnessDescription;
+
+  /// No description provided for @azkarCategoryWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get azkarCategoryWeather;
+
+  /// No description provided for @azkarCategoryWeatherDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain, thunder, and wind'**
+  String get azkarCategoryWeatherDescription;
+
+  /// No description provided for @azkarCategoryKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge'**
+  String get azkarCategoryKnowledge;
+
+  /// No description provided for @azkarCategoryKnowledgeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeking beneficial knowledge'**
+  String get azkarCategoryKnowledgeDescription;
+
+  /// No description provided for @azkarCategoryParents.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents'**
+  String get azkarCategoryParents;
+
+  /// No description provided for @azkarCategoryParentsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for parents'**
+  String get azkarCategoryParentsDescription;
+
+  /// No description provided for @azkarCategoryGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Guidance'**
+  String get azkarCategoryGuidance;
+
+  /// No description provided for @azkarCategoryGuidanceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeking guidance and direction'**
+  String get azkarCategoryGuidanceDescription;
+
+  /// No description provided for @azkarCategoryGratitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Gratitude'**
+  String get azkarCategoryGratitude;
+
+  /// No description provided for @azkarCategoryGratitudeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanking and praising Allah'**
+  String get azkarCategoryGratitudeDescription;
+
+  /// No description provided for @azkarCategoryProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Protection'**
+  String get azkarCategoryProtection;
+
+  /// No description provided for @azkarCategoryProtectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeking refuge and protection'**
+  String get azkarCategoryProtectionDescription;
+
+  /// No description provided for @azkarCategoryDhikr.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhikr'**
+  String get azkarCategoryDhikr;
+
+  /// No description provided for @azkarCategoryDhikrDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'General remembrance of Allah'**
+  String get azkarCategoryDhikrDescription;
+
+  /// No description provided for @azkarCategoryMarriage.
+  ///
+  /// In en, this message translates to:
+  /// **'Marriage & Family'**
+  String get azkarCategoryMarriage;
+
+  /// No description provided for @azkarCategoryMarriageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for marriage and family life'**
+  String get azkarCategoryMarriageDescription;
+
+  /// No description provided for @azkarCategoryHajj.
+  ///
+  /// In en, this message translates to:
+  /// **'Hajj & Umrah'**
+  String get azkarCategoryHajj;
+
+  /// No description provided for @azkarCategoryHajjDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for pilgrimage'**
+  String get azkarCategoryHajjDescription;
+
+  /// No description provided for @azkarCategoryGrief.
+  ///
+  /// In en, this message translates to:
+  /// **'Grief & Loss'**
+  String get azkarCategoryGrief;
+
+  /// No description provided for @azkarCategoryGriefDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications at times of loss and death'**
+  String get azkarCategoryGriefDescription;
+
+  /// No description provided for @azkarCategoryChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Children'**
+  String get azkarCategoryChildren;
+
+  /// No description provided for @azkarCategoryChildrenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for children and newborns'**
+  String get azkarCategoryChildrenDescription;
+
+  /// No description provided for @azkarCategoryBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business & Provision'**
+  String get azkarCategoryBusiness;
+
+  /// No description provided for @azkarCategoryBusinessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for livelihood and wealth'**
+  String get azkarCategoryBusinessDescription;
+
+  /// No description provided for @azkarCategoryNightPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Night Prayer'**
+  String get azkarCategoryNightPrayer;
+
+  /// No description provided for @azkarCategoryNightPrayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications for tahajjud, witr and the night'**
+  String get azkarCategoryNightPrayerDescription;
+
+  /// No description provided for @azkarCategoryQuranRecitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Quran Recitation'**
+  String get azkarCategoryQuranRecitation;
+
+  /// No description provided for @azkarCategoryQuranRecitationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications before and during Quran recitation'**
+  String get azkarCategoryQuranRecitationDescription;
 }
 
 class _AppLocalizationsDelegate

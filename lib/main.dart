@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'core/theme/app_colors.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 import 'features/home/presentation/pages/main_shell.dart';
 import 'features/error/presentation/pages/error_page.dart';
+import 'features/network/presentation/pages/no_network_page.dart';
+import 'core/network/connectivity_provider.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
 import 'features/quran/presentation/pages/quran_index_page.dart';
@@ -35,6 +39,7 @@ import 'features/quran/presentation/pages/quran_now_playing_page.dart';
 import 'features/quran/models/quran_models.dart';
 import 'features/quran/service/bubble_overlay_channel.dart';
 import 'core/navigation/root_navigator.dart';
+import 'core/navigation/now_playing_navigation.dart';
 import 'dart:io' show Platform;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,6 +53,8 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
+      final startupL10n = await loadStoredLocalizations();
+
       // Initialize audio session for proper audio playback
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
@@ -55,9 +62,9 @@ Future<void> main() async {
 
       _audioHandler = await AudioService.init(
         builder: () => QuranAudioHandler(),
-        config: const AudioServiceConfig(
+        config: AudioServiceConfig(
           androidNotificationChannelId: 'com.eslamy.eslamy.audio',
-          androidNotificationChannelName: 'Quran playback',
+          androidNotificationChannelName: startupL10n.notificationChannelQuranPlayback,
           androidNotificationOngoing: true,
           androidStopForegroundOnPause: true,
         ),
@@ -65,10 +72,12 @@ Future<void> main() async {
 
       // Bubble tap -> QuranAudioHandler.customAction('openNowPlaying') -> here.
       // Set up once at startup rather than in a widget so it isn't tied to
-      // MyApp's build/rebuild lifecycle.
+      // MyApp's build/rebuild lifecycle. Also listen for the native intent
+      // extra MainActivity sends when MediaSession isn't connected yet.
       _audioHandler.openNowPlayingRequests.listen((_) {
-        rootNavigatorKey.currentState?.pushNamed('/now-playing');
+        openNowPlayingPage();
       });
+      BubbleOverlayChannel.setOpenNowPlayingHandler(openNowPlayingPage);
 
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -98,7 +107,7 @@ Future<void> main() async {
         ),
       );
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await NotificationService().init();
+        await NotificationService().init(l10n: await loadStoredLocalizations());
         await _initFirebaseMessaging();
         await registerAdhanRescheduleTask();
       });
@@ -146,7 +155,8 @@ Future<void> _initFirebaseMessaging() async {
     final notification = message.notification;
     if (notification != null) {
       await NotificationService().showNow(
-        title: notification.title ?? 'Notification',
+        title: notification.title ??
+            (await loadStoredLocalizations()).notificationFallbackTitle,
         body: notification.body ?? '',
       );
     }
@@ -169,6 +179,57 @@ void _navigateToError(Object error, StackTrace? stack) {
       arguments: {'error': error},
     );
   });
+}
+
+const String _kNoNetworkRoute = '/no-network';
+
+/// Pushes/pops [_kNoNetworkRoute] app-wide in reaction to [connectivityProvider]
+/// — mirrors `_navigateToError`'s use of [rootNavigatorKey], but keeps the
+/// existing navigation stack (rather than wiping it) since connectivity, unlike
+/// a crash, is expected to come back: popping this route on reconnect returns
+/// the user to exactly where they were.
+void _handleConnectivityChange(bool connected) {
+  if (connected) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navigator = rootNavigatorKey.currentState;
+      if (navigator != null &&
+          RootRouteTracker.instance.currentRouteName.value ==
+              _kNoNetworkRoute) {
+        navigator.pop();
+      }
+    });
+    return;
+  }
+  _pushNoNetworkWhenReady();
+}
+
+/// Same "wait until off splash" retry loop as `_pushNowPlayingWhenReady` in
+/// now_playing_navigation.dart — needed because the app can start already
+/// offline, before the splash screen's own timer-driven navigation has run;
+/// pushing on top of splash then would leave it as a zombie route
+/// underneath once its timer later fires a `pushReplacementNamed` against
+/// what's now the wrong top-of-stack route.
+Future<void> _pushNoNetworkWhenReady() async {
+  const maxAttempts = 100;
+  for (var attempt = 0; attempt < maxAttempts; attempt++) {
+    final tracker = RootRouteTracker.instance;
+    if (tracker.currentRouteName.value == _kNoNetworkRoute) return;
+
+    final nav = rootNavigatorKey.currentState;
+    final offSplash =
+        nav != null && nav.mounted && tracker.hasObservedRoute && !tracker.isSplash;
+    if (offSplash) {
+      // Re-check fresh rather than trusting the `connected` value captured
+      // when this loop started — connectivity may have flipped back during
+      // the wait.
+      if (!await checkHasConnection()) {
+        nav.pushNamed(_kNoNetworkRoute);
+      }
+      return;
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+  }
 }
 
 const _kOverlayPermissionAskedKey = 'quran_overlay_permission_asked';
@@ -242,6 +303,14 @@ class MyApp extends ConsumerWidget {
       }
     });
 
+    // App-wide "no network" redirect — pushes/pops '/no-network' as
+    // connectivity drops/returns, wherever the user currently is.
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      final connected = next.valueOrNull;
+      if (connected == null) return;
+      _handleConnectivityChange(connected);
+    });
+
     if (Platform.isAndroid) {
       // First play (or resume after a full stop) -> show the bubble,
       // prompting for the overlay permission the first time this happens.
@@ -264,6 +333,10 @@ class MyApp extends ConsumerWidget {
       });
     }
 
+    ref.read(quranAudioHandlerProvider).setArabicTitles(
+          language == AppLanguage.arabic,
+        );
+
     double scaleForDelta(int delta) {
       switch (delta) {
         case 0:
@@ -280,9 +353,10 @@ class MyApp extends ConsumerWidget {
     }
 
     return MaterialApp(
-      title: 'Eslamy',
+      title: lookupAppLocalizations(language.locale).appTitle,
       debugShowCheckedModeBanner: false,
       navigatorKey: rootNavigatorKey,
+      navigatorObservers: [RootRouteTracker.instance],
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
@@ -300,17 +374,24 @@ class MyApp extends ConsumerWidget {
           orElse: () => 1.0,
         );
         final media = MediaQuery.of(context);
-        return Stack(
-          children: [
-            MediaQuery(
-              data: media.copyWith(textScaler: TextScaler.linear(scale)),
-              child: child ?? const SizedBox.shrink(),
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: AppTheme.overlayFor(Theme.of(context).brightness),
+          child: ColoredBox(
+            color: AppColors.pageBackground(context),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                MediaQuery(
+                  data: media.copyWith(textScaler: TextScaler.linear(scale)),
+                  child: child ?? const SizedBox.shrink(),
+                ),
+                // Sits above every pushed route (not just MainShell's tabs) so
+                // the bubble follows the user into chapter/verse detail pages
+                // and back out again — see quran_now_playing_fab.dart.
+                const QuranNowPlayingFab(),
+              ],
             ),
-            // Sits above every pushed route (not just MainShell's tabs) so
-            // the bubble follows the user into chapter/verse detail pages
-            // and back out again — see quran_now_playing_fab.dart.
-            const QuranNowPlayingFab(),
-          ],
+          ),
         );
       },
       routes: {
@@ -335,6 +416,7 @@ class MyApp extends ConsumerWidget {
           }
           return const ErrorPage();
         },
+        _kNoNetworkRoute: (_) => const NoNetworkPage(),
       },
     );
   }

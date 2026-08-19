@@ -104,12 +104,14 @@ class _QuranIndexPageState extends State<QuranIndexPage>
                     QuranNumberGrid(
                       count: 604,
                       labelPrefix: l10n.tabPage,
+                      itemTitle: l10n.pageNumberLabel,
                       query: _query,
                       rangeProviderBuilder: (n) => quranPageProvider(n),
                     ),
                     QuranNumberGrid(
                       count: 240,
                       labelPrefix: l10n.tabHizb,
+                      itemTitle: l10n.hizbNumberLabel,
                       query: _query,
                       rangeProviderBuilder: (n) => hizbQuarterProvider(n),
                     ),

@@ -5,7 +5,7 @@ class HadithItem {
   final String? body;
   final String? book;
   final String? bookName;
-  final int? hadithNumber;
+  final num? hadithNumber;
 
   const HadithItem({
     required this.id,
@@ -16,4 +16,10 @@ class HadithItem {
     this.bookName,
     this.hadithNumber,
   });
+}
+
+String formatHadithNumber(num? number) {
+  if (number == null) return '';
+  if (number % 1 == 0) return number.toInt().toString();
+  return number.toString();
 }

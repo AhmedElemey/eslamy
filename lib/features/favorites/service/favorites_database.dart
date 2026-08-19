@@ -66,7 +66,7 @@ class FavoritesDatabase {
         body: map['body'],
         book: map['book_slug'],
         bookName: map['book_name'],
-        hadithNumber: map['hadith_number'],
+        hadithNumber: map['hadith_number'] as num?,
       ),
       savedAt: DateTime.parse(map['saved_at']),
     );

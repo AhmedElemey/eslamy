@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -38,7 +40,7 @@ class HifzPage extends ConsumerWidget {
         child: SafeArea(
           child: chaptersAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(e.toString()))),
+            error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(localizedError(l10n, e)))),
             data: (chapters) => _buildList(context, chapters, memorized, ref),
           ),
         ),
@@ -91,7 +93,13 @@ class HifzPage extends ConsumerWidget {
                 onChanged: (_) =>
                     ref.read(hifzProvider.notifier).toggle(chapter.number),
                 activeColor: AppColors.primary,
-                title: Text(chapter.englishName),
+                title: Text(
+                  localizedChapterName(
+                    context: context,
+                    arabicName: chapter.name,
+                    englishName: chapter.englishName,
+                  ),
+                ),
                 subtitle: Text(context.l10n.versesCount(chapter.numberOfAyahs)),
                 secondary: Text('${chapter.number}'),
               );

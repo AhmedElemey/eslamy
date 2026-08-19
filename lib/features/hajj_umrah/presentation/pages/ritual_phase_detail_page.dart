@@ -7,6 +7,7 @@ import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../data/hajj_umrah_content.dart';
 import '../../data/models/ritual_models.dart';
+import '../../l10n/hajj_umrah_l10n.dart';
 import '../controllers/ritual_providers.dart';
 
 class RitualPhaseDetailPage extends ConsumerWidget {
@@ -24,7 +25,7 @@ class RitualPhaseDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(phase.title)),
+      appBar: AppBar(title: Text(phase.localizedTitle(context))),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -32,7 +33,7 @@ class RitualPhaseDetailPage extends ConsumerWidget {
             children: [
               if (phase.subtitle.isNotEmpty)
                 Text(
-                  phase.subtitle,
+                  phase.localizedSubtitle(context),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryOnBg(context),
@@ -41,7 +42,7 @@ class RitualPhaseDetailPage extends ConsumerWidget {
               if (phase.date != null || phase.location != null) ...[
                 const SizedBox(height: 4),
                 Text(
-                  [phase.date, phase.location].whereType<String>().join(' • '),
+                  [phase.localizedDate(context), phase.localizedLocation(context)].whereType<String>().join(' • '),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText(context),
@@ -50,7 +51,7 @@ class RitualPhaseDetailPage extends ConsumerWidget {
               ],
               const SizedBox(height: 12),
               Text(
-                phase.overview,
+                phase.localizedOverview(context),
                 style: TextStyle(
                   color: AppColors.heading(context),
                   height: 1.5,
@@ -100,7 +101,7 @@ class RitualPhaseDetailPage extends ConsumerWidget {
                       ),
                       title: Text(l10n.edgeCasesHeading),
                       children: [
-                        for (final edgeCase in phase.edgeCases)
+                        for (final edgeCase in phase.localizedEdgeCases(context))
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Text(
@@ -162,7 +163,7 @@ class _StepTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      step.label,
+                      step.localizedLabel(context),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.heading(context),
@@ -170,10 +171,10 @@ class _StepTile extends StatelessWidget {
                         decorationColor: AppColors.mutedText(context),
                       ),
                     ),
-                    if (step.note != null) ...[
+                    if (step.localizedNote(context) != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                        step.note!,
+                        step.localizedNote(context)!,
                         style: TextStyle(
                           fontSize: 12.5,
                           color: AppColors.mutedText(context),
@@ -206,7 +207,7 @@ class _DuaCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              dua.name,
+              dua.localizedName(context),
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
@@ -235,20 +236,20 @@ class _DuaCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (dua.translation.isNotEmpty) ...[
+            if (dua.localizedTranslation(context).isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                dua.translation,
+                dua.localizedTranslation(context),
                 style: TextStyle(
                   color: AppColors.heading(context),
                   fontSize: 13,
                 ),
               ),
             ],
-            if (dua.note.isNotEmpty) ...[
+            if (dua.localizedNote(context).isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                dua.note,
+                dua.localizedNote(context),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.mutedText(context),

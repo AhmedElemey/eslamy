@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -45,13 +46,23 @@ class QuranNowPlayingPage extends ConsumerWidget {
     final chapterName = chaptersAsync.maybeWhen(
       data: (chapters) {
         for (final c in chapters) {
-          if (c.number == chapterNumber) return c.englishName;
+          if (c.number == chapterNumber) {
+            return localizedChapterName(
+              context: context,
+              arabicName: c.name,
+              englishName: c.englishName,
+            );
+          }
         }
         return null;
       },
       orElse: () => null,
     );
     final playing = playbackState?.playing ?? false;
+    final rangeAyah = mediaItem?.extras?['ayahNumber'] as int?;
+    final rangeStart = mediaItem?.extras?['rangeStart'] as int?;
+    final rangeEnd = mediaItem?.extras?['rangeEnd'] as int?;
+    final isRangeMode = rangeAyah != null;
 
     return Scaffold(
       body: AppBackground(
@@ -92,12 +103,34 @@ class QuranNowPlayingPage extends ConsumerWidget {
                     style: TextStyle(color: AppColors.mutedText(context), fontSize: 15),
                   ),
                 ),
+                if (isRangeMode) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.nowPlayingRangeSubtitle(
+                      rangeAyah,
+                      rangeStart ?? rangeAyah,
+                      rangeEnd ?? rangeAyah,
+                    ),
+                    style: TextStyle(color: AppColors.mutedText(context), fontSize: 13),
+                  ),
+                ],
                 const Spacer(),
                 StreamBuilder<Duration>(
                   stream: handler.player.positionStream,
                   builder: (context, snapshot) {
-                    final position = snapshot.data ?? Duration.zero;
-                    final duration = handler.player.duration ?? Duration.zero;
+                    final position =
+                        isRangeMode
+                            ? handler.rangeElapsedBeforeCurrent +
+                                (snapshot.data ?? Duration.zero)
+                            : (snapshot.data ?? Duration.zero);
+                    final rawDuration =
+                        isRangeMode
+                            ? handler.rangeTotalDuration
+                            : (handler.player.duration ?? Duration.zero);
+                    // The range total is a running estimate — never let it
+                    // show less than what's already elapsed.
+                    final duration =
+                        rawDuration < position ? position : rawDuration;
                     final max = duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
                     final value = position.inMilliseconds.clamp(0, max.toInt()).toDouble();
                     return Column(
@@ -106,7 +139,15 @@ class QuranNowPlayingPage extends ConsumerWidget {
                           value: value,
                           max: max,
                           activeColor: AppColors.primaryOnBg(context),
-                          onChanged: (v) => handler.seek(Duration(milliseconds: v.toInt())),
+                          onChanged:
+                              (v) =>
+                                  isRangeMode
+                                      ? handler.seekInRange(
+                                        Duration(milliseconds: v.toInt()),
+                                      )
+                                      : handler.seek(
+                                        Duration(milliseconds: v.toInt()),
+                                      ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -128,8 +169,16 @@ class QuranNowPlayingPage extends ConsumerWidget {
                   children: [
                     IconButton(
                       iconSize: 36,
-                      tooltip: l10n.nowPlayingPreviousSurahTooltip,
-                      onPressed: chapterNumber > kFirstSurahNumber ? handler.skipToPrevious : null,
+                      tooltip:
+                          isRangeMode
+                              ? l10n.nowPlayingPreviousAyahTooltip
+                              : l10n.nowPlayingPreviousSurahTooltip,
+                      onPressed:
+                          (isRangeMode
+                                  ? handler.hasPreviousInRange
+                                  : chapterNumber > kFirstSurahNumber)
+                              ? handler.skipToPrevious
+                              : null,
                       icon: Icon(Icons.skip_previous_rounded, color: AppColors.heading(context)),
                     ),
                     const SizedBox(width: 16),
@@ -152,8 +201,16 @@ class QuranNowPlayingPage extends ConsumerWidget {
                     const SizedBox(width: 16),
                     IconButton(
                       iconSize: 36,
-                      tooltip: l10n.nowPlayingNextSurahTooltip,
-                      onPressed: chapterNumber < kLastSurahNumber ? handler.skipToNext : null,
+                      tooltip:
+                          isRangeMode
+                              ? l10n.nowPlayingNextAyahTooltip
+                              : l10n.nowPlayingNextSurahTooltip,
+                      onPressed:
+                          (isRangeMode
+                                  ? handler.hasNextInRange
+                                  : chapterNumber < kLastSurahNumber)
+                              ? handler.skipToNext
+                              : null,
                       icon: Icon(Icons.skip_next_rounded, color: AppColors.heading(context)),
                     ),
                   ],

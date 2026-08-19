@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/request_controller.dart';
@@ -9,7 +10,10 @@ final hadithApiServiceProvider = Provider((ref) {
   return HadithApiService(requests: rc);
 });
 
-final _narratorPattern = RegExp(r'^Narrated ([^:]{1,80}):\s*(.*)$', dotAll: true);
+final _narratorPattern = RegExp(
+  r'^Narrated ([^:]{1,80}):\s*(.*)$',
+  dotAll: true,
+);
 
 /// Open, free, no-API-key hadith dataset: fawazahmed0/hadith-api, served via
 /// jsdelivr's GitHub CDN. Each book is fetched as a single JSON file and
@@ -33,26 +37,94 @@ class HadithApiService {
       onReceiveProgress: onProgress,
     );
 
-    final data = response.data as Map<String, dynamic>;
-    final hadithsRaw = data['hadiths'] as List<dynamic>;
+    final data = response.data;
+    if (data is! Map) {
+      throw FormatException(
+        'Hadith edition $editionSlug (${book.slug}): expected JSON object, '
+        'got ${data.runtimeType}',
+      );
+    }
 
-    return hadithsRaw.map((e) {
-      final m = e as Map<String, dynamic>;
-      final number = (m['hadithnumber'] as num).toInt();
-      final rawText = (m['text'] as String).trim();
+    return parseHadithsDocument(
+      Map<String, dynamic>.from(data),
+      book,
+      editionSlug: editionSlug,
+    );
+  }
+}
+
+/// Parses one fawazahmed0 edition document. Skips individual malformed or
+/// empty entries instead of failing the whole book, and logs which ones.
+@visibleForTesting
+List<HadithItem> parseHadithsDocument(
+  Map<String, dynamic> data,
+  HadithBook book, {
+  String? editionSlug,
+}) {
+  final label = editionSlug ?? book.editionSlug;
+  final hadithsRaw = data['hadiths'];
+  if (hadithsRaw is! List) {
+    throw FormatException(
+      'Hadith edition $label (${book.slug}): missing hadiths array',
+    );
+  }
+
+  final items = <HadithItem>[];
+  var skippedEmpty = 0;
+  var skippedInvalid = 0;
+
+  for (var i = 0; i < hadithsRaw.length; i++) {
+    final raw = hadithsRaw[i];
+    try {
+      if (raw is! Map) {
+        skippedInvalid++;
+        debugPrint(
+          'Hadith $label [$i]: expected object, got ${raw.runtimeType}',
+        );
+        continue;
+      }
+      final m = Map<String, dynamic>.from(raw);
+      final number = m['hadithnumber'];
+      if (number is! num) {
+        skippedInvalid++;
+        debugPrint(
+          'Hadith $label [$i]: missing/invalid hadithnumber=${m['hadithnumber']}',
+        );
+        continue;
+      }
+      final rawText = (m['text'] as String?)?.trim() ?? '';
+      if (rawText.isEmpty) {
+        skippedEmpty++;
+        debugPrint(
+          'Hadith $label ${book.slug} #$number: empty text, skipping',
+        );
+        continue;
+      }
+
       final match = _narratorPattern.firstMatch(rawText);
       final narrator = match?.group(1)?.trim();
       final body = match != null ? match.group(2)!.trim() : rawText;
 
-      return HadithItem(
-        id: syntheticHadithId(book.slug, number),
-        title: '${book.name} #$number',
-        narrator: narrator,
-        body: body,
-        book: book.slug,
-        bookName: book.name,
-        hadithNumber: number,
+      items.add(
+        HadithItem(
+          id: syntheticHadithId(book.slug, number),
+          title: '${book.name} #${formatHadithNumber(number)}',
+          narrator: narrator,
+          body: body,
+          book: book.slug,
+          bookName: book.name,
+          hadithNumber: number,
+        ),
       );
-    }).toList();
+    } catch (e, st) {
+      skippedInvalid++;
+      debugPrint('Hadith $label [$i] parse failed: $e\n$st');
+    }
   }
+
+  debugPrint(
+    'Hadith $label (${book.slug}): parsed ${items.length}/'
+    '${hadithsRaw.length} (empty=$skippedEmpty invalid=$skippedInvalid)',
+  );
+  return items;
 }

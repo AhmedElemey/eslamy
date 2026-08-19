@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -37,16 +39,17 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final bookName = localizedHadithBookName(l10n, widget.book.slug, widget.book.name);
     final state = ref.watch(bookHadithsProvider(widget.book));
     final notifier = ref.read(bookHadithsProvider(widget.book).notifier);
-    final l10n = context.l10n;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(widget.book.name)),
+      appBar: AppBar(title: Text(bookName)),
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -58,7 +61,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
                     controller: _searchController,
                     onChanged: notifier.search,
                     decoration: InputDecoration(
-                      hintText: l10n.searchBookHint(widget.book.name),
+                      hintText: l10n.searchBookHint(bookName),
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white,
@@ -70,7 +73,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
                     ),
                   ),
                 ),
-              Expanded(child: _buildBody(state, notifier)),
+              Expanded(child: _buildBody(state, notifier, bookName)),
             ],
           ),
         ),
@@ -78,7 +81,11 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
     );
   }
 
-  Widget _buildBody(BookHadithsState state, BookHadithsNotifier notifier) {
+  Widget _buildBody(
+    BookHadithsState state,
+    BookHadithsNotifier notifier,
+    String bookName,
+  ) {
     if (state.isDownloading) {
       return Center(
         child: Padding(
@@ -92,7 +99,7 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                context.l10n.downloadingBookForOffline(widget.book.name),
+                context.l10n.downloadingBookForOffline(bookName),
                 textAlign: TextAlign.center,
               ),
               if (state.downloadProgress > 0) ...[
@@ -115,7 +122,9 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
               const Icon(Icons.error_outline, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
               Text(
-                context.l10n.failedToDownloadWithError(state.error.toString()),
+                context.l10n.failedToDownloadWithError(
+                  localizedError(context.l10n, state.error!),
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -171,7 +180,7 @@ class _HadithCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '#${hadith.hadithNumber}',
+                  '#${formatHadithNumber(hadith.hadithNumber)}',
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w700,

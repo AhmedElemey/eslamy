@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
@@ -49,6 +50,23 @@ class AppTheme {
         card: AppColors.surfaceDark,
       );
 
+  /// Transparent system bars so the page background fills the Android
+  /// gesture-nav inset instead of showing a black window behind it
+  /// (edge-to-edge default on recent Flutter/Android).
+  static SystemUiOverlayStyle overlayFor(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarContrastEnforced: false,
+    );
+  }
+
   static ThemeData _build({
     required Brightness brightness,
     required ColorScheme scheme,
@@ -73,6 +91,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: overlayFor(brightness),
         titleTextStyle: TextStyle(
           fontFamily: AppTypography.ui,
           fontSize: 18,

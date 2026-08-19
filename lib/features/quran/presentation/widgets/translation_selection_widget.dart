@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../controllers/quran_providers.dart';
 
@@ -110,7 +111,9 @@ class _TranslationSelectionSheetState
               error:
                   (e, _) => Center(
                     child: Text(
-                      context.l10n.couldNotLoadLanguagesWithError(e.toString()),
+                      context.l10n.couldNotLoadLanguagesWithError(
+                        localizedError(context.l10n, e),
+                      ),
                     ),
                   ),
               data: (editions) {

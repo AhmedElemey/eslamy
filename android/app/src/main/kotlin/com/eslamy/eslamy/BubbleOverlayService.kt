@@ -161,6 +161,10 @@ class BubbleOverlayService : Service() {
         mediaController?.transportControls?.sendCustomAction("openNowPlaying", null)
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            // Backup if MediaBrowser hasn't connected yet — customAction is a
+            // no-op when mediaController is null, which used to bring the app
+            // to the front without opening Now Playing.
+            putExtra(MainActivity.EXTRA_OPEN_NOW_PLAYING, true)
         }
         startActivity(intent)
     }

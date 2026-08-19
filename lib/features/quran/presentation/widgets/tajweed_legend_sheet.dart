@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../data/tajweed_rules.dart';
 
 /// Opens the full Tajweed color legend as a bottom sheet.
@@ -61,7 +62,7 @@ class _TajweedLegendSheet extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          rule.englishName,
+                          localizedTajweedRuleName(l10n, rule.code, rule.englishName),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),

@@ -19,7 +19,20 @@ class HadithCacheDatabase {
   Future<Database> _initDatabase() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'hadith_cache.db');
-    return await openDatabase(path, version: 1, onCreate: _createTables);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createTables,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // v1 stored hadith_number as INTEGER and used a truncated id as the
+        // PRIMARY KEY, so fractional numbers (402.2) overwrote 402. Drop and
+        // recreate — the book re-downloads on next open.
+        if (oldVersion < 2) {
+          await db.execute('DROP TABLE IF EXISTS hadith_cache');
+          await _createTables(db, newVersion);
+        }
+      },
+    );
   }
 
   Future<void> _createTables(Database db, int version) async {
@@ -27,7 +40,7 @@ class HadithCacheDatabase {
       CREATE TABLE hadith_cache (
         id INTEGER PRIMARY KEY,
         book_slug TEXT NOT NULL,
-        hadith_number INTEGER NOT NULL,
+        hadith_number REAL NOT NULL,
         narrator TEXT,
         body TEXT NOT NULL
       )
@@ -88,7 +101,7 @@ class HadithCacheDatabase {
             body: m['body'] as String?,
             book: bookSlug,
             bookName: bookName,
-            hadithNumber: m['hadith_number'] as int,
+            hadithNumber: m['hadith_number'] as num?,
           ),
         )
         .toList();

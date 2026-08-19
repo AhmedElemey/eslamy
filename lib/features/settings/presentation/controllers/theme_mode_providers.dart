@@ -9,6 +9,10 @@ class ThemeModeController extends AsyncNotifier<ThemeMode> {
   Future<ThemeMode> build() async {
     final db = SettingsDatabase();
     final stored = await db.getValue(_key);
+    if (stored == null || stored.isEmpty) {
+      await db.setValue(_key, ThemeMode.light.name);
+      return ThemeMode.light;
+    }
     return _fromString(stored);
   }
 

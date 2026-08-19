@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 /// it doesn't hit the Flutter engine bug that made `flutter_overlay_window`'s
 /// secondary-isolate content permanently blank. Interaction (tap to open the
 /// app, drag-to-bottom to stop) is handled entirely in Kotlin; this channel
-/// only starts/stops the overlay and checks/requests the one permission it
-/// needs.
+/// starts/stops the overlay, checks/requests the overlay permission, and
+/// receives `openNowPlaying` from MainActivity when the bubble tap brought
+/// the activity to the front without a MediaSession custom action landing.
 class BubbleOverlayChannel {
   BubbleOverlayChannel._();
 
@@ -21,4 +22,15 @@ class BubbleOverlayChannel {
   static Future<void> show() => _channel.invokeMethod('showBubble');
 
   static Future<void> hide() => _channel.invokeMethod('hideBubble');
+
+  /// Native → Dart: MainActivity invokes this when the overlay bubble's
+  /// launch intent carries `open_now_playing` (MediaSession customAction
+  /// can be dropped if the controller isn't connected yet).
+  static void setOpenNowPlayingHandler(VoidCallback onOpen) {
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'openNowPlaying') {
+        onOpen();
+      }
+    });
+  }
 }

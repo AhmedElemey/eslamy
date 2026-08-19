@@ -107,6 +107,23 @@ void main() {
       expect(cached, isNotNull);
       expect(cached!.mosques.single.name, 'Test Mosque');
     });
+
+    test('getCachedNearby ignores a result from a different city', () async {
+      final service = _serviceWith([_okOverpassResponse]);
+      await service.findNearby(latitude: 30.0444, longitude: 31.2357);
+
+      final nearby = await service.getCachedNearby(
+        latitude: 30.045,
+        longitude: 31.236,
+      );
+      expect(nearby, isNotNull);
+
+      final london = await service.getCachedNearby(
+        latitude: 51.5074,
+        longitude: -0.1278,
+      );
+      expect(london, isNull);
+    });
   });
 
   group('parseOverpassResponse', () {
@@ -206,6 +223,32 @@ void main() {
       );
 
       expect(mosques, isEmpty);
+    });
+
+    test('deduplicates the same OSM feature listed twice', () {
+      final mosques = parseOverpassResponse(
+        {
+          'elements': [
+            {
+              'type': 'node',
+              'id': 1,
+              'lat': 30.05,
+              'lon': 31.24,
+              'tags': {'name': 'A'},
+            },
+            {
+              'type': 'node',
+              'id': 1,
+              'lat': 30.05,
+              'lon': 31.24,
+              'tags': {'name': 'A'},
+            },
+          ],
+        },
+        originLatitude: 30.0444,
+        originLongitude: 31.2357,
+      );
+      expect(mosques, hasLength(1));
     });
 
     test('directionsUri encodes the destination for Google Maps', () {

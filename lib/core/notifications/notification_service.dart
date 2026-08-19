@@ -4,6 +4,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import '../localization/app_localizations.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -13,13 +14,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
-  static const AndroidNotificationChannel _dailyChannel =
-      AndroidNotificationChannel(
-        'daily_werd_v2',
-        'Daily Werd',
-        description: 'Daily reminder for your Werd',
-        importance: Importance.high,
-      );
+  static const _dailyChannelId = 'daily_werd_v2';
+  static const _adhanChannelId = 'adhan_calls_v2';
+  String _dailyChannelName = 'Daily Wird';
+  String _dailyChannelDescription = 'Daily reminder for your Wird';
+  String _adhanChannelName = 'Adhan';
+  String _adhanChannelDescription = 'Call-to-prayer alert at each prayer time';
 
   // The full adhan recording (assets/audio/adhan_alafasy.mp3, played in-app
   // via just_audio — see settings_page.dart's preview button) is a Flutter
@@ -30,20 +30,10 @@ class NotificationService {
   // mp3 if a different excerpt is wanted). Channel id carries a _v2 suffix
   // because Android locks a channel's sound at creation time; bump it again
   // if the sound file ever changes, or existing installs won't hear it.
-  static const AndroidNotificationChannel _adhanChannel =
-      AndroidNotificationChannel(
-        'adhan_calls_v2',
-        'Adhan',
-        description: 'Call-to-prayer alert at each prayer time',
-        importance: Importance.max,
-        playSound: true,
-        sound: RawResourceAndroidNotificationSound('adhan_call'),
-      );
-
   static const _adhanPrayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _adhanBaseId = 3000;
 
-  Future<void> init() async {
+  Future<void> init({AppLocalizations? l10n}) async {
     // Timezone setup
     tz.initializeTimeZones();
     try {
@@ -71,9 +61,31 @@ class NotificationService {
             .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin
             >();
+    if (l10n != null) {
+      _dailyChannelName = l10n.notificationChannelDailyWerd;
+      _dailyChannelDescription = l10n.notificationChannelDailyWerdDescription;
+      _adhanChannelName = l10n.notificationChannelAdhan;
+      _adhanChannelDescription = l10n.notificationChannelAdhanDescription;
+    }
     if (androidImpl != null) {
-      await androidImpl.createNotificationChannel(_dailyChannel);
-      await androidImpl.createNotificationChannel(_adhanChannel);
+      await androidImpl.createNotificationChannel(
+        AndroidNotificationChannel(
+          _dailyChannelId,
+          _dailyChannelName,
+          description: _dailyChannelDescription,
+          importance: Importance.high,
+        ),
+      );
+      await androidImpl.createNotificationChannel(
+        AndroidNotificationChannel(
+          _adhanChannelId,
+          _adhanChannelName,
+          description: _adhanChannelDescription,
+          importance: Importance.max,
+          playSound: true,
+          sound: const RawResourceAndroidNotificationSound('adhan_call'),
+        ),
+      );
       // Drop the pre-_v2 channel so it doesn't linger as a dead entry in
       // system settings for installs upgrading from the default-sound version.
       await androidImpl.deleteNotificationChannel('adhan_calls');
@@ -167,9 +179,9 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     final androidDetails = AndroidNotificationDetails(
-      _dailyChannel.id,
-      _dailyChannel.name,
-      channelDescription: _dailyChannel.description,
+      _dailyChannelId,
+      _dailyChannelName,
+      channelDescription: _dailyChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
     );
@@ -208,9 +220,10 @@ class NotificationService {
   Future<void> scheduleAdhan({
     required Map<String, DateTime> today,
     required Map<String, DateTime> tomorrow,
+    AppLocalizations? l10n,
   }) async {
     if (!_initialized) {
-      await init();
+      await init(l10n: l10n);
     }
     for (var i = 0; i < _adhanPrayerNames.length * 2; i++) {
       await _plugin.cancel(_adhanBaseId + i);
@@ -233,9 +246,9 @@ class NotificationService {
             : AndroidScheduleMode.inexactAllowWhileIdle;
 
     final androidDetails = AndroidNotificationDetails(
-      _adhanChannel.id,
-      _adhanChannel.name,
-      channelDescription: _adhanChannel.description,
+      _adhanChannelId,
+      _adhanChannelName,
+      channelDescription: _adhanChannelDescription,
       importance: Importance.max,
       priority: Priority.max,
     );
@@ -260,10 +273,12 @@ class NotificationService {
         if (time == null) continue;
         final scheduled = tz.TZDateTime.from(time, tz.local);
         if (scheduled.isBefore(now)) continue;
+        final displayName = l10n == null ? name : _localizedPrayerName(l10n, name);
         await _plugin.zonedSchedule(
           notificationId,
-          'Adhan — $name',
-          'It is time for $name prayer',
+          l10n?.adhanNotificationTitle(displayName) ?? 'Adhan — $name',
+          l10n?.adhanNotificationBody(displayName) ??
+              'It is time for $name prayer',
           scheduled,
           details,
           uiLocalNotificationDateInterpretation:
@@ -291,9 +306,9 @@ class NotificationService {
       await init();
     }
     final androidDetails = AndroidNotificationDetails(
-      _dailyChannel.id,
-      _dailyChannel.name,
-      channelDescription: _dailyChannel.description,
+      _dailyChannelId,
+      _dailyChannelName,
+      channelDescription: _dailyChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
     );
@@ -307,5 +322,17 @@ class NotificationService {
       iOS: iosDetails,
     );
     await _plugin.show(2001, title, body, details);
+  }
+
+  String _localizedPrayerName(AppLocalizations l10n, String prayerKey) {
+    return switch (prayerKey) {
+      'Fajr' => l10n.prayerFajr,
+      'Sunrise' => l10n.prayerSunrise,
+      'Dhuhr' => l10n.prayerDhuhr,
+      'Asr' => l10n.prayerAsr,
+      'Maghrib' => l10n.prayerMaghrib,
+      'Isha' => l10n.prayerIsha,
+      _ => prayerKey,
+    };
   }
 }

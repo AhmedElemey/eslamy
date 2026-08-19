@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -53,7 +54,7 @@ class TasbihPage extends ConsumerWidget {
                     final preset = dhikrPresets[i];
                     final selected = preset.id == state.preset.id;
                     return ChoiceChip(
-                      label: Text(preset.englishName),
+                      label: Text(localizedDhikrName(l10n, preset.id, preset.englishName)),
                       selected: selected,
                       onSelected: (_) => notifier.selectPreset(preset),
                       selectedColor: AppColors.primary,

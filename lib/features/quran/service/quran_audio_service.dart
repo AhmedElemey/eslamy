@@ -73,6 +73,160 @@ class QuranAudioService {
       'style': 'Modern',
       'server': 'https://server11.mp3quran.net/mhsny/',
     },
+    'Abdulrahman_Al_Sudais': {
+      'id': '11',
+      'englishName': 'Abdul Rahman Al Sudais',
+      'arabicName': 'عبد الرحمن السديس',
+      'style': 'Traditional',
+      'server': 'https://server11.mp3quran.net/sds/',
+    },
+    'Mahmoud_Khalil_Al_Husary': {
+      'id': '12',
+      'englishName': 'Mahmoud Khalil Al Husary',
+      'arabicName': 'محمود خليل الحصري',
+      'style': 'Traditional',
+      'server': 'https://server13.mp3quran.net/husr/',
+    },
+    'Mohammed_Siddiq_Al_Minshawi': {
+      'id': '13',
+      'englishName': 'Mohammed Siddiq Al Minshawi',
+      'arabicName': 'محمد صديق المنشاوي',
+      'style': 'Traditional',
+      'server': 'https://server10.mp3quran.net/minsh/',
+    },
+    'Ahmad_Al_Ajmy': {
+      'id': '14',
+      'englishName': 'Ahmad Al Ajmy',
+      'arabicName': 'أحمد بن علي العجمي',
+      'style': 'Traditional',
+      'server': 'https://server10.mp3quran.net/ajm/',
+    },
+    'Hani_Ar_Rifai': {
+      'id': '15',
+      'englishName': 'Hani Ar Rifai',
+      'arabicName': 'هاني الرفاعي',
+      'style': 'Traditional',
+      'server': 'https://server8.mp3quran.net/hani/',
+    },
+    'Nasser_Al_Qatami': {
+      'id': '16',
+      'englishName': 'Nasser Al Qatami',
+      'arabicName': 'ناصر القطامي',
+      'style': 'Modern',
+      'server': 'https://server6.mp3quran.net/qtm/',
+    },
+    'Fares_Abbad': {
+      'id': '17',
+      'englishName': 'Fares Abbad',
+      'arabicName': 'فارس عباد',
+      'style': 'Modern',
+      'server': 'https://server8.mp3quran.net/frs_a/',
+    },
+    'Salah_Bukhatir': {
+      'id': '18',
+      'englishName': 'Salah Bukhatir',
+      'arabicName': 'صلاح بو خاطر',
+      'style': 'Traditional',
+      'server': 'https://server8.mp3quran.net/bu_khtr/',
+    },
+    'Muhammad_Jibreel': {
+      'id': '19',
+      'englishName': 'Muhammad Jibreel',
+      'arabicName': 'محمد جبريل',
+      'style': 'Traditional',
+      'server': 'https://server8.mp3quran.net/jbrl/',
+    },
+    'Abu_Bakr_Al_Shatri': {
+      'id': '20',
+      'englishName': 'Abu Bakr Al Shatri',
+      'arabicName': 'أبو بكر الشاطري',
+      'style': 'Modern',
+      'server': 'https://server11.mp3quran.net/shatri/',
+    },
+    'Muhammad_Al_Lohaidan': {
+      'id': '21',
+      'englishName': 'Muhammad Al Lohaidan',
+      'arabicName': 'محمد اللحيدان',
+      'style': 'Traditional',
+      'server': 'https://server8.mp3quran.net/lhdan/',
+    },
+    'Abdulmohsen_Al_Qasim': {
+      'id': '22',
+      'englishName': 'Abdulmohsen Al Qasim',
+      'arabicName': 'عبدالمحسن القاسم',
+      'style': 'Traditional',
+      'server': 'https://server8.mp3quran.net/qasm/',
+    },
+    'Ali_Jaber': {
+      'id': '23',
+      'englishName': 'Ali Jaber',
+      'arabicName': 'علي جابر',
+      'style': 'Traditional',
+      'server': 'https://server11.mp3quran.net/a_jbr/',
+    },
+    'Mustafa_Ismail': {
+      'id': '24',
+      'englishName': 'Mustafa Ismail',
+      'arabicName': 'مصطفى إسماعيل',
+      'style': 'Mujawwad (Melodic)',
+      'server': 'https://server8.mp3quran.net/mustafa/',
+    },
+    'Ali_Al_Hudhaify': {
+      'id': '25',
+      'englishName': 'Ali Al Hudhaify',
+      'arabicName': 'علي بن عبدالرحمن الحذيفي',
+      'style': 'Traditional',
+      'server': 'https://server9.mp3quran.net/hthfi/',
+    },
+    'Muhammad_Al_Tablawy': {
+      'id': '26',
+      'englishName': 'Muhammad Al Tablawy',
+      'arabicName': 'محمد الطبلاوي',
+      'style': 'Mujawwad (Melodic)',
+      'server': 'https://server12.mp3quran.net/tblawi/',
+    },
+    'Abdullah_Basfer': {
+      'id': '27',
+      'englishName': 'Abdullah Basfer',
+      'arabicName': 'عبدالله بصفر',
+      'style': 'Traditional',
+      'server': 'https://server6.mp3quran.net/bsfr/',
+    },
+    'Bandar_Balilah': {
+      'id': '28',
+      'englishName': 'Bandar Balilah',
+      'arabicName': 'بندر بليلة',
+      'style': 'Modern',
+      'server': 'https://server6.mp3quran.net/balilah/',
+    },
+    'Salah_Albudair': {
+      'id': '29',
+      'englishName': 'Salah Al Budair',
+      'arabicName': 'صلاح البدير',
+      'style': 'Traditional',
+      'server': 'https://server6.mp3quran.net/s_bud/',
+    },
+    'Khalid_Al_Qahtani': {
+      'id': '30',
+      'englishName': 'Khalid Al Qahtani',
+      'arabicName': 'خالد القحطاني',
+      'style': 'Modern',
+      'server': 'https://server10.mp3quran.net/qht/',
+    },
+    'Khalifa_Al_Tunaiji': {
+      'id': '31',
+      'englishName': 'Khalifa Al Tunaiji',
+      'arabicName': 'خليفة الطنيجي',
+      'style': 'Traditional',
+      'server': 'https://server12.mp3quran.net/tnjy/',
+    },
+    'Wadee_Al_Yamani': {
+      'id': '32',
+      'englishName': 'Wadee Al Yamani',
+      'arabicName': 'وديع اليمني',
+      'style': 'Modern',
+      'server': 'https://server6.mp3quran.net/wdee3/',
+    },
   };
 
   // everyayah.com folder for each reciter that has true per-ayah files
@@ -108,6 +262,13 @@ class QuranAudioService {
     final surah = chapterNumber.toString().padLeft(3, '0');
     final ayah = verseNumber.toString().padLeft(3, '0');
     return 'https://everyayah.com/data/$folder/$surah$ayah.mp3';
+  }
+
+  /// Whether [reciterId] has true per-ayah recordings (everyayah.com), i.e.
+  /// whether playing an ayah range actually steps through individual verse
+  /// files rather than falling back to the whole-surah file for every step.
+  static bool hasPerAyahAudio(String? reciterId) {
+    return _everyayahFolders.containsKey(reciterId ?? 'Abdul_Basit_Mujawwad');
   }
 
   static List<String> getAvailableReciters() {

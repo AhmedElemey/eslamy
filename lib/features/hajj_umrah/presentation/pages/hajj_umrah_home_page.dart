@@ -8,6 +8,7 @@ import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../data/hajj_umrah_content.dart';
 import '../../data/models/ritual_models.dart';
+import '../../l10n/hajj_umrah_l10n.dart';
 import '../controllers/pilgrim_mode_provider.dart';
 import '../controllers/ritual_providers.dart';
 import 'ritual_phase_detail_page.dart';
@@ -114,7 +115,7 @@ class HajjUmrahHomePage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.pilgrimModeNear(nearestSite.name),
+                              l10n.pilgrimModeNear(nearestSite.localizedName(context)),
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.heading(context),
@@ -122,7 +123,7 @@ class HajjUmrahHomePage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              nearestSite.description,
+                              nearestSite.localizedDescription(context),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.mutedText(context),
@@ -243,7 +244,7 @@ class _PhaseTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  phase.title,
+                  phase.localizedTitle(context),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: AppColors.heading(context),
@@ -251,7 +252,7 @@ class _PhaseTile extends StatelessWidget {
                 ),
                 if (phase.subtitle.isNotEmpty)
                   Text(
-                    phase.subtitle,
+                    phase.localizedSubtitle(context),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
