@@ -2,6 +2,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'quran_models.g.dart';
 
+/// Al Quran Cloud's `sajda` field is either `false` or a map. Casting it
+/// with `as bool` throws on every surah that contains a sajda verse.
+bool sajdaFromJson(Object? json) {
+  if (json is bool) return json;
+  if (json is Map) return true;
+  return false;
+}
+
 @JsonSerializable()
 class QuranChapter {
   final int number;
@@ -38,6 +46,9 @@ class QuranVerse {
   final int page;
   final int ruku;
   final int hizbQuarter;
+  /// Al Quran Cloud returns `false` for most ayahs and a *map*
+  /// `{id, recommended, obligatory}` for sajda ayahs — never `true`.
+  @JsonKey(fromJson: sajdaFromJson)
   final bool sajda;
 
   const QuranVerse({
@@ -211,9 +222,9 @@ class AyahWithSurah {
   factory AyahWithSurah.fromJson(Map<String, dynamic> json) {
     final surah = json['surah'] as Map<String, dynamic>;
     return AyahWithSurah(
-      numberInSurah: json['numberInSurah'] as int,
+      numberInSurah: (json['numberInSurah'] as num).toInt(),
       text: json['text'] as String,
-      surahNumber: surah['number'] as int,
+      surahNumber: (surah['number'] as num).toInt(),
       surahEnglishName: surah['englishName'] as String,
       surahArabicName: surah['name'] as String,
     );
@@ -255,10 +266,19 @@ class AyahTafsir {
   const AyahTafsir({required this.text, required this.editionName});
 
   factory AyahTafsir.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return AyahTafsir(
-      text: data['text'] as String,
-      editionName: data['edition']['englishName'] as String,
-    );
+    final data = json['data'];
+    if (data is! Map<String, dynamic>) {
+      throw FormatException(
+        'Tafseer response missing data object: ${json.keys.toList()}',
+      );
+    }
+    final text = data['text'] as String? ?? '';
+    final edition = data['edition'];
+    String editionName = '';
+    if (edition is Map) {
+      editionName =
+          (edition['englishName'] ?? edition['name'] ?? '') as String;
+    }
+    return AyahTafsir(text: text, editionName: editionName);
   }
 }

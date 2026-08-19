@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../service/settings_database.dart';
 
 enum AppLanguage { english, arabic, italian }
@@ -43,3 +44,16 @@ class LanguageController extends AsyncNotifier<AppLanguage> {
 final languageProvider = AsyncNotifierProvider<LanguageController, AppLanguage>(
   () => LanguageController(),
 );
+
+/// Resolves [AppLocalizations] from the persisted language setting. Used by
+/// background work (Adhan scheduling, notification channels) that has no
+/// widget [BuildContext].
+Future<AppLocalizations> loadStoredLocalizations() async {
+  final stored = await SettingsDatabase().getValue('app_language');
+  final language = switch (stored) {
+    'english' => AppLanguage.english,
+    'italian' => AppLanguage.italian,
+    _ => AppLanguage.arabic,
+  };
+  return lookupAppLocalizations(language.locale);
+}

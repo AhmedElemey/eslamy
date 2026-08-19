@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../service/quran_audio_service.dart';
 import '../../models/quran_models.dart';
 import '../controllers/quran_providers.dart';
+import 'reciter_avatar.dart';
 
 class ReciterSelectionWidget extends ConsumerWidget {
   const ReciterSelectionWidget({super.key});
@@ -24,7 +26,12 @@ class ReciterSelectionWidget extends ConsumerWidget {
         onTap: () => _showReciterSelectionDialog(context, ref),
         child: Row(
           children: [
-            IconSeal(icon: Icons.record_voice_over),
+            selectedReciter == null
+                ? const IconSeal(icon: Icons.record_voice_over)
+                : ReciterAvatar(
+                  reciterId: selectedReciter.id,
+                  name: selectedReciter.name,
+                ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -40,15 +47,20 @@ class ReciterSelectionWidget extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    selectedReciter?.name ??
-                        context.l10n.selectReciterPlaceholder,
+                    selectedReciter == null
+                        ? context.l10n.selectReciterPlaceholder
+                        : localizedReciterName(
+                          context: context,
+                          arabicName: selectedReciter.arabicName,
+                          englishName: selectedReciter.name,
+                        ),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: heading,
                     ),
                   ),
-                  if (selectedReciter != null)
+                  if (selectedReciter != null && !isArabicLocale(context))
                     Text(
                       selectedReciter.arabicName,
                       style: TextStyle(fontSize: 12, color: muted),
@@ -216,9 +228,16 @@ class _ReciterSelectionDialogState
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            leading: NumberSeal(label: reciter['id']!),
+                            leading: ReciterAvatar(
+                              reciterId: reciterModel.id,
+                              name: reciterModel.name,
+                            ),
                             title: Text(
-                              reciter['englishName']!,
+                              localizedReciterName(
+                                context: context,
+                                arabicName: reciter['arabicName']!,
+                                englishName: reciter['englishName']!,
+                              ),
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color:
@@ -231,14 +250,21 @@ class _ReciterSelectionDialogState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 2),
-                                Text(
-                                  reciter['arabicName']!,
-                                  style: TextStyle(color: muted, fontSize: 13),
-                                  textDirection: TextDirection.rtl,
-                                ),
+                                if (!isArabicLocale(context))
+                                  Text(
+                                    reciter['arabicName']!,
+                                    style: TextStyle(
+                                      color: muted,
+                                      fontSize: 13,
+                                    ),
+                                    textDirection: TextDirection.rtl,
+                                  ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  reciter['style']!,
+                                  localizedReciterStyle(
+                                    context.l10n,
+                                    reciter['style']!,
+                                  ),
                                   style: TextStyle(color: muted, fontSize: 12),
                                 ),
                               ],

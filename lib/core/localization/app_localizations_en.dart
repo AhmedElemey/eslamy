@@ -36,6 +36,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goHome => 'Go Home';
 
   @override
+  String get noNetworkTitle => 'No Internet Connection';
+
+  @override
+  String get noNetworkMessage =>
+      'Please connect to the internet and try again.';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -597,6 +604,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRecitersFound => 'No reciters found';
 
   @override
+  String get openAyahRangePlayerTooltip => 'Play surah or ayah range';
+
+  @override
+  String get playFullSurahLabel => 'Complete Surah';
+
+  @override
+  String get playAyahRangeLabel => 'Ayah Range';
+
+  @override
+  String ayahRangeSummary(int from, int to, int count) {
+    return 'Ayah $from–$to • $count verses';
+  }
+
+  @override
+  String fromAyahLabel(int ayah) {
+    return 'From $ayah';
+  }
+
+  @override
+  String toAyahLabel(int ayah) {
+    return 'To $ayah';
+  }
+
+  @override
+  String get reciterRangeFallbackNotice =>
+      'This reciter has no separate ayah recordings, so the full surah audio plays instead for this range.';
+
+  @override
+  String get reciterRangeUnavailableNotice =>
+      'This reciter doesn\'t have separate recordings for each ayah, so an ayah range can\'t be selected. Please choose a different reciter.';
+
+  @override
+  String nowPlayingRangeSubtitle(int ayah, int from, int to) {
+    return 'Ayah $ayah • range $from–$to';
+  }
+
+  @override
+  String get nowPlayingPreviousAyahTooltip => 'Previous Ayah';
+
+  @override
+  String get nowPlayingNextAyahTooltip => 'Next Ayah';
+
+  @override
+  String mushafPageLabel(int page) {
+    return 'Page $page';
+  }
+
+  @override
+  String mushafJuzLabel(int juz) {
+    return 'Juz $juz';
+  }
+
+  @override
+  String get mushafPreviousPageTooltip => 'Previous Page';
+
+  @override
+  String get mushafNextPageTooltip => 'Next Page';
+
+  @override
+  String get jumpToPageTitle => 'Go to Page';
+
+  @override
+  String get fromAyahFieldLabel => 'From';
+
+  @override
+  String get toAyahFieldLabel => 'To';
+
+  @override
+  String get pageNumberHint => 'Page number';
+
+  @override
+  String get pageNotInThisSurah => 'This page isn\'t part of this surah';
+
+  @override
   String get splashTagline =>
       'Your companion for Quran, prayer\n& daily worship';
 
@@ -964,4 +1045,413 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mosqueLocatorStaleCache =>
       'Couldn\'t refresh — showing previously saved results. Pull down to try again.';
+
+  @override
+  String get mosqueLocatorLocationDenied =>
+      'Location permission is needed to find mosques near you.';
+
+  @override
+  String get mosqueLocatorLocationDeniedForever =>
+      'Location access is turned off for Eslamy. Enable it in Settings to find nearby mosques.';
+
+  @override
+  String get mosqueLocatorLocationServicesOff =>
+      'Turn on Location Services to find mosques near you.';
+
+  @override
+  String get mosqueLocatorOpenSettings => 'Open settings';
+
+  @override
+  String get mosqueLocatorUsingLastKnownLocation =>
+      'Using your last known location. Distances may be approximate.';
+
+  @override
+  String get notificationChannelDailyWerd => 'Daily Wird';
+
+  @override
+  String get notificationChannelDailyWerdDescription =>
+      'Daily reminder for your Wird';
+
+  @override
+  String get notificationChannelAdhan => 'Adhan';
+
+  @override
+  String get notificationChannelAdhanDescription =>
+      'Call-to-prayer alert at each prayer time';
+
+  @override
+  String get notificationChannelQuranPlayback => 'Quran playback';
+
+  @override
+  String adhanNotificationTitle(String name) {
+    return 'Adhan — $name';
+  }
+
+  @override
+  String adhanNotificationBody(String name) {
+    return 'It is time for $name prayer';
+  }
+
+  @override
+  String get notificationFallbackTitle => 'Notification';
+
+  @override
+  String get errorConnectionTimeout =>
+      'Connection timeout. Please check your internet connection.';
+
+  @override
+  String get errorRequestTimeout => 'Request timeout, try again later';
+
+  @override
+  String get errorResponseTimeout => 'Response timeout, try again later';
+
+  @override
+  String get errorUnauthorized => 'Unauthorized';
+
+  @override
+  String get errorForbidden => 'Forbidden';
+
+  @override
+  String get errorNotFound => 'Requested resource not found.';
+
+  @override
+  String get errorInternalServer => 'Internal server error';
+
+  @override
+  String get errorRateLimit => 'Rate limit exceeded, try again later';
+
+  @override
+  String get errorServerError => 'Server error. Please try again later.';
+
+  @override
+  String get errorRequestCancelled => 'Request was cancelled.';
+
+  @override
+  String get errorUnknown => 'An unexpected error occurred';
+
+  @override
+  String get errorNoInternet =>
+      'No internet connection. Please check your network.';
+
+  @override
+  String errorRequestFailedWithStatus(String statusCode) {
+    return 'Request failed with status: $statusCode';
+  }
+
+  @override
+  String distanceMeters(int count) {
+    return '$count m';
+  }
+
+  @override
+  String distanceKilometers(String count) {
+    return '$count km';
+  }
+
+  @override
+  String surahNumberLabel(int number) {
+    return 'Surah $number';
+  }
+
+  @override
+  String pageNumberLabel(int number) {
+    return 'Page $number';
+  }
+
+  @override
+  String hizbNumberLabel(int number) {
+    return 'Hizb $number';
+  }
+
+  @override
+  String get dhikrSubhanAllah => 'SubhanAllah';
+
+  @override
+  String get dhikrAlhamdulillah => 'Alhamdulillah';
+
+  @override
+  String get dhikrAllahuAkbar => 'Allahu Akbar';
+
+  @override
+  String get dhikrLaIlahaIllaAllah => 'La ilaha illa Allah';
+
+  @override
+  String get dhikrAstaghfirullah => 'Astaghfirullah';
+
+  @override
+  String get dhikrCustom => 'Custom';
+
+  @override
+  String get tajweedHamzatUlWasl => 'Hamzat ul Wasl';
+
+  @override
+  String get tajweedSilent => 'Silent';
+
+  @override
+  String get tajweedLamShamsiyyah => 'Lam Shamsiyyah';
+
+  @override
+  String get tajweedMaddaNormal => 'Normal Prolongation: 2 Vowels';
+
+  @override
+  String get tajweedMaddaPermissible =>
+      'Permissible Prolongation: 2, 4, 6 Vowels';
+
+  @override
+  String get tajweedMaddaNecessary => 'Necessary Prolongation: 6 Vowels';
+
+  @override
+  String get tajweedQalqalah => 'Qalqalah';
+
+  @override
+  String get tajweedMaddaObligatory => 'Obligatory Prolongation: 4-5 Vowels';
+
+  @override
+  String get tajweedIkhfaShafawi => 'Ikhfa\' Shafawi - With Meem';
+
+  @override
+  String get tajweedIkhfa => 'Ikhfa\'';
+
+  @override
+  String get tajweedIdghamShafawi => 'Idgham Shafawi - With Meem';
+
+  @override
+  String get tajweedIqlab => 'Iqlab';
+
+  @override
+  String get tajweedIdghamGhunnah => 'Idgham - With Ghunnah';
+
+  @override
+  String get tajweedIdghamNoGhunnah => 'Idgham - Without Ghunnah';
+
+  @override
+  String get tajweedIdghamMutajanisayn => 'Idgham - Mutajanisayn';
+
+  @override
+  String get tajweedIdghamMutaqaribayn => 'Idgham - Mutaqaribayn';
+
+  @override
+  String get tajweedGhunnah => 'Ghunnah: 2 Vowels';
+
+  @override
+  String get hadithBookBukhari => 'Sahih al-Bukhari';
+
+  @override
+  String get hadithBookMuslim => 'Sahih Muslim';
+
+  @override
+  String get hadithBookAbuDawud => 'Sunan Abu Dawud';
+
+  @override
+  String get hadithBookTirmidhi => 'Jami At-Tirmidhi';
+
+  @override
+  String get hadithBookNasai => 'Sunan an-Nasai';
+
+  @override
+  String get hadithBookIbnMajah => 'Sunan Ibn Majah';
+
+  @override
+  String get hadithBookMalik => 'Muwatta Malik';
+
+  @override
+  String get hadithBookNawawi => 'An-Nawawi\'s 40 Hadith';
+
+  @override
+  String get hadithBookQudsi => '40 Hadith Qudsi';
+
+  @override
+  String get hadithBookDehlawi => 'Shah Waliullah\'s 40 Hadith';
+
+  @override
+  String get reciterStyleMujawwadMelodic => 'Mujawwad (Melodic)';
+
+  @override
+  String get reciterStyleMurattalSlow => 'Murattal (Slow)';
+
+  @override
+  String get reciterStyleModern => 'Modern';
+
+  @override
+  String get reciterStyleTraditional => 'Traditional';
+
+  @override
+  String get reciterStyleMurattal => 'Murattal';
+
+  @override
+  String get azkarCategoryMorning => 'Morning Adhkar';
+
+  @override
+  String get azkarCategoryMorningDescription => 'Supplications for the morning';
+
+  @override
+  String get azkarCategoryEvening => 'Evening Adhkar';
+
+  @override
+  String get azkarCategoryEveningDescription => 'Supplications for the evening';
+
+  @override
+  String get azkarCategoryWudu => 'Wudu & Purification';
+
+  @override
+  String get azkarCategoryWuduDescription =>
+      'Supplications for ablution and purification';
+
+  @override
+  String get azkarCategoryPrayer => 'During Prayer';
+
+  @override
+  String get azkarCategoryPrayerDescription =>
+      'Supplications said during salah';
+
+  @override
+  String get azkarCategoryAfterPrayer => 'After Prayer';
+
+  @override
+  String get azkarCategoryAfterPrayerDescription =>
+      'Dhikr and supplications after salah';
+
+  @override
+  String get azkarCategorySleep => 'Sleep';
+
+  @override
+  String get azkarCategorySleepDescription => 'Before sleeping and upon waking';
+
+  @override
+  String get azkarCategoryFood => 'Food & Drink';
+
+  @override
+  String get azkarCategoryFoodDescription => 'Before and after eating';
+
+  @override
+  String get azkarCategoryTravel => 'Travel';
+
+  @override
+  String get azkarCategoryTravelDescription => 'Supplications for journeys';
+
+  @override
+  String get azkarCategoryHome => 'Home';
+
+  @override
+  String get azkarCategoryHomeDescription => 'Entering and leaving the home';
+
+  @override
+  String get azkarCategoryMasjid => 'Masjid';
+
+  @override
+  String get azkarCategoryMasjidDescription =>
+      'Entering and leaving the mosque';
+
+  @override
+  String get azkarCategoryDistress => 'Distress & Anxiety';
+
+  @override
+  String get azkarCategoryDistressDescription =>
+      'Supplications during hardship';
+
+  @override
+  String get azkarCategoryForgiveness => 'Forgiveness';
+
+  @override
+  String get azkarCategoryForgivenessDescription =>
+      'Seeking forgiveness from Allah';
+
+  @override
+  String get azkarCategoryIllness => 'Illness & Healing';
+
+  @override
+  String get azkarCategoryIllnessDescription => 'Supplications for the sick';
+
+  @override
+  String get azkarCategoryWeather => 'Weather';
+
+  @override
+  String get azkarCategoryWeatherDescription => 'Rain, thunder, and wind';
+
+  @override
+  String get azkarCategoryKnowledge => 'Knowledge';
+
+  @override
+  String get azkarCategoryKnowledgeDescription =>
+      'Seeking beneficial knowledge';
+
+  @override
+  String get azkarCategoryParents => 'Parents';
+
+  @override
+  String get azkarCategoryParentsDescription => 'Supplications for parents';
+
+  @override
+  String get azkarCategoryGuidance => 'Guidance';
+
+  @override
+  String get azkarCategoryGuidanceDescription =>
+      'Seeking guidance and direction';
+
+  @override
+  String get azkarCategoryGratitude => 'Gratitude';
+
+  @override
+  String get azkarCategoryGratitudeDescription => 'Thanking and praising Allah';
+
+  @override
+  String get azkarCategoryProtection => 'Protection';
+
+  @override
+  String get azkarCategoryProtectionDescription =>
+      'Seeking refuge and protection';
+
+  @override
+  String get azkarCategoryDhikr => 'Dhikr';
+
+  @override
+  String get azkarCategoryDhikrDescription => 'General remembrance of Allah';
+
+  @override
+  String get azkarCategoryMarriage => 'Marriage & Family';
+
+  @override
+  String get azkarCategoryMarriageDescription =>
+      'Supplications for marriage and family life';
+
+  @override
+  String get azkarCategoryHajj => 'Hajj & Umrah';
+
+  @override
+  String get azkarCategoryHajjDescription => 'Supplications for pilgrimage';
+
+  @override
+  String get azkarCategoryGrief => 'Grief & Loss';
+
+  @override
+  String get azkarCategoryGriefDescription =>
+      'Supplications at times of loss and death';
+
+  @override
+  String get azkarCategoryChildren => 'Children';
+
+  @override
+  String get azkarCategoryChildrenDescription =>
+      'Supplications for children and newborns';
+
+  @override
+  String get azkarCategoryBusiness => 'Business & Provision';
+
+  @override
+  String get azkarCategoryBusinessDescription =>
+      'Supplications for livelihood and wealth';
+
+  @override
+  String get azkarCategoryNightPrayer => 'Night Prayer';
+
+  @override
+  String get azkarCategoryNightPrayerDescription =>
+      'Supplications for tahajjud, witr and the night';
+
+  @override
+  String get azkarCategoryQuranRecitation => 'Quran Recitation';
+
+  @override
+  String get azkarCategoryQuranRecitationDescription =>
+      'Supplications before and during Quran recitation';
 }

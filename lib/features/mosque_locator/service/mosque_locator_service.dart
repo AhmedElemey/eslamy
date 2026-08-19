@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,13 +52,46 @@ class MosqueLocatorService {
   Future<List<Mosque>> findNearby({
     required double latitude,
     required double longitude,
-    double radiusMeters = 5000,
+    List<int> radiusMetersAttempts = const [5000, 15000, 30000],
   }) async {
+    List<Mosque> mosques = const [];
+    for (final radiusMeters in radiusMetersAttempts) {
+      mosques = await _queryAround(
+        latitude: latitude,
+        longitude: longitude,
+        radiusMeters: radiusMeters,
+      );
+      if (mosques.isNotEmpty) {
+        debugPrint(
+          'Mosque locator: ${mosques.length} results within ${radiusMeters}m '
+          'of $latitude,$longitude',
+        );
+        break;
+      }
+      debugPrint(
+        'Mosque locator: no results within ${radiusMeters}m of '
+        '$latitude,$longitude; expanding radius',
+      );
+    }
+    if (mosques.isNotEmpty) {
+      await _cacheResult(latitude, longitude, mosques);
+    }
+    return mosques;
+  }
+
+  Future<List<Mosque>> _queryAround({
+    required double latitude,
+    required double longitude,
+    required int radiusMeters,
+  }) async {
+    // `building=mosque` catches OSM features that omit religion=muslim.
     final query = '''
 [out:json][timeout:$_queryTimeoutSeconds];
 (
-  node["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusMeters.round()},$latitude,$longitude);
-  way["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusMeters.round()},$latitude,$longitude);
+  node["amenity"="place_of_worship"]["religion"="muslim"](around:$radiusMeters,$latitude,$longitude);
+  way["amenity"="place_of_worship"]["religion"="muslim"](around:$radiusMeters,$latitude,$longitude);
+  node["building"="mosque"](around:$radiusMeters,$latitude,$longitude);
+  way["building"="mosque"](around:$radiusMeters,$latitude,$longitude);
 );
 out center;
 ''';
@@ -75,13 +109,11 @@ out center;
           ),
         );
 
-        final mosques = parseOverpassResponse(
+        return parseOverpassResponse(
           response.data as Map<String, dynamic>,
           originLatitude: latitude,
           originLongitude: longitude,
         );
-        await _cacheResult(latitude, longitude, mosques);
-        return mosques;
       } catch (e) {
         final isLastAttempt = attempt == _maxAttempts;
         if (isLastAttempt || !_isTransient(e)) rethrow;
@@ -89,7 +121,6 @@ out center;
       }
     }
 
-    // Unreachable: the loop above always returns or rethrows.
     throw StateError('unreachable');
   }
 
@@ -121,26 +152,79 @@ out center;
     await prefs.setString(_cacheKey, payload);
   }
 
-  /// The last successfully fetched list, regardless of where it was fetched
-  /// for — callers show it as an approximate fallback, not a precise
-  /// "nearby" answer, when a fresh fetch fails. Returns null if nothing has
-  /// ever been cached or the cached payload can't be parsed.
-  Future<CachedMosqueResult?> getCachedNearby() async {
+  /// Last successful fetch, only if it was taken near [latitude]/[longitude]
+  /// and is not older than [maxAge]. Distances are recomputed for the
+  /// current origin so a cache hit is still sorted nearest-first.
+  Future<CachedMosqueResult?> getCachedNearby({
+    double? latitude,
+    double? longitude,
+    double maxOriginDriftMeters = 2000,
+    Duration maxAge = const Duration(hours: 24),
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_cacheKey);
     if (raw == null) return null;
 
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final mosques = (decoded['mosques'] as List)
+      final cachedAt = DateTime.parse(decoded['cachedAt'] as String);
+      if (DateTime.now().difference(cachedAt) > maxAge) {
+        debugPrint('Mosque locator: cache expired at $cachedAt');
+        return null;
+      }
+
+      final originLat = (decoded['latitude'] as num?)?.toDouble();
+      final originLng = (decoded['longitude'] as num?)?.toDouble();
+      if (latitude != null &&
+          longitude != null &&
+          originLat != null &&
+          originLng != null) {
+        final drift = Geolocator.distanceBetween(
+          latitude,
+          longitude,
+          originLat,
+          originLng,
+        );
+        if (drift > maxOriginDriftMeters) {
+          debugPrint(
+            'Mosque locator: cache origin drift ${drift.round()}m > '
+            '${maxOriginDriftMeters.round()}m — ignoring stale city',
+          );
+          return null;
+        }
+      }
+
+      var mosques = (decoded['mosques'] as List)
           .map((m) => Mosque.fromJson(m as Map<String, dynamic>))
           .toList();
+      if (latitude != null && longitude != null) {
+        mosques = mosques
+            .map(
+              (m) => Mosque(
+                id: m.id,
+                name: m.name,
+                address: m.address,
+                latitude: m.latitude,
+                longitude: m.longitude,
+                distanceMeters: Geolocator.distanceBetween(
+                  latitude,
+                  longitude,
+                  m.latitude,
+                  m.longitude,
+                ),
+              ),
+            )
+            .toList()
+          ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+      }
       return CachedMosqueResult(
         mosques: mosques,
-        cachedAt: DateTime.parse(decoded['cachedAt'] as String),
+        cachedAt: cachedAt,
+        latitude: originLat,
+        longitude: originLng,
       );
-    } catch (_) {
-      // Corrupt/older-shape cache entry — treat as if nothing was cached.
+    } catch (e, st) {
+      debugPrint('Mosque locator: corrupt cache: $e\n$st');
       return null;
     }
   }
@@ -149,8 +233,15 @@ out center;
 class CachedMosqueResult {
   final List<Mosque> mosques;
   final DateTime cachedAt;
+  final double? latitude;
+  final double? longitude;
 
-  const CachedMosqueResult({required this.mosques, required this.cachedAt});
+  const CachedMosqueResult({
+    required this.mosques,
+    required this.cachedAt,
+    this.latitude,
+    this.longitude,
+  });
 }
 
 /// Maps a raw Overpass `[out:json]` response into [Mosque]s, sorted
@@ -164,6 +255,7 @@ List<Mosque> parseOverpassResponse(
   final elements = data['elements'] as List?;
   if (elements == null) return const [];
 
+  final seen = <String>{};
   final mosques =
       elements
           .map((raw) {
@@ -181,10 +273,13 @@ List<Mosque> parseOverpassResponse(
             }
             if (lat == null || lng == null) return null;
 
+            final id = '${el['type']}/${el['id']}';
+            if (!seen.add(id)) return null;
+
             final name = tags['name'] as String?;
 
             return Mosque(
-              id: '${el['type']}/${el['id']}',
+              id: id,
               name: (name != null && name.trim().isNotEmpty) ? name : null,
               address: _formatAddress(tags),
               latitude: lat,

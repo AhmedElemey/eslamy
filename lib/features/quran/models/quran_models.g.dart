@@ -39,7 +39,7 @@ QuranVerse _$QuranVerseFromJson(Map<String, dynamic> json) => QuranVerse(
   page: (json['page'] as num).toInt(),
   ruku: (json['ruku'] as num).toInt(),
   hizbQuarter: (json['hizbQuarter'] as num).toInt(),
-  sajda: json['sajda'] as bool,
+  sajda: sajdaFromJson(json['sajda']),
 );
 
 Map<String, dynamic> _$QuranVerseToJson(QuranVerse instance) =>

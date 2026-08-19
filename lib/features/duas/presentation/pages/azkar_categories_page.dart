@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/error_localizer.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -27,7 +29,9 @@ class AzkarCategoriesPage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  context.l10n.couldNotLoadAzkarWithError(e.toString()),
+                  context.l10n.couldNotLoadAzkarWithError(
+                    localizedError(context.l10n, e),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -76,8 +80,19 @@ class _CategoryTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: IconSeal(icon: icon),
-        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(category.description, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          localizedAzkarCategoryName(context.l10n, category.id, category.name),
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          localizedAzkarCategoryDescription(
+            context.l10n,
+            category.id,
+            category.description,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Icon(chevronFor(context)),
         onTap: () {
           Navigator.of(context).push(

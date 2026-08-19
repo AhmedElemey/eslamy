@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../data/juz_starting_points.dart';
@@ -31,7 +32,13 @@ class JuzList extends ConsumerWidget {
       final startSurahName = chaptersAsync.maybeWhen(
         data: (chapters) {
           for (final c in chapters) {
-            if (c.number == startSurah) return c.englishName;
+            if (c.number == startSurah) {
+              return localizedChapterName(
+                context: context,
+                arabicName: c.name,
+                englishName: c.englishName,
+              );
+            }
           }
           return null;
         },

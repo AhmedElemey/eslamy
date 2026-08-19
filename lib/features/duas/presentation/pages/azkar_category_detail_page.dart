@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
@@ -22,7 +24,11 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text(category.name)),
+      appBar: AppBar(
+        title: Text(
+          localizedAzkarCategoryName(context.l10n, category.id, category.name),
+        ),
+      ),
       body: AppBackground(
         child: SafeArea(
           child: itemsAsync.when(
@@ -31,7 +37,9 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  context.l10n.couldNotLoadSectionWithError(e.toString()),
+                  context.l10n.couldNotLoadSectionWithError(
+                    localizedError(context.l10n, e),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),

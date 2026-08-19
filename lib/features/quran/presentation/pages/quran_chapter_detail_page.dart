@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
-import '../../../../shared/widgets/ayah_block.dart';
 import '../../models/quran_models.dart';
 import '../../service/quran_audio_handler.dart';
+import '../../service/quran_audio_service.dart';
 import '../controllers/quran_providers.dart';
+import '../widgets/mushaf_pager.dart';
 import '../widgets/reciter_selection_widget.dart';
 import '../widgets/tajweed_legend_sheet.dart';
-import '../widgets/translation_selection_widget.dart';
 import 'quran_verse_detail_page.dart';
+
+enum _ChapterAudioMode { full, range }
 
 class QuranChapterDetailPage extends ConsumerStatefulWidget {
   final int chapterNumber;
@@ -30,9 +31,23 @@ class QuranChapterDetailPage extends ConsumerStatefulWidget {
 
 class _QuranChapterDetailPageState
     extends ConsumerState<QuranChapterDetailPage> {
-  /// Plays this chapter on the shared handler (any other chapter already
-  /// playing is replaced — matches the old page-local "stop current before
-  /// starting new" behavior, now app-wide instead of per-screen).
+  _ChapterAudioMode _audioMode = _ChapterAudioMode.full;
+  RangeValues? _ayahRange;
+  ({int ayah, int nonce})? _scrollToAyah;
+  int _scrollNonce = 0;
+
+  Set<int> get _highlightedAyahs {
+    final range = _ayahRange;
+    if (_audioMode != _ChapterAudioMode.range || range == null) {
+      return const <int>{};
+    }
+    return {for (var i = range.start.round(); i <= range.end.round(); i++) i};
+  }
+
+  /// Plays the whole chapter on the shared handler (any other chapter or
+  /// range already playing is replaced — matches the old page-local "stop
+  /// current before starting new" behavior, now app-wide instead of
+  /// per-screen).
   Future<void> _startChapterAudio(QuranAudioHandler handler) async {
     try {
       if (mounted) {
@@ -47,7 +62,6 @@ class _QuranChapterDetailPageState
       await handler.playSurah(
         widget.chapterNumber,
         reciter: ref.read(selectedReciterProvider),
-        chapterName: widget.chapterName,
       );
 
       if (mounted) {
@@ -77,6 +91,60 @@ class _QuranChapterDetailPageState
     }
   }
 
+  /// Plays the selected ayah range on the shared handler — also scrolls the
+  /// Mushaf pager to the page the range starts on, so the highlighted ayahs
+  /// (see [_highlightedAyahs]) are actually in view when playback starts.
+  Future<void> _startRangeAudio(
+    QuranAudioHandler handler,
+    RangeValues range,
+  ) async {
+    setState(() {
+      _scrollToAyah = (ayah: range.start.round(), nonce: _scrollNonce++);
+    });
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.loadingChapterAudio),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      await handler.playAyahRange(
+        widget.chapterNumber,
+        fromAyah: range.start.round(),
+        toAyah: range.end.round(),
+        reciter: ref.read(selectedReciterProvider),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.chapterAudioStartedPlaying),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error playing ayah range audio: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.failedToPlayChapterAudioRetry),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: context.l10n.retryAction,
+              textColor: Colors.white,
+              onPressed: () => _startRangeAudio(handler, range),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   void _openReciterPicker() {
     showModalBottomSheet(
       context: context,
@@ -84,6 +152,88 @@ class _QuranChapterDetailPageState
       backgroundColor: Colors.transparent,
       builder: (context) => const ReciterSelectionDialog(),
     );
+  }
+
+  /// Lets the user pick between reading/playing the complete surah (the
+  /// default view) or switching this same page into ayah-range mode.
+  void _openPlaybackModeSheet(int totalAyahs) {
+    final l10n = context.l10n;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.hairline(context),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.menu_book_rounded),
+                  title: Text(l10n.playFullSurahLabel),
+                  trailing:
+                      _audioMode == _ChapterAudioMode.full
+                          ? Icon(Icons.check_circle, color: AppColors.primaryOnBg(context))
+                          : null,
+                  onTap: () {
+                    setState(() => _audioMode = _ChapterAudioMode.full);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.format_list_numbered_rounded),
+                  title: Text(l10n.playAyahRangeLabel),
+                  trailing:
+                      _audioMode == _ChapterAudioMode.range
+                          ? Icon(Icons.check_circle, color: AppColors.primaryOnBg(context))
+                          : null,
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _openRangePickerDialog(totalAyahs);
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Popup for choosing the "from"/"to" ayah range — opened after closing
+  /// the playback-mode sheet. Only switches the page into range mode (and
+  /// updates the highlighted ayahs / audio bar) if the user confirms.
+  Future<void> _openRangePickerDialog(int totalAyahs) async {
+    final initialRange = _ayahRange ?? RangeValues(1, totalAyahs.toDouble());
+
+    final result = await showDialog<RangeValues>(
+      context: context,
+      builder:
+          (dialogContext) => _AyahRangeDialog(
+            totalAyahs: totalAyahs,
+            initialRange: initialRange,
+          ),
+    );
+
+    if (result == null || !mounted) return;
+    setState(() {
+      _audioMode = _ChapterAudioMode.range;
+      _ayahRange = result;
+    });
   }
 
   String _formatDuration(Duration duration) {
@@ -105,21 +255,6 @@ class _QuranChapterDetailPageState
     final isPlaying =
         isThisChapterActive &&
         (ref.watch(playbackStateProvider).valueOrNull?.playing ?? false);
-    final selectedEdition = ref.watch(selectedTranslationProvider);
-    final translationAsync = ref.watch(
-      chapterTranslationProvider((
-        chapterNumber: widget.chapterNumber,
-        editionIdentifier: selectedEdition.identifier,
-      )),
-    );
-    final translationByVerse = translationAsync.maybeWhen(
-      data:
-          (r) => {
-            for (final v in r.data.ayahs ?? <QuranVerse>[])
-              v.numberInSurah: v.text,
-          },
-      orElse: () => const <int, String>{},
-    );
     final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
     final tajweedAsync =
         tajweedEnabled
@@ -145,6 +280,16 @@ class _QuranChapterDetailPageState
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.format_list_numbered_rounded),
+            onPressed:
+                chapterAsync.valueOrNull == null
+                    ? null
+                    : () => _openPlaybackModeSheet(
+                      chapterAsync.valueOrNull!.data.numberOfAyahs,
+                    ),
+            tooltip: l10n.openAyahRangePlayerTooltip,
+          ),
           IconButton(
             icon: const Icon(Icons.record_voice_over),
             onPressed: _openReciterPicker,
@@ -174,23 +319,18 @@ class _QuranChapterDetailPageState
           child: chapterAsync.when(
             data: (chapterResponse) {
               final ayahs = chapterResponse.data.ayahs ?? <QuranVerse>[];
+              final totalAyahs = chapterResponse.data.numberOfAyahs;
               final showBasmala =
                   widget.chapterNumber != 1 && widget.chapterNumber != 9;
+              if (_audioMode == _ChapterAudioMode.range) {
+                _ayahRange ??= RangeValues(1, totalAyahs.toDouble());
+              }
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Column(
                       children: [
-                        Text(
-                          chapterResponse.data.name,
-                          textDirection: TextDirection.rtl,
-                          style: AppTypography.naskh(
-                            size: 28,
-                            weight: FontWeight.w700,
-                            color: AppColors.heading(context),
-                          ),
-                        ),
                         Text(
                           chapterResponse.data.englishNameTranslation,
                           style: TextStyle(color: AppColors.mutedText(context)),
@@ -208,73 +348,27 @@ class _QuranChapterDetailPageState
                             color: AppColors.mutedText(context),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        const TranslationSelectionWidget(),
                       ],
                     ),
                   ),
                   Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      itemCount: ayahs.length + (showBasmala ? 1 : 0),
-                      separatorBuilder:
-                          (_, __) => Divider(
-                            height: 1,
-                            color: AppColors.hairline(context),
-                          ),
-                      itemBuilder: (context, index) {
-                        if (showBasmala && index == 0) {
-                          return const BasmalaHeader();
-                        }
-                        final verse = ayahs[showBasmala ? index - 1 : index];
-                        return AyahBlock(
-                          number: verse.numberInSurah,
-                          arabic: verse.text,
-                          tajweedText: tajweedByVerse[verse.numberInSurah],
-                          translation: translationByVerse[verse.numberInSurah],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => QuranVerseDetailPage(
-                                      chapterNumber: widget.chapterNumber,
-                                      verseNumber: verse.numberInSurah,
-                                      verseText: verse.text,
-                                    ),
-                              ),
-                            );
-                          },
-                          footer: Row(
-                            children: [
-                              Icon(
-                                Icons.play_circle_outline,
-                                size: 18,
-                                color: AppColors.primaryOnBg(context),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                l10n.playAudioLabel,
-                                style: TextStyle(
-                                  color: AppColors.primaryOnBg(context),
-                                  fontSize: 12,
+                    child: MushafPager(
+                      surahArabicName: chapterResponse.data.name,
+                      ayahs: ayahs,
+                      showBasmala: showBasmala,
+                      tajweedByVerse: tajweedByVerse,
+                      highlightedAyahs: _highlightedAyahs,
+                      scrollToAyah: _scrollToAyah,
+                      onVerseTap: (verseNumber, verseText) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => QuranVerseDetailPage(
+                                  chapterNumber: widget.chapterNumber,
+                                  verseNumber: verseNumber,
+                                  verseText: verseText,
                                 ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                Icons.info_outline,
-                                size: 18,
-                                color: AppColors.mutedText(context),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                l10n.tafseerLabel,
-                                style: TextStyle(
-                                  color: AppColors.mutedText(context),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
                           ),
                         );
                       },
@@ -283,27 +377,56 @@ class _QuranChapterDetailPageState
                   StreamBuilder<Duration>(
                     stream: handler.player.positionStream,
                     builder: (context, snapshot) {
+                      final isActiveRange =
+                          isThisChapterActive && handler.isRangeMode;
                       final position =
                           isThisChapterActive
-                              ? (snapshot.data ?? Duration.zero)
+                              ? (isActiveRange
+                                  ? handler.rangeElapsedBeforeCurrent +
+                                      (snapshot.data ?? Duration.zero)
+                                  : (snapshot.data ?? Duration.zero))
                               : Duration.zero;
-                      final duration =
+                      final rawDuration =
                           isThisChapterActive
-                              ? (handler.player.duration ?? Duration.zero)
+                              ? (isActiveRange
+                                  ? handler.rangeTotalDuration
+                                  : (handler.player.duration ?? Duration.zero))
                               : Duration.zero;
+                      // The range total is a running estimate (see
+                      // rangeTotalDuration) — never let it show less than
+                      // what's already elapsed.
+                      final duration =
+                          rawDuration < position ? position : rawDuration;
+                      final range = _ayahRange;
+                      final label =
+                          _audioMode == _ChapterAudioMode.range && range != null
+                              ? l10n.ayahRangeSummary(
+                                range.start.round(),
+                                range.end.round(),
+                                range.end.round() - range.start.round() + 1,
+                              )
+                              : l10n.chapterAudioLabel;
                       return _ChapterAudioBar(
-                        label: l10n.chapterAudioLabel,
+                        label: label,
                         isPlaying: isPlaying,
                         position: position,
                         duration: duration,
                         onPlayPause:
                             isPlaying
                                 ? handler.pause
-                                : () => _startChapterAudio(handler),
+                                : () =>
+                                    _audioMode == _ChapterAudioMode.range
+                                        ? _startRangeAudio(handler, _ayahRange!)
+                                        : _startChapterAudio(handler),
                         onStop: handler.stop,
                         formatDuration: _formatDuration,
                         onSeek: (value) {
-                          handler.seek(Duration(milliseconds: value.toInt()));
+                          final target = Duration(milliseconds: value.toInt());
+                          if (isActiveRange) {
+                            handler.seekInRange(target);
+                          } else {
+                            handler.seek(target);
+                          }
                         },
                       );
                     },
@@ -347,6 +470,215 @@ class _QuranChapterDetailPageState
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Ayah-range picker popup: a "from"/"to" range slider kept in sync with two
+/// typed number fields, either of which can drive the selection. If the
+/// currently-selected reciter has no per-ayah recordings, the range controls
+/// are hidden entirely (there's nothing to select) and a message asks the
+/// user to pick a different reciter instead — reactively, so choosing one
+/// from within this same dialog immediately reveals the controls.
+class _AyahRangeDialog extends ConsumerStatefulWidget {
+  const _AyahRangeDialog({required this.totalAyahs, required this.initialRange});
+
+  final int totalAyahs;
+  final RangeValues initialRange;
+
+  @override
+  ConsumerState<_AyahRangeDialog> createState() => _AyahRangeDialogState();
+}
+
+class _AyahRangeDialogState extends ConsumerState<_AyahRangeDialog> {
+  late RangeValues _range;
+  late final TextEditingController _fromController;
+  late final TextEditingController _toController;
+  late final FocusNode _fromFocus;
+  late final FocusNode _toFocus;
+
+  @override
+  void initState() {
+    super.initState();
+    _range = widget.initialRange;
+    _fromController = TextEditingController(text: '${_range.start.round()}');
+    _toController = TextEditingController(text: '${_range.end.round()}');
+    // Typed values are only validated once the user finishes (Done, or
+    // moving to another field) — validating on every keystroke would fight
+    // a multi-digit entry the moment its first digit briefly crosses the
+    // other bound (e.g. typing "100" passes through "1").
+    _fromFocus = FocusNode()..addListener(_onFromFocusChange);
+    _toFocus = FocusNode()..addListener(_onToFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _fromFocus.dispose();
+    _toFocus.dispose();
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
+  }
+
+  void _onFromFocusChange() {
+    if (!_fromFocus.hasFocus) _finalizeTyped();
+  }
+
+  void _onToFocusChange() {
+    if (!_toFocus.hasFocus) _finalizeTyped();
+  }
+
+  void _applySlider(RangeValues value) {
+    setState(() {
+      _range = value;
+      _fromController.text = '${value.start.round()}';
+      _toController.text = '${value.end.round()}';
+    });
+  }
+
+  /// Parses whatever is currently typed in both fields, clamps to
+  /// 1..totalAyahs, reorders if "from" ended up past "to", and applies the
+  /// result to the range + both fields' text.
+  void _finalizeTyped() {
+    final range = _clampedRangeFromText();
+    setState(() {
+      _range = range;
+      _fromController.text = '${range.start.round()}';
+      _toController.text = '${range.end.round()}';
+    });
+  }
+
+  RangeValues _clampedRangeFromText() {
+    final parsedFrom = int.tryParse(_fromController.text);
+    final parsedTo = int.tryParse(_toController.text);
+    var from = (parsedFrom ?? _range.start.round()).clamp(1, widget.totalAyahs);
+    var to = (parsedTo ?? _range.end.round()).clamp(1, widget.totalAyahs);
+    if (from > to) {
+      final swap = from;
+      from = to;
+      to = swap;
+    }
+    return RangeValues(from.toDouble(), to.toDouble());
+  }
+
+  void _openReciterPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ReciterSelectionDialog(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final reciter = ref.watch(selectedReciterProvider);
+    final perAyahAvailable = QuranAudioService.hasPerAyahAudio(
+      reciter?.relativePath,
+    );
+    final from = _range.start.round();
+    final to = _range.end.round();
+    final count = to - from + 1;
+
+    return AlertDialog(
+      title: Text(l10n.playAyahRangeLabel),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:
+              perAyahAvailable
+                  ? [
+                    Text(
+                      l10n.ayahRangeSummary(from, to, count),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextField(
+                        controller: _fromController,
+                        focusNode: _fromFocus,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          labelText: l10n.fromAyahFieldLabel,
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _finalizeTyped(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextField(
+                        controller: _toController,
+                        focusNode: _toFocus,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          labelText: l10n.toAyahFieldLabel,
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _finalizeTyped(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    RangeSlider(
+                      min: 1,
+                      max: widget.totalAyahs.toDouble(),
+                      divisions:
+                          widget.totalAyahs > 1 ? widget.totalAyahs - 1 : null,
+                      values: _range,
+                      labels: RangeLabels('$from', '$to'),
+                      onChanged: _applySlider,
+                    ),
+                  ]
+                  : [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: AppColors.primaryOnBg(context),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(l10n.reciterRangeUnavailableNotice),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: _openReciterPicker,
+                      icon: const Icon(Icons.record_voice_over),
+                      label: Text(l10n.chooseReciterTitle),
+                    ),
+                  ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          // Finalizes from the text fields directly rather than relying on
+          // _range, in case OK is tapped while a typed edit hasn't lost
+          // focus yet (so onSubmitted/the focus-change listener never ran).
+          onPressed:
+              perAyahAvailable
+                  ? () => Navigator.of(context).pop(_clampedRangeFromText())
+                  : null,
+          child: Text(l10n.ok),
+        ),
+      ],
     );
   }
 }

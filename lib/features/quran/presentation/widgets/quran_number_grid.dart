@@ -16,12 +16,14 @@ class QuranNumberGrid extends StatelessWidget {
     super.key,
     required this.count,
     required this.labelPrefix,
+    required this.itemTitle,
     required this.rangeProviderBuilder,
     this.query = '',
   });
 
   final int count;
   final String labelPrefix;
+  final String Function(int number) itemTitle;
   final ProviderListenable<AsyncValue<List<AyahWithSurah>>> Function(int number)
   rangeProviderBuilder;
   final String query;
@@ -64,7 +66,7 @@ class QuranNumberGrid extends StatelessWidget {
               MaterialPageRoute(
                 builder:
                     (_) => QuranRangeDetailPage(
-                      title: '$labelPrefix $number',
+                      title: itemTitle(number),
                       rangeProvider: rangeProviderBuilder(number),
                     ),
               ),

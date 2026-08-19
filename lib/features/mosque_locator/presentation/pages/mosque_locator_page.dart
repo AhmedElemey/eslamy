@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -47,8 +48,26 @@ class MosqueLocatorPage extends ConsumerWidget {
     if (state.error != null && state.mosques.isEmpty) {
       return _MessageView(
         icon: Icons.error_outline,
-        message: l10n.mosqueLocatorFailedWithError(state.error!),
+        message: l10n.mosqueLocatorFailedWithError(localizedError(l10n, state.error!)),
         onRetry: notifier.load,
+      );
+    }
+
+    if (state.locationIssue != null && state.mosques.isEmpty) {
+      final message = switch (state.locationIssue!) {
+        MosqueLocationIssue.permissionDenied =>
+          l10n.mosqueLocatorLocationDenied,
+        MosqueLocationIssue.permissionDeniedForever =>
+          l10n.mosqueLocatorLocationDeniedForever,
+        MosqueLocationIssue.servicesDisabled =>
+          l10n.mosqueLocatorLocationServicesOff,
+      };
+      return _MessageView(
+        icon: Icons.location_off_outlined,
+        message: message,
+        onRetry: notifier.load,
+        actionLabel: l10n.mosqueLocatorOpenSettings,
+        onAction: notifier.openSystemSettings,
       );
     }
 
@@ -62,7 +81,7 @@ class MosqueLocatorPage extends ConsumerWidget {
 
     final bannerCount =
         (state.isShowingStaleCache ? 1 : 0) +
-        (state.usingFallbackLocation ? 1 : 0);
+        (state.usingCachedGps ? 1 : 0);
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -77,10 +96,10 @@ class MosqueLocatorPage extends ConsumerWidget {
           }
           index -= 1;
         }
-        if (state.usingFallbackLocation) {
+        if (state.usingCachedGps) {
           if (index == 0) {
             return _FallbackLocationBanner(
-              text: l10n.mosqueLocatorApproximateLocation,
+              text: l10n.mosqueLocatorUsingLastKnownLocation,
             );
           }
           index -= 1;
@@ -134,7 +153,7 @@ class _MosqueTile extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 Text(
-                  l10n.mosqueLocatorDistance(_formatDistance(mosque.distanceMeters)),
+                  l10n.mosqueLocatorDistance(_formatDistance(context, mosque.distanceMeters)),
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.mutedText(context),
@@ -177,9 +196,10 @@ class _MosqueTile extends StatelessWidget {
     }
   }
 
-  String _formatDistance(double meters) {
-    if (meters < 1000) return '${meters.round()} m';
-    return '${(meters / 1000).toStringAsFixed(1)} km';
+  String _formatDistance(BuildContext context, double meters) {
+    final l10n = context.l10n;
+    if (meters < 1000) return l10n.distanceMeters(meters.round());
+    return l10n.distanceKilometers((meters / 1000).toStringAsFixed(1));
   }
 }
 
@@ -214,11 +234,15 @@ class _MessageView extends StatelessWidget {
     required this.icon,
     required this.message,
     required this.onRetry,
+    this.actionLabel,
+    this.onAction,
   });
 
   final IconData icon;
   final String message;
   final Future<void> Function() onRetry;
+  final String? actionLabel;
+  final Future<void> Function()? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -241,6 +265,15 @@ class _MessageView extends StatelessWidget {
             child: Text(l10n.retry),
           ),
         ),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: onAction,
+              child: Text(actionLabel!),
+            ),
+          ),
+        ],
       ],
     );
   }

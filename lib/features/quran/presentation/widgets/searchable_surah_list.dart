@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../controllers/quran_providers.dart';
@@ -26,7 +28,7 @@ class SearchableSurahList extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                l10n.failedToLoadSurahsWithError(e.toString()),
+                l10n.failedToLoadSurahsWithError(localizedError(l10n, e)),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -77,14 +79,26 @@ class SearchableSurahList extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: NumberSeal(label: '${chapter.number}'),
                 title: Text(
-                  chapter.englishName,
+                  localizedChapterName(
+                    context: context,
+                    arabicName: chapter.name,
+                    englishName: chapter.englishName,
+                  ),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
                   '$origin • ${l10n.versesCountCaps(chapter.numberOfAyahs)}',
                   style: TextStyle(color: textMuted),
                 ),
-                trailing: Text(
+                trailing: isArabicLocale(context)
+                    ? Text(
+                        chapter.englishName,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      )
+                    : Text(
                   chapter.name,
                   textDirection: TextDirection.rtl,
                   style: const TextStyle(
@@ -98,7 +112,11 @@ class SearchableSurahList extends ConsumerWidget {
                       builder:
                           (_) => QuranChapterDetailPage(
                             chapterNumber: chapter.number,
-                            chapterName: chapter.englishName,
+                            chapterName: localizedChapterName(
+                            context: context,
+                            arabicName: chapter.name,
+                            englishName: chapter.englishName,
+                          ),
                           ),
                     ),
                   );

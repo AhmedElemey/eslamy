@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/ayah_block.dart';
@@ -39,7 +41,9 @@ class QuranRangeDetailPage extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      context.l10n.couldNotLoadSectionWithError(e.toString()),
+                      context.l10n.couldNotLoadSectionWithError(
+                        localizedError(context.l10n, e),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -97,21 +101,26 @@ class _SurahHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              '${ayah.surahNumber}. ${ayah.surahEnglishName}',
+              '${ayah.surahNumber}. ${localizedChapterName(
+                context: context,
+                arabicName: ayah.surahArabicName,
+                englishName: ayah.surahEnglishName,
+              )}',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryOnBg(context),
               ),
             ),
           ),
-          Text(
-            ayah.surahArabicName,
-            textDirection: TextDirection.rtl,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryOnBg(context),
+          if (!isArabicLocale(context))
+            Text(
+              ayah.surahArabicName,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryOnBg(context),
+              ),
             ),
-          ),
         ],
       ),
     );

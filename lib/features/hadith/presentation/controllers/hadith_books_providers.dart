@@ -109,7 +109,9 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
       final narrator = h.narrator?.toLowerCase() ?? '';
       return body.contains(q) ||
           narrator.contains(q) ||
-          '${h.hadithNumber}' == q;
+          '${h.hadithNumber}' == q ||
+          (h.hadithNumber != null &&
+              h.hadithNumber!.toInt().toString() == q);
     }).toList();
   }
 }

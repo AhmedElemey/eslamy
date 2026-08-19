@@ -4,6 +4,7 @@ import '../../models/prayer_times.dart';
 import '../../service/location_service.dart';
 import '../../service/prayer_times_service.dart';
 import '../../../settings/service/settings_database.dart';
+import '../../../settings/presentation/controllers/language_providers.dart';
 import '../../../../core/notifications/notification_service.dart';
 
 final locationServiceProvider = Provider((ref) => LocationService());
@@ -140,6 +141,7 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       await NotificationService().scheduleAdhan(
         today: asMap(today),
         tomorrow: asMap(tomorrow),
+        l10n: await loadStoredLocalizations(),
       );
     } catch (_) {
       // Adhan scheduling is a side effect — never block or fail the main flow.

@@ -293,7 +293,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.pageBackground(context),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
@@ -327,8 +327,14 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       ),
       body: AppBackground(
         child: SafeArea(
+          bottom: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.paddingOf(context).bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -503,34 +509,41 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             if (tafsir.text.isEmpty) {
                               return Text(
                                 l10n.noTafseerAvailable,
-                                style: TextStyle(color: Colors.grey[600]),
+                                style: TextStyle(
+                                  color: AppColors.mutedText(context),
+                                ),
                               );
                             }
 
+                            final scheme = Theme.of(context).colorScheme;
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.grey[50],
+                                color: scheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[200]!),
+                                border: Border.all(
+                                  color: AppColors.hairline(context),
+                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     tafsir.editionName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
+                                      color: AppColors.heading(context),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     tafsir.text,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       height: 1.5,
+                                      color: AppColors.ayahText(context),
                                     ),
                                     textDirection: TextDirection.rtl,
                                     textAlign: TextAlign.right,
@@ -546,57 +559,61 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                   child: CircularProgressIndicator(),
                                 ),
                               ),
-                          error:
-                              (error, stack) => Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.red[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.red[200]!),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.error_outline,
-                                      color: Colors.red[600],
-                                      size: 32,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      l10n.failedToLoadTafseer,
-                                      style: TextStyle(
-                                        color: Colors.red[600],
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      error.toString(),
-                                      style: TextStyle(
-                                        color: Colors.red[600],
-                                        fontSize: 12,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ElevatedButton(
-                                      onPressed:
-                                          () => ref.refresh(
-                                            tafseerProvider((
-                                              chapterNumber:
-                                                  widget.chapterNumber,
-                                              verseNumber: widget.verseNumber,
-                                            )),
-                                          ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red[600],
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      child: Text(l10n.retry),
-                                    ),
-                                  ],
+                          error: (error, stack) {
+                            final scheme = Theme.of(context).colorScheme;
+                            return Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: scheme.errorContainer,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: scheme.error.withValues(alpha: 0.4),
                                 ),
                               ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: scheme.onErrorContainer,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.failedToLoadTafseer,
+                                    style: TextStyle(
+                                      color: scheme.onErrorContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    error.toString(),
+                                    style: TextStyle(
+                                      color: scheme.onErrorContainer,
+                                      fontSize: 12,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => ref.refresh(
+                                          tafseerProvider((
+                                            chapterNumber:
+                                                widget.chapterNumber,
+                                            verseNumber: widget.verseNumber,
+                                          )),
+                                        ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: scheme.error,
+                                      foregroundColor: scheme.onError,
+                                    ),
+                                    child: Text(l10n.retry),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

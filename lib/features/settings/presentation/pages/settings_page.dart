@@ -7,6 +7,7 @@ import '../controllers/settings_providers.dart';
 import '../controllers/theme_mode_providers.dart';
 import '../../service/settings_database.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
@@ -98,16 +99,16 @@ class SettingsPage extends ConsumerWidget {
                           (mode) => SegmentedButton<ThemeMode>(
                             segments: [
                               ButtonSegment(
-                                value: ThemeMode.system,
-                                label: Text(l10n.themeSystem),
-                              ),
-                              ButtonSegment(
                                 value: ThemeMode.light,
                                 label: Text(l10n.themeLight),
                               ),
                               ButtonSegment(
                                 value: ThemeMode.dark,
                                 label: Text(l10n.themeDark),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.system,
+                                label: Text(l10n.themeSystem),
                               ),
                             ],
                             selected: {mode},
@@ -120,7 +121,7 @@ class SettingsPage extends ConsumerWidget {
                       loading: () => const CircularProgressIndicator(),
                       error:
                           (e, _) =>
-                              Text(l10n.genericErrorWithMessage(e.toString())),
+                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
                     ),
                   ],
                 ),
@@ -162,7 +163,7 @@ class SettingsPage extends ConsumerWidget {
                       loading: () => const CircularProgressIndicator(),
                       error:
                           (e, _) =>
-                              Text(l10n.genericErrorWithMessage(e.toString())),
+                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
                     ),
                   ],
                 ),
@@ -221,7 +222,7 @@ class SettingsPage extends ConsumerWidget {
                       loading: () => const CircularProgressIndicator(),
                       error:
                           (e, _) =>
-                              Text(l10n.genericErrorWithMessage(e.toString())),
+                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
                     ),
                   ],
                 ),

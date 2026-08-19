@@ -62,6 +62,11 @@ class _SplashPageState extends State<SplashPage>
 
     _navigateTimer = Timer(_navigateAfter, () {
       if (!mounted) return;
+      // Only replace splash when it is still the current route. If the
+      // audio bubble already pushed `/now-playing` on top, `pushReplacementNamed`
+      // would replace *that* page with home and look like navigation "broke".
+      final route = ModalRoute.of(context);
+      if (route == null || !route.isCurrent) return;
       Navigator.of(context).pushReplacementNamed('/home');
     });
   }

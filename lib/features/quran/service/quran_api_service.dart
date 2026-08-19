@@ -38,10 +38,12 @@ class QuranApiService {
   Future<QuranChapterResponse> getChapter(int chapterNumber) async {
     try {
       final response = await _dio.get('/surah/$chapterNumber');
-      final Map<String, dynamic> data = response.data;
-      return QuranChapterResponse.fromJson(data);
+      return _parseChapterResponse(
+        response.data,
+        context: 'getChapter($chapterNumber)',
+      );
     } on DioException catch (e) {
-      debugPrint('DioException in getChapter: ${e.toString()}');
+      debugPrint('DioException in getChapter($chapterNumber): ${e.toString()}');
       throw _handleError(e);
     }
   }
@@ -52,13 +54,22 @@ class QuranApiService {
     int verseNumber,
   ) async {
     try {
-      final response = await _dio.get(
-        '/chapters/$chapterNumber/verses/$verseNumber',
+      // Al Quran Cloud: /ayah/{surah}:{ayah} — `/chapters/.../verses/` is a
+      // different API and 404s here.
+      final response = await _dio.get('/ayah/$chapterNumber:$verseNumber');
+      return _verseResponseFromAyahPayload(
+        response.data,
+        chapterNumber: chapterNumber,
+        verseNumber: verseNumber,
       );
-      return QuranVerseResponse.fromJson(response.data);
     } on DioException catch (e) {
-      debugPrint('DioException in getVerse: ${e.toString()}');
+      debugPrint(
+        'DioException in getVerse($chapterNumber:$verseNumber): ${e.toString()}',
+      );
       throw _handleError(e);
+    } catch (e, st) {
+      debugPrint('Failed parsing verse $chapterNumber:$verseNumber: $e\n$st');
+      rethrow;
     }
   }
 
@@ -67,10 +78,14 @@ class QuranApiService {
   Future<QuranChapterResponse> getChapterTajweed(int chapterNumber) async {
     try {
       final response = await _dio.get('/surah/$chapterNumber/quran-tajweed');
-      final Map<String, dynamic> data = response.data;
-      return QuranChapterResponse.fromJson(data);
+      return _parseChapterResponse(
+        response.data,
+        context: 'getChapterTajweed($chapterNumber)',
+      );
     } on DioException catch (e) {
-      debugPrint('DioException in getChapterTajweed: ${e.toString()}');
+      debugPrint(
+        'DioException in getChapterTajweed($chapterNumber): ${e.toString()}',
+      );
       throw _handleError(e);
     }
   }
@@ -83,11 +98,15 @@ class QuranApiService {
       final response = await _dio.get(
         '/ayah/$chapterNumber:$verseNumber/ar.jalalayn',
       );
-      final Map<String, dynamic> data = response.data;
-      return AyahTafsir.fromJson(data);
+      return AyahTafsir.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      debugPrint(e.toString());
+      debugPrint(
+        'DioException in getTafseer($chapterNumber:$verseNumber): ${e.toString()}',
+      );
       throw _handleError(e);
+    } catch (e, st) {
+      debugPrint('Failed parsing tafseer $chapterNumber:$verseNumber: $e\n$st');
+      rethrow;
     }
   }
 
@@ -146,10 +165,13 @@ class QuranApiService {
   }) async {
     try {
       final response = await _dio.get(
-        '/surah/$chapterNumber?edition=$editionIdentifier',
+        '/surah/$chapterNumber/$editionIdentifier',
       );
-      final Map<String, dynamic> data = response.data;
-      return QuranChapterResponse.fromJson(data);
+      return _parseChapterResponse(
+        response.data,
+        context:
+            'getChapterTranslation($chapterNumber, $editionIdentifier)',
+      );
     } on DioException catch (e) {
       debugPrint('DioException in getChapterTranslation: ${e.toString()}');
       throw _handleError(e);
@@ -160,12 +182,12 @@ class QuranApiService {
   Future<List<AyahWithSurah>> getJuz(int juzNumber) async {
     try {
       final response = await _dio.get('/juz/$juzNumber/quran-uthmani');
-      final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs
-          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
-          .toList();
+      return _parseAyahWithSurahList(
+        response.data,
+        context: 'getJuz($juzNumber)',
+      );
     } on DioException catch (e) {
-      debugPrint('DioException in getJuz: ${e.toString()}');
+      debugPrint('DioException in getJuz($juzNumber): ${e.toString()}');
       throw _handleError(e);
     }
   }
@@ -174,12 +196,12 @@ class QuranApiService {
   Future<List<AyahWithSurah>> getPage(int pageNumber) async {
     try {
       final response = await _dio.get('/page/$pageNumber/quran-uthmani');
-      final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs
-          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
-          .toList();
+      return _parseAyahWithSurahList(
+        response.data,
+        context: 'getPage($pageNumber)',
+      );
     } on DioException catch (e) {
-      debugPrint('DioException in getPage: ${e.toString()}');
+      debugPrint('DioException in getPage($pageNumber): ${e.toString()}');
       throw _handleError(e);
     }
   }
@@ -191,14 +213,104 @@ class QuranApiService {
       final response = await _dio.get(
         '/hizbQuarter/$quarterNumber/quran-uthmani',
       );
-      final List<dynamic> ayahs = response.data['data']['ayahs'];
-      return ayahs
-          .map((a) => AyahWithSurah.fromJson(a as Map<String, dynamic>))
-          .toList();
+      return _parseAyahWithSurahList(
+        response.data,
+        context: 'getHizbQuarter($quarterNumber)',
+      );
     } on DioException catch (e) {
-      debugPrint('DioException in getHizbQuarter: ${e.toString()}');
+      debugPrint(
+        'DioException in getHizbQuarter($quarterNumber): ${e.toString()}',
+      );
       throw _handleError(e);
     }
+  }
+
+  QuranChapterResponse _parseChapterResponse(
+    dynamic payload, {
+    required String context,
+  }) {
+    try {
+      if (payload is! Map<String, dynamic>) {
+        throw FormatException('$context: expected JSON object');
+      }
+      final parsed = QuranChapterResponse.fromJson(payload);
+      final expected = parsed.data.numberOfAyahs;
+      final actual = parsed.data.ayahs?.length;
+      if (actual != null && actual != expected) {
+        debugPrint(
+          '$context: ayah count $actual != numberOfAyahs $expected',
+        );
+      }
+      return parsed;
+    } catch (e, st) {
+      _logFailedAyahs(payload, context: context);
+      debugPrint('$context: chapter parse failed: $e\n$st');
+      rethrow;
+    }
+  }
+
+  void _logFailedAyahs(dynamic payload, {required String context}) {
+    final data = (payload is Map) ? payload['data'] : null;
+    final ayahs = (data is Map) ? data['ayahs'] : null;
+    if (ayahs is! List) return;
+    for (var i = 0; i < ayahs.length; i++) {
+      final raw = ayahs[i];
+      try {
+        QuranVerse.fromJson(raw as Map<String, dynamic>);
+      } catch (ayahError) {
+        final numberInSurah = (raw is Map) ? raw['numberInSurah'] : null;
+        debugPrint(
+          '$context: ayah[$i] numberInSurah=$numberInSurah failed: $ayahError',
+        );
+      }
+    }
+  }
+
+  QuranVerseResponse _verseResponseFromAyahPayload(
+    dynamic payload, {
+    required int chapterNumber,
+    required int verseNumber,
+  }) {
+    if (payload is! Map<String, dynamic>) {
+      throw FormatException(
+        'Unexpected ayah payload for $chapterNumber:$verseNumber',
+      );
+    }
+    final data = payload['data'];
+    if (data is! Map<String, dynamic>) {
+      throw FormatException('Ayah $chapterNumber:$verseNumber missing data');
+    }
+    final surah = data['surah'];
+    if (surah is! Map<String, dynamic>) {
+      throw FormatException('Ayah $chapterNumber:$verseNumber missing surah');
+    }
+    return QuranVerseResponse(
+      chapter: QuranChapter.fromJson(surah),
+      verse: QuranVerse.fromJson(data),
+    );
+  }
+
+  List<AyahWithSurah> _parseAyahWithSurahList(
+    dynamic payload, {
+    required String context,
+  }) {
+    final data = (payload is Map) ? payload['data'] : null;
+    final ayahs = (data is Map) ? data['ayahs'] : null;
+    if (ayahs is! List) {
+      debugPrint('$context: missing data.ayahs in ${payload.runtimeType}');
+      throw FormatException('$context: missing ayahs');
+    }
+    final parsed = <AyahWithSurah>[];
+    for (var i = 0; i < ayahs.length; i++) {
+      final raw = ayahs[i];
+      try {
+        parsed.add(AyahWithSurah.fromJson(raw as Map<String, dynamic>));
+      } catch (e, st) {
+        debugPrint('$context: ayah[$i] failed: $e\n$st');
+        rethrow;
+      }
+    }
+    return parsed;
   }
 
   Exception _handleError(DioException e) {

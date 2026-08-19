@@ -29,9 +29,16 @@ const hadithBooks = <HadithBook>[
   HadithBook(slug: 'dehlawi', name: "Shah Waliullah's 40 Hadith", editionSlug: 'eng-dehlawi'),
 ];
 
-int syntheticHadithId(String bookSlug, int hadithNumber) {
+int syntheticHadithId(String bookSlug, num hadithNumber) {
   final index = hadithBooks.indexWhere((b) => b.slug == bookSlug) + 1;
-  return index * 1000000 + hadithNumber;
+  // Whole numbers keep the historical id so existing favorites still match.
+  // Fractional numbers (402.2, 3533.3, …) used to be truncated with `.toInt()`,
+  // colliding with the integer hadith of the same floor and getting dropped
+  // by the cache PRIMARY KEY.
+  if (hadithNumber % 1 == 0) {
+    return index * 1000000 + hadithNumber.toInt();
+  }
+  return index * 1000000 + 500000 + (hadithNumber * 100).round();
 }
 
 /// Every book has a full `ara-<slug>` Arabic edition on the dataset, so
