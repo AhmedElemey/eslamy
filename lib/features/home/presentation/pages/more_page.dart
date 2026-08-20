@@ -13,6 +13,7 @@ import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../mosque_locator/presentation/pages/mosque_locator_page.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
 import '../../../quran/presentation/widgets/reciter_selection_widget.dart';
+import '../../../tafseer/presentation/pages/tafseer_index_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
 import '../../../../shared/widgets/shell_app_bar.dart';
@@ -48,6 +49,11 @@ class MorePage extends StatelessWidget {
         Icons.near_me_outlined,
         l10n.mosqueLocatorTitle,
         const MosqueLocatorPage(),
+      ),
+      _MoreItem(
+        Icons.auto_stories_outlined,
+        l10n.quranTafseerTitle,
+        const TafseerIndexPage(),
       ),
       _MoreItem(
         Icons.import_contacts_outlined,

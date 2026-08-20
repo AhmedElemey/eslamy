@@ -11,6 +11,7 @@ import 'core/network/connectivity_provider.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/settings/presentation/controllers/settings_providers.dart';
 import 'features/quran/presentation/pages/quran_index_page.dart';
+import 'features/tafseer/presentation/pages/tafseer_index_page.dart';
 import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -399,6 +400,7 @@ class MyApp extends ConsumerWidget {
         '/home': (_) => const MainShell(),
         '/settings': (_) => const SettingsPage(),
         '/quran': (_) => const QuranIndexPage(),
+        '/tafseer': (_) => const TafseerIndexPage(),
         '/now-playing': (_) => const QuranNowPlayingPage(),
         '/prayer-times': (_) => const PrayerTimesPage(),
         '/qibla': (_) => const QiblaPage(),

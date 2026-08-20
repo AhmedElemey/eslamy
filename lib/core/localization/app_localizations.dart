@@ -1450,6 +1450,12 @@ abstract class AppLocalizations {
   /// **'Digital Mushaf'**
   String get digitalMushaf;
 
+  /// No description provided for @quranTafseerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quran Tafseer'**
+  String get quranTafseerTitle;
+
   /// No description provided for @hifzProgress.
   ///
   /// In en, this message translates to:

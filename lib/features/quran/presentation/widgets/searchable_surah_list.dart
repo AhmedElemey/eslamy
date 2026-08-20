@@ -11,9 +11,18 @@ import '../pages/quran_chapter_detail_page.dart';
 /// The 114-chapter Surah list, filterable by [query] (English name, Arabic
 /// name, or chapter number) — used inside QuranIndexPage's search.
 class SearchableSurahList extends ConsumerWidget {
-  const SearchableSurahList({super.key, required this.query});
+  const SearchableSurahList({
+    super.key,
+    required this.query,
+    this.chapterPageBuilder,
+  });
 
   final String query;
+
+  /// Opens a custom chapter page (e.g. Tafseer). Defaults to the mushaf
+  /// [QuranChapterDetailPage].
+  final Widget Function(int chapterNumber, String chapterName)?
+      chapterPageBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,17 +116,23 @@ class SearchableSurahList extends ConsumerWidget {
                   ),
                 ),
                 onTap: () {
+                  final chapterName = localizedChapterName(
+                    context: context,
+                    arabicName: chapter.name,
+                    englishName: chapter.englishName,
+                  );
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder:
-                          (_) => QuranChapterDetailPage(
-                            chapterNumber: chapter.number,
-                            chapterName: localizedChapterName(
-                            context: context,
-                            arabicName: chapter.name,
-                            englishName: chapter.englishName,
-                          ),
-                          ),
+                          (_) =>
+                              chapterPageBuilder?.call(
+                                chapter.number,
+                                chapterName,
+                              ) ??
+                              QuranChapterDetailPage(
+                                chapterNumber: chapter.number,
+                                chapterName: chapterName,
+                              ),
                     ),
                   );
                 },

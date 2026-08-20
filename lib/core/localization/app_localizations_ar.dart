@@ -861,6 +861,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get digitalMushaf => 'المصحف الرقمي';
 
   @override
+  String get quranTafseerTitle => 'تفسير القرآن';
+
+  @override
   String get hifzProgress => 'تقدّم الحفظ';
 
   @override

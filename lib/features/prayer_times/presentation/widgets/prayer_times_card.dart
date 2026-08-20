@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/number_seal.dart';
 import '../../../home/presentation/controllers/shell_providers.dart';
 import '../controllers/prayer_times_providers.dart';
 import '../widgets/prayer_name_localizer.dart';
@@ -156,7 +157,7 @@ class _PrayerTimesCardState extends ConsumerState<PrayerTimesCard> {
               ),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, color: Colors.white70),
+            Icon(chevronFor(context), color: Colors.white70),
           ],
         ),
         const SizedBox(height: 14),

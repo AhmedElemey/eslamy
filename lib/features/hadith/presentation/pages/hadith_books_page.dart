@@ -5,6 +5,7 @@ import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/number_seal.dart';
 import '../../models/hadith_book.dart';
 import '../controllers/hadith_books_providers.dart';
 import 'hadith_book_detail_page.dart';
@@ -87,7 +88,7 @@ class _BookTile extends ConsumerWidget {
             error: (_, __) => const SizedBox.shrink(),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.chevron_right, color: AppColors.muted),
+          Icon(chevronFor(context), color: AppColors.muted),
         ],
       ),
     );

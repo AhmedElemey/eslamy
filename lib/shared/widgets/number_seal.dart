@@ -52,8 +52,8 @@ class IconSeal extends StatelessWidget {
   }
 }
 
-IconData chevronFor(BuildContext context) {
-  return Directionality.of(context) == TextDirection.rtl
-      ? Icons.chevron_left_rounded
-      : Icons.chevron_right_rounded;
-}
+/// Forward-disclosure chevron for list rows. `chevron_right_rounded` already
+/// mirrors itself in RTL (it has `matchTextDirection: true`), so picking
+/// `chevron_left_rounded` for RTL here would flip it a second time and point
+/// the wrong way — always use the one icon and let Flutter mirror it.
+IconData chevronFor(BuildContext context) => Icons.chevron_right_rounded;

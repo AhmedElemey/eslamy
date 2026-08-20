@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -32,10 +33,20 @@ class MainActivity : AudioServiceActivity() {
                     result.success(null)
                 }
                 "showBubble" -> {
-                    ContextCompat.startForegroundService(
-                        this,
-                        Intent(this, BubbleOverlayService::class.java),
-                    )
+                    // Best-effort: Android 12+ can reject a foreground-service
+                    // start with no Activity currently visible (e.g. playback
+                    // resuming from the lock-screen/notification while
+                    // backgrounded). The bubble is a nice-to-have, so swallow
+                    // that rather than let it surface as an opaque
+                    // PlatformException with nothing the caller can act on.
+                    try {
+                        ContextCompat.startForegroundService(
+                            this,
+                            Intent(this, BubbleOverlayService::class.java),
+                        )
+                    } catch (e: Exception) {
+                        Log.w("BubbleOverlay", "Failed to start bubble overlay service", e)
+                    }
                     result.success(null)
                 }
                 "hideBubble" -> {

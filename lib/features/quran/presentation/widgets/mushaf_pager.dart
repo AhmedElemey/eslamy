@@ -373,11 +373,7 @@ class _PagerBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _PillIconButton(
-                  // Rendered mirrored under this Row's own RTL ambient
-                  // Directionality despite the forced LTR layout order, so
-                  // chevron_right is the one that actually draws pointing
-                  // left here — verified visually, not just by icon name.
-                  icon: Icons.chevron_right_rounded,
+                  icon: Icons.chevron_left_rounded,
                   color: accent,
                   onTap: onPrev,
                   tooltip: l10n.mushafPreviousPageTooltip,
@@ -410,7 +406,7 @@ class _PagerBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 2),
                 _PillIconButton(
-                  icon: Icons.chevron_left_rounded,
+                  icon: Icons.chevron_right_rounded,
                   color: accent,
                   onTap: onNext,
                   tooltip: l10n.mushafNextPageTooltip,
@@ -448,7 +444,10 @@ class _PillIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onTap,
-      icon: Icon(icon),
+      // This bar is always laid out LTR (prev on the left, next on the
+      // right). Force LTR on the icon too so Arabic RTL doesn't mirror
+      // chevrons that already have matchTextDirection on the IconData.
+      icon: Icon(icon, textDirection: TextDirection.ltr),
       color: color,
       disabledColor: color.withValues(alpha: 0.3),
       tooltip: tooltip,

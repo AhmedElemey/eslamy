@@ -8,6 +8,7 @@ import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../hadith/presentation/pages/hadith_books_page.dart';
 import '../../../hajj_umrah/presentation/pages/hajj_umrah_home_page.dart';
 import '../../../hifz/presentation/pages/hifz_page.dart';
+import '../../../tafseer/presentation/pages/tafseer_index_page.dart';
 import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
@@ -62,6 +63,11 @@ class AppDrawer extends ConsumerWidget {
       ]),
       _DrawerSection(l10n.drawerSectionQuranStudy, [
         _DrawerItem(Icons.menu_book_rounded, l10n.digitalMushaf, tabIndex: 1),
+        _DrawerItem(
+          Icons.auto_stories_outlined,
+          l10n.quranTafseerTitle,
+          pageBuilder: () => const TafseerIndexPage(),
+        ),
         _DrawerItem(
           Icons.school_outlined,
           l10n.hifzProgress,

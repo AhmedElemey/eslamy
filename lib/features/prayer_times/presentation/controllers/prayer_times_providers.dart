@@ -129,6 +129,14 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
     try {
       final enabled = await SettingsDatabase().getAdhanEnabled();
       if (!enabled) return;
+      // Adhan is enabled by default, so this may be the first time we ever
+      // touch notification permissions for a given user — without this,
+      // Android 13+ silently drops every scheduled alert because
+      // POST_NOTIFICATIONS was never granted (iOS prompts happen earlier,
+      // inside NotificationService.init()). Safe to call on every load:
+      // once the OS has recorded a decision, requesting again is a no-op
+      // that doesn't re-show any dialog.
+      await NotificationService().requestPermissions();
       final tomorrow = await _service.fetchTimings(
         latitude: lat,
         longitude: lng,

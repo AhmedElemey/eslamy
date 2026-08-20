@@ -857,6 +857,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get digitalMushaf => 'Mushaf digitale';
 
   @override
+  String get quranTafseerTitle => 'Tafsir del Corano';
+
+  @override
   String get hifzProgress => 'Progresso Hifz';
 
   @override
