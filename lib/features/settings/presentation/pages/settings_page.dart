@@ -6,6 +6,7 @@ import '../controllers/language_providers.dart';
 import '../controllers/settings_providers.dart';
 import '../controllers/theme_mode_providers.dart';
 import '../../service/settings_database.dart';
+import 'widget_customization_page.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/notifications/notification_service.dart';
@@ -13,6 +14,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/number_seal.dart';
 
 /// Icon-badge + title used at the top of every settings card, matching the
 /// icon-in-rounded-box language used in the drawer and quick-access tiles.
@@ -356,6 +358,54 @@ class SettingsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     const _AdhanToggleRow(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              GlassCard(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const WidgetCustomizationPage(),
+                    ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.widgets_outlined,
+                        color: AppColors.primary,
+                        size: 17,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.sectionHomeWidget,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Text(
+                            l10n.homeWidgetDescription,
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      chevronFor(context),
+                      color: AppColors.mutedText(context),
+                    ),
                   ],
                 ),
               ),

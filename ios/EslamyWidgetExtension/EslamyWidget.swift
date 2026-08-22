@@ -18,6 +18,31 @@ enum EslamyWidgetKind: Int, CaseIterable {
         case .hijriDate: return "calendar"
         }
     }
+
+    /// Matches WidgetContentKind.storageKey on the Flutter side — the token
+    /// used inside the `widget_enabled_kinds` CSV list written by
+    /// WidgetDataService.pushEnabledKinds.
+    var storageKey: String {
+        switch self {
+        case .prayer: return "prayer"
+        case .ayah: return "ayah"
+        case .dua: return "dua"
+        case .hijriDate: return "hijri"
+        }
+    }
+}
+
+/// The kinds the user has switched on in-app (WidgetCustomizationPage),
+/// falling back to every kind if the preference hasn't synced yet (e.g.
+/// right after install) or came back empty/unparseable.
+func enabledKinds() -> [EslamyWidgetKind] {
+    let defaults = UserDefaults(suiteName: appGroupId)
+    guard let raw = defaults?.string(forKey: "widget_enabled_kinds"), !raw.isEmpty else {
+        return EslamyWidgetKind.allCases
+    }
+    let tokens = Set(raw.split(separator: ",").map(String.init))
+    let kinds = EslamyWidgetKind.allCases.filter { tokens.contains($0.storageKey) }
+    return kinds.isEmpty ? EslamyWidgetKind.allCases : kinds
 }
 
 struct EslamyWidgetContent {
@@ -88,20 +113,22 @@ struct EslamyWidgetProvider: TimelineProvider {
         completion(EslamyWidgetEntry(date: Date(), content: content(for: .ayah)))
     }
 
-    /// Rotates prayer -> ayah -> dua every 3 hours across the next 24h, so
-    /// the widget keeps cycling on its own even if the app is never
-    /// reopened. Each precomputed entry re-reads whatever Flutter most
-    /// recently wrote to the App Group at the time this timeline is built;
-    /// the app also calls WidgetCenter.reloadTimelines (via
-    /// HomeWidget.updateWidget) whenever it has fresher data, which
-    /// regenerates this timeline immediately instead of waiting.
+    /// Rotates through the user's enabled kinds (WidgetCustomizationPage)
+    /// every 3 hours across the next 24h, so the widget keeps cycling on its
+    /// own even if the app is never reopened. Each precomputed entry
+    /// re-reads whatever Flutter most recently wrote to the App Group at the
+    /// time this timeline is built; the app also calls
+    /// WidgetCenter.reloadTimelines (via HomeWidget.updateWidget) whenever
+    /// it has fresher data — including a changed enabled-kinds selection —
+    /// which regenerates this timeline immediately instead of waiting.
     func getTimeline(in context: Context, completion: @escaping (Timeline<EslamyWidgetEntry>) -> Void) {
         let now = Date()
         let hoursPerSlot = 3
         let slotCount = 24 / hoursPerSlot
+        let kinds = enabledKinds()
         let entries: [EslamyWidgetEntry] = (0..<slotCount).map { i in
             let date = Calendar.current.date(byAdding: .hour, value: i * hoursPerSlot, to: now) ?? now
-            let kind = EslamyWidgetKind.allCases[i % EslamyWidgetKind.allCases.count]
+            let kind = kinds[i % kinds.count]
             return EslamyWidgetEntry(date: date, content: content(for: kind))
         }
         let timeline = Timeline(entries: entries, policy: .after(entries.last?.date ?? now))
@@ -174,7 +201,7 @@ struct EslamyWidget: Widget {
             EslamyWidgetView(entry: entry)
         }
         .configurationDisplayName("Eslamy")
-        .description("Rotates between the next prayer, ayah of the day, and dua of the day.")
+        .description("Rotates between the content kinds enabled in the app: next prayer, ayah of the day, dua of the day, and today's Hijri date.")
         .supportedFamilies([.systemMedium])
     }
 }

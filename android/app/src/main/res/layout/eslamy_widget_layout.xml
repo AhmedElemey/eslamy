@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Medium home-screen widget (~4x2 cells). One shared layout rotates
-     between three content "kinds" (next prayer / ayah of the day / dua of
-     the day) picked by EslamyWidgetProvider — RemoteViews only supports a
-     single static layout per provider, so the kicker/primary/secondary
-     TextViews are relabeled in Kotlin rather than swapping layouts. -->
+     between the content "kinds" the user has enabled in-app (next prayer /
+     ayah of the day / dua of the day / today's Hijri date), picked by
+     EslamyWidgetProvider — RemoteViews only supports a single static layout
+     per provider, so the kicker/primary/secondary TextViews are relabeled
+     in Kotlin rather than swapping layouts. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/eslamy_widget_root"

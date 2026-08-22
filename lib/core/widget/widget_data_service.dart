@@ -1,5 +1,7 @@
 import 'package:home_widget/home_widget.dart';
 
+import 'widget_content_kind.dart';
+
 /// Bridges Flutter data to the native home-screen and Lock Screen widgets
 /// (iOS WidgetKit extension `EslamyWidgetExtension` / Android
 /// `EslamyWidgetProvider`).
@@ -56,6 +58,22 @@ class WidgetDataService {
     required String primary,
     required String secondary,
   }) => _push('hijri', kicker: kicker, primary: primary, secondary: secondary);
+
+  /// Tells the native rotating home-screen widget which kinds the user has
+  /// switched on (see WidgetCustomizationPage) and their rotation order.
+  /// Only reloads `EslamyWidget` — the single-purpose Lock Screen widgets
+  /// each show one kind regardless of this setting, so they don't need it.
+  static Future<void> pushEnabledKinds(List<WidgetContentKind> kinds) async {
+    await HomeWidget.setAppGroupId(_appGroupId);
+    await HomeWidget.saveWidgetData<String>(
+      'widget_enabled_kinds',
+      kinds.map((k) => k.storageKey).join(','),
+    );
+    await HomeWidget.updateWidget(
+      androidName: _androidProviderName,
+      iOSName: 'EslamyWidget',
+    );
+  }
 
   static Future<void> _push(
     String prefix, {

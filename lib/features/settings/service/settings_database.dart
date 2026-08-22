@@ -2,6 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 
+import '../../../core/widget/widget_content_kind.dart';
+
 class SettingsDatabase {
   static final SettingsDatabase _instance = SettingsDatabase._internal();
   factory SettingsDatabase() => _instance;
@@ -81,4 +83,25 @@ class SettingsDatabase {
 
   Future<void> setAdhanEnabled(bool enabled) =>
       setValue('adhan_enabled', enabled ? '1' : '0');
+
+  /// The content kinds rotating through the home-screen widget, and their
+  /// order. Defaults to every kind enabled — matches the widget's behavior
+  /// before this preference existed.
+  Future<List<WidgetContentKind>> getWidgetEnabledKinds() async {
+    final val = await getValue('widget_enabled_kinds');
+    if (val == null || val.isEmpty) return WidgetContentKind.values;
+    final kinds =
+        val
+            .split(',')
+            .map(WidgetContentKindX.fromStorageKey)
+            .whereType<WidgetContentKind>()
+            .toList();
+    return kinds.isEmpty ? WidgetContentKind.values : kinds;
+  }
+
+  Future<void> setWidgetEnabledKinds(List<WidgetContentKind> kinds) =>
+      setValue(
+        'widget_enabled_kinds',
+        kinds.map((k) => k.storageKey).join(','),
+      );
 }

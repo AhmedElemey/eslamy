@@ -70,6 +70,11 @@
   "homeHighlightDuaOfDayError": "Couldn't load today's dua",
   "widgetNextPrayerTitle": "NEXT PRAYER",
   "widgetHijriDateTitle": "TODAY'S HIJRI DATE",
+  "sectionHomeWidget": "Home Widget",
+  "homeWidgetDescription": "Choose what shows on your home screen widget",
+  "widgetCustomizationIntro": "Turn items on or off to control what rotates through your home screen widget. Each preview below matches what you'll see there.",
+  "widgetCustomizationMinimumOneRequired": "Keep at least one item on.",
+  "widgetCustomizationLockScreenNote": "Lock Screen widgets you add yourself always show a single topic and aren't affected by this.",
 
   "favoritesTitle": "Favorites",
   "bookmarkedHadiths": "Bookmarked Hadiths",

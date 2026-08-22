@@ -448,6 +448,36 @@ abstract class AppLocalizations {
   /// **'TODAY\'S HIJRI DATE'**
   String get widgetHijriDateTitle;
 
+  /// No description provided for @sectionHomeWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Widget'**
+  String get sectionHomeWidget;
+
+  /// No description provided for @homeWidgetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what shows on your home screen widget'**
+  String get homeWidgetDescription;
+
+  /// No description provided for @widgetCustomizationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn items on or off to control what rotates through your home screen widget. Each preview below matches what you\'ll see there.'**
+  String get widgetCustomizationIntro;
+
+  /// No description provided for @widgetCustomizationMinimumOneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one item on.'**
+  String get widgetCustomizationMinimumOneRequired;
+
+  /// No description provided for @widgetCustomizationLockScreenNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Screen widgets you add yourself always show a single topic and aren\'t affected by this.'**
+  String get widgetCustomizationLockScreenNote;
+
   /// No description provided for @favoritesTitle.
   ///
   /// In en, this message translates to:

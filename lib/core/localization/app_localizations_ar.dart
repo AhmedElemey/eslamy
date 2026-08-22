@@ -211,6 +211,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetHijriDateTitle => 'التاريخ الهجري اليوم';
 
   @override
+  String get sectionHomeWidget => 'أداة الشاشة الرئيسية';
+
+  @override
+  String get homeWidgetDescription => 'اختر ما يظهر في أداة الشاشة الرئيسية';
+
+  @override
+  String get widgetCustomizationIntro =>
+      'فعّل أو عطّل العناصر للتحكم فيما يظهر بالتناوب في أداة الشاشة الرئيسية. المعاينة أدناه تطابق ما سيظهر هناك.';
+
+  @override
+  String get widgetCustomizationMinimumOneRequired =>
+      'أبقِ عنصرًا واحدًا على الأقل مفعّلاً.';
+
+  @override
+  String get widgetCustomizationLockScreenNote =>
+      'أدوات شاشة القفل التي تضيفها بنفسك تعرض دائمًا موضوعًا واحدًا ولا تتأثر بهذا الإعداد.';
+
+  @override
   String get favoritesTitle => 'المفضلة';
 
   @override

@@ -74,8 +74,10 @@
                 android:value="quran_now_playing_bubble" />
         </service>
 
-        <!-- Home-screen widget rotating next prayer / ayah of the day / dua
-             of the day; data is written by lib/core/widget/widget_data_service.dart. -->
+        <!-- Home-screen widget rotating through the content kinds the user
+             enables in-app (next prayer / ayah of the day / dua of the day /
+             today's Hijri date); data is written by
+             lib/core/widget/widget_data_service.dart. -->
         <receiver
             android:name=".EslamyWidgetProvider"
             android:exported="true">

@@ -64,6 +64,11 @@
   "homeHighlightDuaOfDayError": "Impossibile caricare la dua di oggi",
   "widgetNextPrayerTitle": "PROSSIMA PREGHIERA",
   "widgetHijriDateTitle": "DATA ISLAMICA DI OGGI",
+  "sectionHomeWidget": "Widget Home",
+  "homeWidgetDescription": "Scegli cosa mostrare nel widget della schermata Home",
+  "widgetCustomizationIntro": "Attiva o disattiva gli elementi per controllare cosa ruota nel widget della schermata Home. L'anteprima qui sotto corrisponde a quello che vedrai lì.",
+  "widgetCustomizationMinimumOneRequired": "Mantieni almeno un elemento attivo.",
+  "widgetCustomizationLockScreenNote": "I widget della Lock Screen aggiunti manualmente mostrano sempre un solo argomento e non sono influenzati da questa impostazione.",
 
   "favoritesTitle": "Preferiti",
   "bookmarkedHadiths": "Hadith salvati",

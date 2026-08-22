@@ -209,6 +209,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetHijriDateTitle => 'TODAY\'S HIJRI DATE';
 
   @override
+  String get sectionHomeWidget => 'Home Widget';
+
+  @override
+  String get homeWidgetDescription =>
+      'Choose what shows on your home screen widget';
+
+  @override
+  String get widgetCustomizationIntro =>
+      'Turn items on or off to control what rotates through your home screen widget. Each preview below matches what you\'ll see there.';
+
+  @override
+  String get widgetCustomizationMinimumOneRequired =>
+      'Keep at least one item on.';
+
+  @override
+  String get widgetCustomizationLockScreenNote =>
+      'Lock Screen widgets you add yourself always show a single topic and aren\'t affected by this.';
+
+  @override
   String get favoritesTitle => 'Favorites';
 
   @override

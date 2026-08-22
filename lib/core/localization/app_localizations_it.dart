@@ -212,6 +212,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get widgetHijriDateTitle => 'DATA ISLAMICA DI OGGI';
 
   @override
+  String get sectionHomeWidget => 'Widget Home';
+
+  @override
+  String get homeWidgetDescription =>
+      'Scegli cosa mostrare nel widget della schermata Home';
+
+  @override
+  String get widgetCustomizationIntro =>
+      'Attiva o disattiva gli elementi per controllare cosa ruota nel widget della schermata Home. L\'anteprima qui sotto corrisponde a quello che vedrai lì.';
+
+  @override
+  String get widgetCustomizationMinimumOneRequired =>
+      'Mantieni almeno un elemento attivo.';
+
+  @override
+  String get widgetCustomizationLockScreenNote =>
+      'I widget della Lock Screen aggiunti manualmente mostrano sempre un solo argomento e non sono influenzati da questa impostazione.';
+
+  @override
   String get favoritesTitle => 'Preferiti';
 
   @override

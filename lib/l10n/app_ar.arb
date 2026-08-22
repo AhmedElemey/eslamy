@@ -64,6 +64,11 @@
   "homeHighlightDuaOfDayError": "تعذّر تحميل دعاء اليوم",
   "widgetNextPrayerTitle": "الصلاة القادمة",
   "widgetHijriDateTitle": "التاريخ الهجري اليوم",
+  "sectionHomeWidget": "أداة الشاشة الرئيسية",
+  "homeWidgetDescription": "اختر ما يظهر في أداة الشاشة الرئيسية",
+  "widgetCustomizationIntro": "فعّل أو عطّل العناصر للتحكم فيما يظهر بالتناوب في أداة الشاشة الرئيسية. المعاينة أدناه تطابق ما سيظهر هناك.",
+  "widgetCustomizationMinimumOneRequired": "أبقِ عنصرًا واحدًا على الأقل مفعّلاً.",
+  "widgetCustomizationLockScreenNote": "أدوات شاشة القفل التي تضيفها بنفسك تعرض دائمًا موضوعًا واحدًا ولا تتأثر بهذا الإعداد.",
 
   "favoritesTitle": "المفضلة",
   "bookmarkedHadiths": "الأحاديث المحفوظة",
