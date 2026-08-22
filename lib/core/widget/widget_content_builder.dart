@@ -71,6 +71,41 @@ class WidgetContentBuilder {
         .toList();
   }
 
+  /// Today's real Gregorian date, compact enough for the Prayer card's
+  /// header row (e.g. "Sat 22 Aug") — same weekday/month names already
+  /// used for the full date in AppDrawer, just shortened to 3 characters
+  /// so it fits next to the kicker without pushing the row's width budget
+  /// over what a narrow widget can render without truncating.
+  static String prayerDateCompact(AppLocalizations l10n) {
+    final now = DateTime.now();
+    final weekdays = [
+      l10n.weekdayMonday,
+      l10n.weekdayTuesday,
+      l10n.weekdayWednesday,
+      l10n.weekdayThursday,
+      l10n.weekdayFriday,
+      l10n.weekdaySaturday,
+      l10n.weekdaySunday,
+    ];
+    final months = [
+      l10n.monthJanuary,
+      l10n.monthFebruary,
+      l10n.monthMarch,
+      l10n.monthApril,
+      l10n.monthMay,
+      l10n.monthJune,
+      l10n.monthJuly,
+      l10n.monthAugust,
+      l10n.monthSeptember,
+      l10n.monthOctober,
+      l10n.monthNovember,
+      l10n.monthDecember,
+    ];
+    return '${_short(weekdays[now.weekday - 1])} ${now.day} ${_short(months[now.month - 1])}';
+  }
+
+  static String _short(String s) => s.length <= 3 ? s : s.substring(0, 3);
+
   static WidgetContent ayah(AyahOfTheDay ayah, AppLocalizations l10n) =>
       WidgetContent(
         kind: WidgetContentKind.ayah,

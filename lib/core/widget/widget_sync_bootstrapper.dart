@@ -100,7 +100,12 @@ class _WidgetSyncBootstrapperState
       secondary: content.secondary,
     );
     final schedule = WidgetContentBuilder.prayerSchedule(state, l10n);
-    if (schedule != null) WidgetDataService.pushPrayerSchedule(schedule);
+    if (schedule != null) {
+      WidgetDataService.pushPrayerSchedule(
+        schedule,
+        date: WidgetContentBuilder.prayerDateCompact(l10n),
+      );
+    }
   }
 
   void _pushAyah(AyahOfTheDay ayah, AppLocalizations l10n) {

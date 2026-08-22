@@ -43,6 +43,23 @@
             android:singleLine="true"
             android:ellipsize="end"
             tools:text="NEXT PRAYER" />
+
+        <!-- Today's real Gregorian date (e.g. "Sat 22 Aug") — computed
+             fresh on every push, see WidgetContentBuilder.prayerDateCompact,
+             never a static/placeholder string. Short by design so this row
+             stays well under a narrow widget's width budget. -->
+        <TextView
+            android:id="@+id/eslamy_prayer_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="#6B736F"
+            android:textSize="11sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:maxWidth="90dp"
+            android:textDirection="locale"
+            tools:text="Sat 22 Aug" />
     </LinearLayout>
 
     <TextView

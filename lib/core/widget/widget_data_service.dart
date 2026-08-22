@@ -62,12 +62,14 @@ class WidgetDataService {
 
   /// Feeds the Android home-screen widget's dedicated Prayer-kind layout
   /// (eslamy_widget_prayer_layout.xml) — the 5-column "today's schedule"
-  /// row with the current/next prayer highlighted. iOS doesn't render this
-  /// yet, but `EslamyWidget` is still reloaded so it stays consistent with
-  /// every other push in this class.
+  /// row with the current/next prayer highlighted, plus [date] (today's
+  /// real Gregorian date, e.g. "Sat 22 Aug") shown in the header row. iOS
+  /// doesn't render any of this yet, but `EslamyWidget` is still reloaded
+  /// so it stays consistent with every other push in this class.
   static Future<void> pushPrayerSchedule(
-    List<PrayerScheduleEntry> entries,
-  ) async {
+    List<PrayerScheduleEntry> entries, {
+    required String date,
+  }) async {
     await HomeWidget.setAppGroupId(_appGroupId);
     await HomeWidget.saveWidgetData<String>(
       'widget_prayer_names',
@@ -81,6 +83,7 @@ class WidgetDataService {
       'widget_prayer_next_index',
       entries.indexWhere((e) => e.isNext),
     );
+    await HomeWidget.saveWidgetData<String>('widget_prayer_date', date);
     await HomeWidget.updateWidget(
       androidName: _androidProviderName,
       iOSName: 'EslamyWidget',
