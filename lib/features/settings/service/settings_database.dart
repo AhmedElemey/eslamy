@@ -99,9 +99,8 @@ class SettingsDatabase {
     return kinds.isEmpty ? WidgetContentKind.values : kinds;
   }
 
-  Future<void> setWidgetEnabledKinds(List<WidgetContentKind> kinds) =>
-      setValue(
-        'widget_enabled_kinds',
-        kinds.map((k) => k.storageKey).join(','),
-      );
+  Future<void> setWidgetEnabledKinds(List<WidgetContentKind> kinds) => setValue(
+    'widget_enabled_kinds',
+    kinds.map((k) => k.storageKey).join(','),
+  );
 }

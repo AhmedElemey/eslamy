@@ -26,8 +26,7 @@ class WidgetPreferencesController
     final current = (state.valueOrNull ?? WidgetContentKind.values).toSet();
     if (!current.remove(kind)) current.add(kind);
     if (current.isEmpty) return;
-    final ordered =
-        WidgetContentKind.values.where(current.contains).toList();
+    final ordered = WidgetContentKind.values.where(current.contains).toList();
     await setEnabledKinds(ordered);
   }
 }
