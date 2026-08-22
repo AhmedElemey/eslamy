@@ -1360,6 +1360,42 @@ abstract class AppLocalizations {
   /// **'Tap the circle to count. Your progress is saved automatically.'**
   String get tapCircleHint;
 
+  /// No description provided for @addCustomDhikrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Custom Dhikr'**
+  String get addCustomDhikrTitle;
+
+  /// No description provided for @customDhikrTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhikr or dua'**
+  String get customDhikrTextLabel;
+
+  /// No description provided for @customDhikrTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target count'**
+  String get customDhikrTargetLabel;
+
+  /// No description provided for @customDhikrTextRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a dhikr or dua'**
+  String get customDhikrTextRequired;
+
+  /// No description provided for @customDhikrTargetInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a target greater than 0'**
+  String get customDhikrTargetInvalid;
+
+  /// No description provided for @addButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addButton;
+
   /// No description provided for @duasAzkarTitle.
   ///
   /// In en, this message translates to:

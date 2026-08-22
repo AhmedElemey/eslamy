@@ -234,6 +234,12 @@
   "targetReached": "تم بلوغ الهدف ✓",
   "targetLabel": "الهدف: {target}",
   "tapCircleHint": "اضغط على الدائرة للعد. يُحفظ تقدمك تلقائيًا.",
+  "addCustomDhikrTitle": "إضافة ذكر مخصص",
+  "customDhikrTextLabel": "الذكر أو الدعاء",
+  "customDhikrTargetLabel": "عدد الهدف",
+  "customDhikrTextRequired": "أدخل ذكرًا أو دعاءً",
+  "customDhikrTargetInvalid": "أدخل هدفًا أكبر من 0",
+  "addButton": "إضافة",
 
   "duasAzkarTitle": "الأدعية والأذكار",
   "couldNotLoadAzkarWithError": "تعذّر تحميل الأذكار\n{error}",

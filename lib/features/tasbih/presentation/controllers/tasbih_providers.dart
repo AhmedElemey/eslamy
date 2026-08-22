@@ -9,13 +9,23 @@ final tasbihPreferencesServiceProvider = Provider(
 class TasbihState {
   final DhikrPreset preset;
   final int count;
+  final List<DhikrPreset> customPresets;
 
-  const TasbihState({required this.preset, required this.count});
+  const TasbihState({
+    required this.preset,
+    required this.count,
+    this.customPresets = const [],
+  });
 
-  TasbihState copyWith({DhikrPreset? preset, int? count}) {
+  TasbihState copyWith({
+    DhikrPreset? preset,
+    int? count,
+    List<DhikrPreset>? customPresets,
+  }) {
     return TasbihState(
       preset: preset ?? this.preset,
       count: count ?? this.count,
+      customPresets: customPresets ?? this.customPresets,
     );
   }
 }
@@ -29,14 +39,19 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
   final TasbihPreferencesService _prefs;
 
   Future<void> _restore() async {
+    final customPresets = await _prefs.getCustomPresets();
     final savedId = await _prefs.getSelectedPresetId();
-    final preset = dhikrPresets.firstWhere(
-      (p) => p.id == savedId,
-      orElse: () => dhikrPresets.first,
-    );
+    final preset = [
+      ...dhikrPresets,
+      ...customPresets,
+    ].firstWhere((p) => p.id == savedId, orElse: () => dhikrPresets.first);
     final count = await _prefs.getCount(preset.id);
     if (!mounted) return;
-    state = TasbihState(preset: preset, count: count);
+    state = TasbihState(
+      preset: preset,
+      count: count,
+      customPresets: customPresets,
+    );
   }
 
   Future<void> increment() async {
@@ -53,8 +68,26 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
   Future<void> selectPreset(DhikrPreset preset) async {
     final count = await _prefs.getCount(preset.id);
     if (!mounted) return;
-    state = TasbihState(preset: preset, count: count);
+    state = state.copyWith(preset: preset, count: count);
     await _prefs.setSelectedPresetId(preset.id);
+  }
+
+  /// Adds a dhikr/dua the user typed in themselves (see the "Custom" dialog
+  /// on TasbihPage), persists it alongside the built-in presets, and
+  /// switches straight to it.
+  Future<void> addCustomPreset({
+    required String arabicText,
+    required int target,
+  }) async {
+    final preset = DhikrPreset(
+      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+      arabic: arabicText,
+      englishName: arabicText,
+      target: target,
+    );
+    await _prefs.addCustomPreset(preset);
+    state = state.copyWith(customPresets: [...state.customPresets, preset]);
+    await selectPreset(preset);
   }
 }
 

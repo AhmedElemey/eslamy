@@ -234,6 +234,12 @@
   "targetReached": "Obiettivo raggiunto ✓",
   "targetLabel": "Obiettivo: {target}",
   "tapCircleHint": "Tocca il cerchio per contare. Il tuo progresso viene salvato automaticamente.",
+  "addCustomDhikrTitle": "Aggiungi dhikr personalizzato",
+  "customDhikrTextLabel": "Dhikr o dua",
+  "customDhikrTargetLabel": "Numero obiettivo",
+  "customDhikrTextRequired": "Inserisci un dhikr o una dua",
+  "customDhikrTargetInvalid": "Inserisci un obiettivo maggiore di 0",
+  "addButton": "Aggiungi",
 
   "duasAzkarTitle": "Dua e Azkar",
   "couldNotLoadAzkarWithError": "Impossibile caricare gli Azkar\n{error}",

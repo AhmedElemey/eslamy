@@ -832,6 +832,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tapCircleHint => 'اضغط على الدائرة للعد. يُحفظ تقدمك تلقائيًا.';
 
   @override
+  String get addCustomDhikrTitle => 'إضافة ذكر مخصص';
+
+  @override
+  String get customDhikrTextLabel => 'الذكر أو الدعاء';
+
+  @override
+  String get customDhikrTargetLabel => 'عدد الهدف';
+
+  @override
+  String get customDhikrTextRequired => 'أدخل ذكرًا أو دعاءً';
+
+  @override
+  String get customDhikrTargetInvalid => 'أدخل هدفًا أكبر من 0';
+
+  @override
+  String get addButton => 'إضافة';
+
+  @override
   String get duasAzkarTitle => 'الأدعية والأذكار';
 
   @override

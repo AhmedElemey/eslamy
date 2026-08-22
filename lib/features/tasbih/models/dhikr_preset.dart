@@ -10,6 +10,20 @@ class DhikrPreset {
     required this.englishName,
     required this.target,
   });
+
+  factory DhikrPreset.fromJson(Map<String, dynamic> json) => DhikrPreset(
+    id: json['id'] as String,
+    arabic: json['arabic'] as String,
+    englishName: json['englishName'] as String,
+    target: json['target'] as int,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'arabic': arabic,
+    'englishName': englishName,
+    'target': target,
+  };
 }
 
 const List<DhikrPreset> dhikrPresets = [
