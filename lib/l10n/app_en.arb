@@ -279,6 +279,12 @@
   "targetLabel": "Target: {target}",
   "@targetLabel": {"placeholders": {"target": {"type": "int"}}},
   "tapCircleHint": "Tap the circle to count. Your progress is saved automatically.",
+  "addCustomDhikrTitle": "Add Custom Dhikr",
+  "customDhikrTextLabel": "Dhikr or dua",
+  "customDhikrTargetLabel": "Target count",
+  "customDhikrTextRequired": "Enter a dhikr or dua",
+  "customDhikrTargetInvalid": "Enter a target greater than 0",
+  "addButton": "Add",
 
   "duasAzkarTitle": "Duas & Azkar",
   "couldNotLoadAzkarWithError": "Could not load Azkar\n{error}",

@@ -827,6 +827,24 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tocca il cerchio per contare. Il tuo progresso viene salvato automaticamente.';
 
   @override
+  String get addCustomDhikrTitle => 'Aggiungi dhikr personalizzato';
+
+  @override
+  String get customDhikrTextLabel => 'Dhikr o dua';
+
+  @override
+  String get customDhikrTargetLabel => 'Numero obiettivo';
+
+  @override
+  String get customDhikrTextRequired => 'Inserisci un dhikr o una dua';
+
+  @override
+  String get customDhikrTargetInvalid => 'Inserisci un obiettivo maggiore di 0';
+
+  @override
+  String get addButton => 'Aggiungi';
+
+  @override
   String get duasAzkarTitle => 'Dua e Azkar';
 
   @override

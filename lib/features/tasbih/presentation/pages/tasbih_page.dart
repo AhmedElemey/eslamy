@@ -48,10 +48,27 @@ class TasbihPage extends ConsumerWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: dhikrPresets.length,
+                  // Every built-in preset except the trailing "custom" one
+                  // (a trigger, not a selectable dhikr) plus whatever the
+                  // user has added themselves, then the trigger chip last.
+                  itemCount:
+                      dhikrPresets.length - 1 + state.customPresets.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, i) {
-                    final preset = dhikrPresets[i];
+                    final selectableCount =
+                        dhikrPresets.length - 1 + state.customPresets.length;
+                    if (i >= selectableCount) {
+                      return ActionChip(
+                        avatar: const Icon(Icons.add_rounded, size: 18),
+                        label: Text(l10n.dhikrCustom),
+                        onPressed: () => _addCustomDhikr(context, notifier),
+                      );
+                    }
+                    final preset =
+                        i < dhikrPresets.length - 1
+                            ? dhikrPresets[i]
+                            : state.customPresets[i -
+                                (dhikrPresets.length - 1)];
                     final selected = preset.id == state.preset.id;
                     return ChoiceChip(
                       label: Text(
@@ -164,6 +181,109 @@ class TasbihPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _addCustomDhikr(
+    BuildContext context,
+    TasbihNotifier notifier,
+  ) async {
+    final result = await showDialog<({String text, int target})>(
+      context: context,
+      builder: (_) => const _AddCustomDhikrDialog(),
+    );
+    if (result == null) return;
+    await notifier.addCustomPreset(
+      arabicText: result.text,
+      target: result.target,
+    );
+  }
+}
+
+/// Collects the dhikr/dua text and target count for a user-added preset.
+/// Pure UI — hands the entered values back to the caller via
+/// Navigator.pop rather than touching the provider itself, matching how
+/// FavoritesPage's dialogs are wired.
+class _AddCustomDhikrDialog extends StatefulWidget {
+  const _AddCustomDhikrDialog();
+
+  @override
+  State<_AddCustomDhikrDialog> createState() => _AddCustomDhikrDialogState();
+}
+
+class _AddCustomDhikrDialogState extends State<_AddCustomDhikrDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _textController = TextEditingController();
+  final _targetController = TextEditingController(text: '33');
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _targetController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(context, (
+      text: _textController.text.trim(),
+      target: int.parse(_targetController.text),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.addCustomDhikrTitle),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _textController,
+              autofocus: true,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.right,
+              style: AppTypography.naskh(
+                size: 18,
+                color: AppColors.heading(context),
+              ),
+              decoration: InputDecoration(labelText: l10n.customDhikrTextLabel),
+              validator:
+                  (value) =>
+                      (value == null || value.trim().isEmpty)
+                          ? l10n.customDhikrTextRequired
+                          : null,
+              onFieldSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _targetController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: l10n.customDhikrTargetLabel,
+              ),
+              validator: (value) {
+                final target = int.tryParse(value ?? '');
+                return (target == null || target <= 0)
+                    ? l10n.customDhikrTargetInvalid
+                    : null;
+              },
+              onFieldSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(onPressed: _submit, child: Text(l10n.addButton)),
+      ],
     );
   }
 }
