@@ -5,6 +5,33 @@ import 'app_localizations.dart';
 bool isArabicLocale(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'ar';
 
+String localizedHijriMonthName(AppLocalizations l10n, int month) {
+  return switch (month) {
+    1 => l10n.hijriMonthMuharram,
+    2 => l10n.hijriMonthSafar,
+    3 => l10n.hijriMonthRabiAlAwwal,
+    4 => l10n.hijriMonthRabiAlThani,
+    5 => l10n.hijriMonthJumadaAlAwwal,
+    6 => l10n.hijriMonthJumadaAlThani,
+    7 => l10n.hijriMonthRajab,
+    8 => l10n.hijriMonthShaban,
+    9 => l10n.hijriMonthRamadan,
+    10 => l10n.hijriMonthShawwal,
+    11 => l10n.hijriMonthDhuAlQidah,
+    12 => l10n.hijriMonthDhuAlHijjah,
+    _ => '',
+  };
+}
+
+String localizedHijriDateAh(
+  AppLocalizations l10n, {
+  required int day,
+  required int month,
+  required int year,
+}) {
+  return l10n.hijriDateAh(day, localizedHijriMonthName(l10n, month), year);
+}
+
 String localizedChapterName({
   required BuildContext context,
   required String arabicName,
@@ -91,7 +118,11 @@ String localizedHadithBookName(
   };
 }
 
-String localizedAzkarCategoryName(AppLocalizations l10n, String id, String fallback) {
+String localizedAzkarCategoryName(
+  AppLocalizations l10n,
+  String id,
+  String fallback,
+) {
   return switch (id) {
     'morning' => l10n.azkarCategoryMorning,
     'evening' => l10n.azkarCategoryEvening,

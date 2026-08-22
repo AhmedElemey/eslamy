@@ -34,7 +34,8 @@ class MosqueLocatorService {
   /// User-Agent with a 406. Overpass's own usage policy also expects a
   /// descriptive User-Agent identifying the calling app. See
   /// https://wiki.openstreetmap.org/wiki/Overpass_API#Introduction
-  static const _userAgent = 'Eslamy/1.0 (Flutter; Islamic prayer companion app)';
+  static const _userAgent =
+      'Eslamy/1.0 (Flutter; Islamic prayer companion app)';
 
   static const _maxAttempts = 3;
 
@@ -194,28 +195,30 @@ out center;
         }
       }
 
-      var mosques = (decoded['mosques'] as List)
-          .map((m) => Mosque.fromJson(m as Map<String, dynamic>))
-          .toList();
+      var mosques =
+          (decoded['mosques'] as List)
+              .map((m) => Mosque.fromJson(m as Map<String, dynamic>))
+              .toList();
       if (latitude != null && longitude != null) {
-        mosques = mosques
-            .map(
-              (m) => Mosque(
-                id: m.id,
-                name: m.name,
-                address: m.address,
-                latitude: m.latitude,
-                longitude: m.longitude,
-                distanceMeters: Geolocator.distanceBetween(
-                  latitude,
-                  longitude,
-                  m.latitude,
-                  m.longitude,
-                ),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+        mosques =
+            mosques
+                .map(
+                  (m) => Mosque(
+                    id: m.id,
+                    name: m.name,
+                    address: m.address,
+                    latitude: m.latitude,
+                    longitude: m.longitude,
+                    distanceMeters: Geolocator.distanceBetween(
+                      latitude,
+                      longitude,
+                      m.latitude,
+                      m.longitude,
+                    ),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
       }
       return CachedMosqueResult(
         mosques: mosques,
@@ -300,11 +303,10 @@ List<Mosque> parseOverpassResponse(
 }
 
 String? _formatAddress(Map<String, dynamic> tags) {
-  final houseAndStreet =
-      [tags['addr:housenumber'], tags['addr:street']]
-          .whereType<String>()
-          .where((s) => s.trim().isNotEmpty)
-          .join(' ');
+  final houseAndStreet = [
+    tags['addr:housenumber'],
+    tags['addr:street'],
+  ].whereType<String>().where((s) => s.trim().isNotEmpty).join(' ');
   final city = tags['addr:city'] as String?;
 
   final parts =

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
@@ -15,7 +16,9 @@ import '../../../prayer_times/presentation/pages/qibla_page.dart';
 import '../../../prayer_times/presentation/widgets/prayer_times_card.dart';
 import '../../../settings/presentation/controllers/language_providers.dart';
 import '../../../streaks/presentation/controllers/streak_providers.dart';
+import '../../../streaks/presentation/pages/streak_detail_page.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
+import '../widgets/home_highlights_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -25,7 +28,7 @@ class HomePage extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final headingColor = AppColors.heading(context);
-    final hijriDate = ref.watch(prayerTimesProvider).timings?.hijriDate;
+    final timings = ref.watch(prayerTimesProvider).timings;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -75,11 +78,16 @@ class HomePage extends ConsumerWidget {
                           ),
                         ),
                         const Spacer(),
-                        if (hijriDate != null)
+                        if (timings != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Text(
-                              hijriDate,
+                              localizedHijriDateAh(
+                                l10n,
+                                day: timings.hijriDay,
+                                month: timings.hijriMonth,
+                                year: timings.hijriYear,
+                              ),
                               style: TextStyle(
                                 color: AppColors.goldAccent(context),
                                 fontSize: 12,
@@ -97,6 +105,7 @@ class HomePage extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: PrayerTimesCard(),
               ),
+
               const SizedBox(height: 16),
               const _QuickAccessRow(),
               const SizedBox(height: 12),
@@ -109,6 +118,12 @@ class HomePage extends ConsumerWidget {
                     Expanded(child: _HifzStatTile()),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: HomeHighlightsCard(),
               ),
             ],
           ),
@@ -146,30 +161,33 @@ void _showLanguagePicker(BuildContext context, WidgetRef ref) {
                 builder: (context, ref, _) {
                   final languageAsync = ref.watch(languageProvider);
                   return languageAsync.when(
-                    data: (current) => Column(
-                      children: [
-                        for (final language in AppLanguage.values)
-                          ListTile(
-                            title: Text(_languageLabel(l10n, language)),
-                            trailing: current == language
-                                ? Icon(
-                                    Icons.check_rounded,
-                                    color: AppColors.primaryOnBg(context),
-                                  )
-                                : null,
-                            onTap: () {
-                              ref
-                                  .read(languageProvider.notifier)
-                                  .setLanguage(language);
-                              Navigator.of(sheetContext).pop();
-                            },
-                          ),
-                      ],
-                    ),
-                    loading: () => const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
+                    data:
+                        (current) => Column(
+                          children: [
+                            for (final language in AppLanguage.values)
+                              ListTile(
+                                title: Text(_languageLabel(l10n, language)),
+                                trailing:
+                                    current == language
+                                        ? Icon(
+                                          Icons.check_rounded,
+                                          color: AppColors.primaryOnBg(context),
+                                        )
+                                        : null,
+                                onTap: () {
+                                  ref
+                                      .read(languageProvider.notifier)
+                                      .setLanguage(language);
+                                  Navigator.of(sheetContext).pop();
+                                },
+                              ),
+                          ],
+                        ),
+                    loading:
+                        () => const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
                     error: (_, _) => const SizedBox.shrink(),
                   );
                 },
@@ -196,10 +214,26 @@ class _QuickAccessRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final items = <(IconData, String, WidgetBuilder)>[
-      (Icons.donut_large_outlined, l10n.quickAccessTasbih, (_) => const TasbihPage()),
-      (Icons.auto_awesome_outlined, l10n.duasAzkarTitle, (_) => const AzkarCategoriesPage()),
-      (Icons.explore_outlined, l10n.qiblaDirectionTitle, (_) => const QiblaPage()),
-      (Icons.calendar_month_outlined, l10n.hijriCalendarTitle, (_) => const HijriCalendarPage()),
+      (
+        Icons.donut_large_outlined,
+        l10n.quickAccessTasbih,
+        (_) => const TasbihPage(),
+      ),
+      (
+        Icons.auto_awesome_outlined,
+        l10n.duasAzkarTitle,
+        (_) => const AzkarCategoriesPage(),
+      ),
+      (
+        Icons.explore_outlined,
+        l10n.qiblaDirectionTitle,
+        (_) => const QiblaPage(),
+      ),
+      (
+        Icons.calendar_month_outlined,
+        l10n.hijriCalendarTitle,
+        (_) => const HijriCalendarPage(),
+      ),
     ];
 
     return Padding(
@@ -211,9 +245,10 @@ class _QuickAccessRow extends StatelessWidget {
               child: _QuickAccessTile(
                 icon: item.$1,
                 label: item.$2,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: item.$3),
-                ),
+                onTap:
+                    () => Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: item.$3)),
               ),
             ),
             if (item != items.last) const SizedBox(width: 10),
@@ -337,7 +372,11 @@ class _StreakStatTile extends ConsumerWidget {
       ),
       value: context.l10n.streakDaysShort(streak),
       label: context.l10n.streakStatLabel,
-      onTap: () {},
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const StreakDetailPage()));
+      },
     );
   }
 }
@@ -357,9 +396,9 @@ class _HifzStatTile extends ConsumerWidget {
       value: context.l10n.memorizedOutOfTotal(memorized, 114),
       label: context.l10n.memorizedStatLabel,
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const HifzPage()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const HifzPage()));
       },
     );
   }

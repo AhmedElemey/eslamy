@@ -50,7 +50,8 @@ class MosqueLocatorState {
       usingCachedGps: usingCachedGps ?? this.usingCachedGps,
       locationIssue:
           clearLocationIssue ? null : (locationIssue ?? this.locationIssue),
-      staleCacheAt: clearStaleCache ? null : (staleCacheAt ?? this.staleCacheAt),
+      staleCacheAt:
+          clearStaleCache ? null : (staleCacheAt ?? this.staleCacheAt),
     );
   }
 }
@@ -116,10 +117,7 @@ class MosqueLocatorNotifier extends StateNotifier<MosqueLocatorState> {
       final lng = fix.longitude!;
       final usingCachedGps = fix.kind == LocationFixKind.cached;
 
-      final mosques = await _service.findNearby(
-        latitude: lat,
-        longitude: lng,
-      );
+      final mosques = await _service.findNearby(latitude: lat, longitude: lng);
 
       if (!mounted) return;
       state = state.copyWith(

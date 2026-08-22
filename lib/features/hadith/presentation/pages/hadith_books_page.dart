@@ -25,7 +25,8 @@ class HadithBooksPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             itemCount: hadithBooks.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _BookTile(book: hadithBooks[index]),
+            itemBuilder:
+                (context, index) => _BookTile(book: hadithBooks[index]),
           ),
         ),
       ),
@@ -47,9 +48,7 @@ class _BookTile extends ConsumerWidget {
       borderRadius: 16,
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => HadithBookDetailPage(book: book),
-          ),
+          MaterialPageRoute(builder: (_) => HadithBookDetailPage(book: book)),
         );
       },
       child: Row(
@@ -76,15 +75,25 @@ class _BookTile extends ConsumerWidget {
             ),
           ),
           cached.when(
-            data: (isCached) =>
-                isCached
-                    ? Icon(Icons.check_circle, color: Colors.green[500], size: 20)
-                    : const Icon(Icons.cloud_download_outlined, color: AppColors.muted, size: 20),
-            loading: () => const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            data:
+                (isCached) =>
+                    isCached
+                        ? Icon(
+                          Icons.check_circle,
+                          color: Colors.green[500],
+                          size: 20,
+                        )
+                        : const Icon(
+                          Icons.cloud_download_outlined,
+                          color: AppColors.muted,
+                          size: 20,
+                        ),
+            loading:
+                () => const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
             error: (_, __) => const SizedBox.shrink(),
           ),
           const SizedBox(width: 4),

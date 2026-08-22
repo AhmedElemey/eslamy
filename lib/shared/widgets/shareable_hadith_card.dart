@@ -28,7 +28,11 @@ class ShareableHadithCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.format_quote_rounded, color: Colors.white70, size: 32),
+          const Icon(
+            Icons.format_quote_rounded,
+            color: Colors.white70,
+            size: 32,
+          ),
           const SizedBox(height: 12),
           if (hadith.narrator != null && hadith.narrator!.isNotEmpty) ...[
             Text(

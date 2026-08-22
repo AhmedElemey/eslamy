@@ -36,8 +36,6 @@ class PrayerTimesService {
     final data = response.data['data'] as Map<String, dynamic>;
     final timings = data['timings'] as Map<String, dynamic>;
     final hijri = data['date']['hijri'] as Map<String, dynamic>;
-    final hijriMonth = hijri['month']['en'];
-    final hijriDate = '${hijri['day']} $hijriMonth ${hijri['year']} AH';
 
     final prayers =
         _prayerOrder.map((name) {
@@ -53,7 +51,13 @@ class PrayerTimesService {
           return PrayerTime(name: name, time: time);
         }).toList();
 
-    return DailyPrayerTimes(date: day, prayers: prayers, hijriDate: hijriDate);
+    return DailyPrayerTimes(
+      date: day,
+      prayers: prayers,
+      hijriDay: int.parse(hijri['day'].toString()),
+      hijriMonth: hijri['month']['number'] as int,
+      hijriYear: int.parse(hijri['year'].toString()),
+    );
   }
 
   Future<double> fetchQiblaDirection({

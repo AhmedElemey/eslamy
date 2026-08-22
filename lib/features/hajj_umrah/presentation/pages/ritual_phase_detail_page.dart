@@ -42,7 +42,10 @@ class RitualPhaseDetailPage extends ConsumerWidget {
               if (phase.date != null || phase.location != null) ...[
                 const SizedBox(height: 4),
                 Text(
-                  [phase.localizedDate(context), phase.localizedLocation(context)].whereType<String>().join(' • '),
+                  [
+                    phase.localizedDate(context),
+                    phase.localizedLocation(context),
+                  ].whereType<String>().join(' • '),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.mutedText(context),
@@ -101,7 +104,9 @@ class RitualPhaseDetailPage extends ConsumerWidget {
                       ),
                       title: Text(l10n.edgeCasesHeading),
                       children: [
-                        for (final edgeCase in phase.localizedEdgeCases(context))
+                        for (final edgeCase in phase.localizedEdgeCases(
+                          context,
+                        ))
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Text(

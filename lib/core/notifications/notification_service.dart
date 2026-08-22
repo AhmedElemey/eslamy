@@ -108,7 +108,8 @@ class NotificationService {
       // exactAllowWhileIdle scheduling; without it, scheduleAdhan() would
       // silently degrade to inexact delivery. Send the user to the system
       // settings screen for it up front, same as the notification prompt.
-      final canScheduleExact = await androidImpl.canScheduleExactNotifications();
+      final canScheduleExact =
+          await androidImpl.canScheduleExactNotifications();
       if (canScheduleExact == false) {
         await androidImpl.requestExactAlarmsPermission();
       }
@@ -273,7 +274,8 @@ class NotificationService {
         if (time == null) continue;
         final scheduled = tz.TZDateTime.from(time, tz.local);
         if (scheduled.isBefore(now)) continue;
-        final displayName = l10n == null ? name : _localizedPrayerName(l10n, name);
+        final displayName =
+            l10n == null ? name : _localizedPrayerName(l10n, name);
         await _plugin.zonedSchedule(
           notificationId,
           l10n?.adhanNotificationTitle(displayName) ?? 'Adhan — $name',

@@ -1,10 +1,11 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../models/quran_models.dart';
+import '../../service/quran_audio_handler.dart';
 import '../controllers/quran_providers.dart';
 import '../widgets/reciter_selection_widget.dart';
 import '../widgets/tajweed_legend_sheet.dart';
@@ -32,223 +33,73 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   // indefinitely until the user stops it.
   static const List<int?> _repeatOptions = [1, 3, 5, 10, null];
 
-  late AudioPlayer _audioPlayer;
   late final ProviderSubscription<Reciter?> _reciterSubscription;
-  bool _isPlaying = false;
-  Duration _duration = Duration.zero;
-  Duration _position = Duration.zero;
   int? _repeatTarget = 1;
   int _repeatCount = 0;
+
+  bool _isThisVerse(MediaItem? mediaItem) =>
+      mediaItem?.extras?['chapterNumber'] == widget.chapterNumber &&
+      mediaItem?.extras?['ayahNumber'] == widget.verseNumber;
 
   @override
   void initState() {
     super.initState();
-    _audioPlayer = AudioPlayer();
-    _setupAudioPlayer();
-    // Restart with the new reciter's audio if the verse is playing when
-    // the user switches reciters (from this page's own picker, or any
-    // other screen).
+    // Restart with the new reciter's audio if this verse is playing when the
+    // user switches reciters (from this page's own picker, or any other
+    // screen) — mirrors the app-wide handler, scoped to only this verse.
     _reciterSubscription = ref.listenManual<Reciter?>(selectedReciterProvider, (
       previous,
       next,
     ) {
-      if (mounted && previous != next && _isPlaying) {
-        _startAudio();
+      if (!mounted || previous == next) return;
+      final handler = ref.read(quranAudioHandlerProvider);
+      final mediaItem = ref.read(currentMediaItemProvider).valueOrNull;
+      final playing =
+          ref.read(playbackStateProvider).valueOrNull?.playing ?? false;
+      if (_isThisVerse(mediaItem) && playing) {
+        handler.setReciterAndRestartIfPlaying(next!);
       }
     });
   }
 
-  void _setupAudioPlayer() {
-    _audioPlayer.playerStateStream.listen((state) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = state.playing;
-        });
-
-        // On completion, either loop back for the practice repeat count or
-        // reset to the start like before.
-        if (state.processingState == ProcessingState.completed) {
-          final target = _repeatTarget;
-          final shouldRepeatAgain = target == null || _repeatCount + 1 < target;
-          if (shouldRepeatAgain) {
-            _repeatCount++;
-            _audioPlayer.seek(Duration.zero);
-            _audioPlayer.play();
-          } else {
-            _audioPlayer.seek(Duration.zero);
-            setState(() {
-              _position = Duration.zero;
-              _isPlaying = false;
-              _repeatCount = 0;
-            });
-          }
-        }
-      }
-    });
-
-    _audioPlayer.durationStream.listen((duration) {
-      if (mounted) {
-        setState(() {
-          _duration = duration ?? Duration.zero;
-        });
-      }
-    });
-
-    _audioPlayer.positionStream.listen((position) {
-      if (mounted) {
-        setState(() {
-          _position = position;
-        });
-      }
-    });
-
-    // Listen for player errors
-    _audioPlayer.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.idle &&
-          state.playing == false) {
-        debugPrint('Audio player is idle');
-      }
-    });
-  }
-
-  Future<void> _playAudio() async {
-    if (_isPlaying) {
-      await _pauseAudio();
+  Future<void> _playAudio(
+    QuranAudioHandler handler,
+    bool isThisVerseActive,
+    bool isPlaying,
+  ) async {
+    if (isThisVerseActive && isPlaying) {
+      await handler.pause();
       return;
     }
-    await _startAudio();
+    await _startAudio(handler);
   }
 
-  /// Fetches the verse audio URL for the currently selected reciter and
-  /// plays it. Used both by the play button and to restart with a new
-  /// reciter while the verse is already playing.
-  Future<void> _startAudio() async {
+  Future<void> _startAudio(QuranAudioHandler handler) async {
+    _repeatCount = 0;
+    final l10n = context.l10n;
     try {
-      // Stop any current audio before starting new
-      await _stopAudio();
-      _repeatCount = 0;
-
-      // Show loading indicator
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.loadingAudio),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-
-      // Get the selected reciter from the provider
-      final selectedReciter = ref.read(selectedReciterProvider);
-
-      debugPrint(
-        'Selected reciter for audio: ${selectedReciter?.name} (${selectedReciter?.relativePath})',
+      final reciter = ref.read(selectedReciterProvider);
+      await handler.playAyahRange(
+        widget.chapterNumber,
+        fromAyah: widget.verseNumber,
+        toAyah: widget.verseNumber,
+        reciter: reciter,
       );
-
-      // Show reciter info in snackbar for debugging
-      if (mounted && selectedReciter != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.playingWithReciter(selectedReciter.name),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
-
-      final audioUrlAsync = ref.read(
-        verseAudioUrlProvider((
-          chapterNumber: widget.chapterNumber,
-          verseNumber: widget.verseNumber,
-          reciterId: selectedReciter?.relativePath,
-        )).future,
-      );
-
-      final audioUrl = await audioUrlAsync;
-      debugPrint('Playing audio from URL: $audioUrl');
-
-      // Check if it's the test URL (indicates real URLs failed)
-      if (audioUrl.contains('BabyElephantWalk60.wav')) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.realAudioNotAvailableReciter(
-                  selectedReciter?.name ?? '',
-                ),
-              ),
-              duration: const Duration(seconds: 3),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
-
-      // Set audio source with error handling
-      try {
-        debugPrint('Setting audio URL: $audioUrl');
-        await _audioPlayer.setUrl(audioUrl);
-        debugPrint('Audio URL set successfully');
-
-        // Wait a moment for the audio to load
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Play the audio
-        debugPrint('Starting audio playback...');
-        await _audioPlayer.play();
-        debugPrint('Audio playback started');
-      } catch (e) {
-        debugPrint('Error during audio playback: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.audioPlaybackErrorWithError(e.toString()),
-              ),
-              duration: const Duration(seconds: 3),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        rethrow;
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.audioStartedPlaying),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
     } catch (e) {
-      debugPrint('Error playing audio: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.failedToPlayAudioRetry),
+            content: Text(l10n.failedToPlayAudioRetry),
             backgroundColor: Colors.red,
             action: SnackBarAction(
-              label: context.l10n.retryAction,
+              label: l10n.retryAction,
               textColor: Colors.white,
-              onPressed: _playAudio,
+              onPressed: () => _startAudio(handler),
             ),
           ),
         );
       }
     }
-  }
-
-  Future<void> _pauseAudio() async {
-    await _audioPlayer.pause();
-  }
-
-  Future<void> _stopAudio() async {
-    await _audioPlayer.stop();
-    _repeatCount = 0;
   }
 
   void _openReciterPicker() {
@@ -263,7 +114,6 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   @override
   void dispose() {
     _reciterSubscription.close();
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -276,6 +126,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       )),
     );
     final l10n = context.l10n;
+    final handler = ref.watch(quranAudioHandlerProvider);
     final selectedReciter = ref.watch(selectedReciterProvider);
     final tajweedEnabled = ref.watch(tajweedColoringEnabledProvider);
     final tajweedAsync =
@@ -291,6 +142,39 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       },
       orElse: () => null,
     );
+
+    final activeMediaItem = ref.watch(currentMediaItemProvider).valueOrNull;
+    final isThisVerseActive = _isThisVerse(activeMediaItem);
+    final isPlaying =
+        isThisVerseActive &&
+        (ref.watch(playbackStateProvider).valueOrNull?.playing ?? false);
+    // Reserve room at the bottom of the scroll content for the global mini
+    // player when something is loaded, so it can never permanently cover the
+    // Tafseer card below — without this, a short page has nothing to scroll
+    // and the floating bar just sits on top of the last card with no way to
+    // see what's underneath it.
+    final reserveForMiniPlayer = activeMediaItem != null;
+
+    ref.listen<AsyncValue<PlaybackState>>(playbackStateProvider, (
+      previous,
+      next,
+    ) {
+      final state = next.valueOrNull;
+      if (state == null) return;
+      if (!_isThisVerse(ref.read(currentMediaItemProvider).valueOrNull)) {
+        return;
+      }
+      if (state.processingState != AudioProcessingState.completed) return;
+      final target = _repeatTarget;
+      final shouldRepeatAgain = target == null || _repeatCount + 1 < target;
+      if (shouldRepeatAgain) {
+        _repeatCount++;
+        handler.seek(Duration.zero);
+        handler.play();
+      } else {
+        _repeatCount = 0;
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground(context),
@@ -333,7 +217,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
               16,
               16,
               16,
-              16 + MediaQuery.paddingOf(context).bottom,
+              16 +
+                  MediaQuery.paddingOf(context).bottom +
+                  (reserveForMiniPlayer ? 190 : 0),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,9 +291,14 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                         Row(
                           children: [
                             IconButton(
-                              onPressed: _isPlaying ? _pauseAudio : _playAudio,
+                              onPressed:
+                                  () => _playAudio(
+                                    handler,
+                                    isThisVerseActive,
+                                    isPlaying,
+                                  ),
                               icon: Icon(
-                                _isPlaying ? Icons.pause : Icons.play_arrow,
+                                isPlaying ? Icons.pause : Icons.play_arrow,
                                 size: 32,
                               ),
                               style: IconButton.styleFrom(
@@ -417,7 +308,10 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             ),
                             const SizedBox(width: 12),
                             IconButton(
-                              onPressed: _stopAudio,
+                              onPressed: () {
+                                handler.stop();
+                                _repeatCount = 0;
+                              },
                               icon: const Icon(Icons.stop),
                               style: IconButton.styleFrom(
                                 backgroundColor: AppColors.pageBackground(
@@ -428,39 +322,15 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (_duration.inSeconds > 0) ...[
-                                    Slider(
-                                      value: _position.inMilliseconds
-                                          .toDouble()
-                                          .clamp(
-                                            0.0,
-                                            _duration.inMilliseconds.toDouble(),
-                                          ),
-                                      max: _duration.inMilliseconds.toDouble(),
-                                      onChanged: (value) {
-                                        _audioPlayer.seek(
-                                          Duration(milliseconds: value.toInt()),
-                                        );
-                                      },
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(_formatDuration(_position)),
-                                        Text(_formatDuration(_duration)),
-                                      ],
-                                    ),
-                                  ] else
-                                    Text(
-                                      l10n.tapPlayToLoadAudio,
-                                      style: TextStyle(color: Colors.grey[600]),
-                                    ),
-                                ],
-                              ),
+                              child:
+                                  isThisVerseActive
+                                      ? _VersePlaybackProgress(handler: handler)
+                                      : Text(
+                                        l10n.tapPlayToLoadAudio,
+                                        style: TextStyle(
+                                          color: AppColors.mutedText(context),
+                                        ),
+                                      ),
                             ),
                           ],
                         ),
@@ -468,7 +338,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                         Text(
                           l10n.repeatPracticeLabel,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey[600]),
+                              ?.copyWith(color: AppColors.mutedText(context)),
                         ),
                         const SizedBox(height: 6),
                         Wrap(
@@ -599,8 +469,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                     onPressed:
                                         () => ref.refresh(
                                           tafseerProvider((
-                                            chapterNumber:
-                                                widget.chapterNumber,
+                                            chapterNumber: widget.chapterNumber,
                                             verseNumber: widget.verseNumber,
                                           )),
                                         ),
@@ -626,11 +495,61 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       ),
     );
   }
+}
+
+/// Live position/duration slider for a verse currently playing on the shared
+/// handler — same range-aware math the global mini player and Now Playing
+/// page use, so a single verse (a range of length one) reports correctly.
+class _VersePlaybackProgress extends StatelessWidget {
+  const _VersePlaybackProgress({required this.handler});
+
+  final QuranAudioHandler handler;
 
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
+    return duration.inHours > 0
+        ? '${duration.inHours}:$minutes:$seconds'
+        : '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Duration>(
+      stream: handler.player.positionStream,
+      builder: (context, snapshot) {
+        final position = snapshot.data ?? Duration.zero;
+        final duration = handler.player.duration ?? Duration.zero;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (duration.inSeconds > 0) ...[
+              Slider(
+                value: position.inMilliseconds.toDouble().clamp(
+                  0.0,
+                  duration.inMilliseconds.toDouble(),
+                ),
+                max: duration.inMilliseconds.toDouble(),
+                onChanged: (value) {
+                  handler.seek(Duration(milliseconds: value.toInt()));
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_formatDuration(position)),
+                  Text(_formatDuration(duration)),
+                ],
+              ),
+            ] else
+              Text(
+                context.l10n.loadingAudio,
+                style: TextStyle(color: AppColors.mutedText(context)),
+              ),
+          ],
+        );
+      },
+    );
   }
 }

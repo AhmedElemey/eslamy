@@ -72,7 +72,11 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
   }
 
   Future<void> download() async {
-    state = state.copyWith(isDownloading: true, downloadProgress: 0, error: null);
+    state = state.copyWith(
+      isDownloading: true,
+      downloadProgress: 0,
+      error: null,
+    );
     try {
       final items = await _api.fetchBook(
         book,
@@ -98,7 +102,10 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
   }
 
   void search(String query) {
-    state = state.copyWith(query: query, visible: _filter(state.allCached, query));
+    state = state.copyWith(
+      query: query,
+      visible: _filter(state.allCached, query),
+    );
   }
 
   List<HadithItem> _filter(List<HadithItem> items, String query) {
@@ -110,8 +117,7 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
       return body.contains(q) ||
           narrator.contains(q) ||
           '${h.hadithNumber}' == q ||
-          (h.hadithNumber != null &&
-              h.hadithNumber!.toInt().toString() == q);
+          (h.hadithNumber != null && h.hadithNumber!.toInt().toString() == q);
     }).toList();
   }
 }
@@ -123,8 +129,14 @@ final bookHadithsProvider = StateNotifierProvider.autoDispose
       // Watched so switching app language rebuilds this with the matching
       // edition slug (a fresh notifier — the family key is still just
       // `book`, so this doesn't fragment the family).
-      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
-      return BookHadithsNotifier(api, db, book, editionSlugFor(book, appLanguage));
+      final appLanguage =
+          ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
+      return BookHadithsNotifier(
+        api,
+        db,
+        book,
+        editionSlugFor(book, appLanguage),
+      );
     });
 
 /// Per-book cached status for the books browse page (name shown, downloaded
@@ -133,7 +145,8 @@ final bookHadithsProvider = StateNotifierProvider.autoDispose
 final bookCachedStatusProvider = FutureProvider.autoDispose
     .family<bool, HadithBook>((ref, book) async {
       final db = ref.watch(hadithCacheDbProvider);
-      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
+      final appLanguage =
+          ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
       final count = await db.countForBook(editionSlugFor(book, appLanguage));
       return count > 0;
     });

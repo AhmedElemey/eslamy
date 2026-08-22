@@ -138,6 +138,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get streakStatLabel => 'serie';
 
   @override
+  String get streakDetailTitle => 'Serie di lettura';
+
+  @override
+  String get streakExplanationBody =>
+      'La tua serie conta i giorni consecutivi in cui hai aperto Eslamy. Torna ogni giorno per mantenerla.';
+
+  @override
   String get memorizedStatLabel => 'memorizzate';
 
   @override
@@ -165,6 +172,46 @@ class AppLocalizationsIt extends AppLocalizations {
   String get qiblaDirectionTooltip => 'Direzione della qibla';
 
   @override
+  String get homeHighlightAyahOfDayTitle => 'VERSETTO DEL GIORNO';
+
+  @override
+  String get homeHighlightAyahOfDayError =>
+      'Impossibile caricare il versetto di oggi';
+
+  @override
+  String homeHighlightSurahAyahLabel(String surah, int ayah) {
+    return '$surah · Versetto $ayah';
+  }
+
+  @override
+  String get homeHighlightContinueReadingTitle => 'CONTINUA LA LETTURA';
+
+  @override
+  String get homeHighlightContinueReadingEmpty =>
+      'Non hai ancora iniziato a leggere';
+
+  @override
+  String get homeHighlightContinueReadingCta => 'Continua';
+
+  @override
+  String homeHighlightAyahPageLabel(int ayah, int page) {
+    return 'Versetto $ayah · Pagina $page';
+  }
+
+  @override
+  String get homeHighlightDuaOfDayTitle => 'DUA DEL GIORNO';
+
+  @override
+  String get homeHighlightDuaOfDayError =>
+      'Impossibile caricare la dua di oggi';
+
+  @override
+  String get widgetNextPrayerTitle => 'PROSSIMA PREGHIERA';
+
+  @override
+  String get widgetHijriDateTitle => 'DATA ISLAMICA DI OGGI';
+
+  @override
   String get favoritesTitle => 'Preferiti';
 
   @override
@@ -185,6 +232,29 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get bookmarkedQuran => 'Sure del Corano salvate';
+
+  @override
+  String surahsSavedCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString sure salvate',
+      one: '1 sura salvata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noQuranFavoritesYetBody =>
+      'Tocca il cuore mentre ascolti una sura\ne apparirà qui';
 
   @override
   String get failedToLoadFavorites => 'Impossibile caricare i tuoi preferiti';
@@ -762,11 +832,50 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get hijriMonthMuharram => 'Muharram';
+
+  @override
+  String get hijriMonthSafar => 'Safar';
+
+  @override
+  String get hijriMonthRabiAlAwwal => 'Rabi\' al-Awwal';
+
+  @override
+  String get hijriMonthRabiAlThani => 'Rabi\' al-Thani';
+
+  @override
+  String get hijriMonthJumadaAlAwwal => 'Jumada al-Awwal';
+
+  @override
+  String get hijriMonthJumadaAlThani => 'Jumada al-Thani';
+
+  @override
+  String get hijriMonthRajab => 'Rajab';
+
+  @override
+  String get hijriMonthShaban => 'Sha\'ban';
+
+  @override
+  String get hijriMonthRamadan => 'Ramadan';
+
+  @override
+  String get hijriMonthShawwal => 'Shawwal';
+
+  @override
+  String get hijriMonthDhuAlQidah => 'Dhu al-Qi\'dah';
+
+  @override
+  String get hijriMonthDhuAlHijjah => 'Dhu al-Hijjah';
+
+  @override
   String get upcomingLabel => 'Prossime ricorrenze';
 
   @override
   String get loadingUpcomingOccasions =>
       'Caricamento delle prossime ricorrenze…';
+
+  @override
+  String get noUpcomingOccasions => 'Nessuna ricorrenza imminente trovata.';
 
   @override
   String get todayCountdown => 'Oggi';

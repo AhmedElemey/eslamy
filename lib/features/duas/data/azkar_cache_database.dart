@@ -43,12 +43,16 @@ class AzkarCacheDatabase {
         repeat_count INTEGER
       )
     ''');
-    await db.execute('CREATE INDEX idx_azkar_category ON azkar_items(category_id)');
+    await db.execute(
+      'CREATE INDEX idx_azkar_category ON azkar_items(category_id)',
+    );
   }
 
   Future<bool> isEmpty() async {
     final db = await database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM azkar_items');
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM azkar_items',
+    );
     return (Sqflite.firstIntValue(result) ?? 0) == 0;
   }
 
@@ -83,11 +87,34 @@ class AzkarCacheDatabase {
     final db = await database;
     final maps = await db.query('azkar_categories', orderBy: 'name ASC');
     return maps
-        .map((m) => AzkarCategory(
-              id: m['id'] as String,
-              name: m['name'] as String,
-              description: m['description'] as String? ?? '',
-            ))
+        .map(
+          (m) => AzkarCategory(
+            id: m['id'] as String,
+            name: m['name'] as String,
+            description: m['description'] as String? ?? '',
+          ),
+        )
+        .toList();
+  }
+
+  /// All duas across every category, ordered by id — used to pick a
+  /// deterministic "dua of the day" without a whole-category fetch.
+  Future<List<AzkarItem>> getAllItems() async {
+    final db = await database;
+    final maps = await db.query('azkar_items', orderBy: 'id ASC');
+    return maps
+        .map(
+          (m) => AzkarItem(
+            id: m['id'] as int,
+            categoryId: m['category_id'] as String,
+            title: m['title'] as String? ?? '',
+            arabic: m['arabic'] as String,
+            transliteration: m['transliteration'] as String? ?? '',
+            translation: m['translation'] as String? ?? '',
+            source: m['source'] as String? ?? '',
+            repeat: m['repeat_count'] as int? ?? 1,
+          ),
+        )
         .toList();
   }
 
@@ -100,16 +127,18 @@ class AzkarCacheDatabase {
       orderBy: 'id ASC',
     );
     return maps
-        .map((m) => AzkarItem(
-              id: m['id'] as int,
-              categoryId: m['category_id'] as String,
-              title: m['title'] as String? ?? '',
-              arabic: m['arabic'] as String,
-              transliteration: m['transliteration'] as String? ?? '',
-              translation: m['translation'] as String? ?? '',
-              source: m['source'] as String? ?? '',
-              repeat: m['repeat_count'] as int? ?? 1,
-            ))
+        .map(
+          (m) => AzkarItem(
+            id: m['id'] as int,
+            categoryId: m['category_id'] as String,
+            title: m['title'] as String? ?? '',
+            arabic: m['arabic'] as String,
+            transliteration: m['transliteration'] as String? ?? '',
+            translation: m['translation'] as String? ?? '',
+            source: m['source'] as String? ?? '',
+            repeat: m['repeat_count'] as int? ?? 1,
+          ),
+        )
         .toList();
   }
 }

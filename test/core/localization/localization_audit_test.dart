@@ -15,14 +15,27 @@ void main() {
     expect(l10n.hadithBookBukhari, 'صحيح البخاري');
     expect(l10n.notificationChannelAdhan, 'الأذان');
     expect(l10n.surahNumberLabel(2), contains('2'));
+    expect(
+      localizedHijriDateAh(l10n, day: 22, month: 2, year: 1448),
+      '22 صفر 1448 هـ',
+    );
   });
 
   test('display-name helpers resolve by locale, not English fallbacks', () {
     final ar = lookupAppLocalizations(const Locale('ar'));
     final it = lookupAppLocalizations(const Locale('it'));
-    expect(localizedHadithBookName(ar, 'nawawi', hadithBooks[7].name), ar.hadithBookNawawi);
-    expect(localizedHadithBookName(it, 'nawawi', hadithBooks[7].name), it.hadithBookNawawi);
-    expect(localizedAzkarCategoryName(ar, 'sleep', 'Sleep'), ar.azkarCategorySleep);
+    expect(
+      localizedHadithBookName(ar, 'nawawi', hadithBooks[7].name),
+      ar.hadithBookNawawi,
+    );
+    expect(
+      localizedHadithBookName(it, 'nawawi', hadithBooks[7].name),
+      it.hadithBookNawawi,
+    );
+    expect(
+      localizedAzkarCategoryName(ar, 'sleep', 'Sleep'),
+      ar.azkarCategorySleep,
+    );
     expect(localizedDhikrName(ar, 'custom', 'Custom'), ar.dhikrCustom);
   });
 
@@ -33,7 +46,10 @@ void main() {
       l10n.errorConnectionTimeout,
     );
     expect(
-      localizedError(l10n, Exception('No internet connection. Please check your network.')),
+      localizedError(
+        l10n,
+        Exception('No internet connection. Please check your network.'),
+      ),
       l10n.errorNoInternet,
     );
   });

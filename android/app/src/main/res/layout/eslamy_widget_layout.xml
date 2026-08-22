@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Medium home-screen widget (~4x2 cells). One shared layout rotates
+     between three content "kinds" (next prayer / ayah of the day / dua of
+     the day) picked by EslamyWidgetProvider — RemoteViews only supports a
+     single static layout per provider, so the kicker/primary/secondary
+     TextViews are relabeled in Kotlin rather than swapping layouts. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/eslamy_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/eslamy_widget_background"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/eslamy_widget_kicker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:textColor="#E8C170"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="NEXT PRAYER" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/eslamy_widget_primary"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textDirection="locale"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="Fajr · 4:54 AM" />
+
+    <TextView
+        android:id="@+id/eslamy_widget_secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#D9FFFFFF"
+        android:textSize="13sp"
+        android:textDirection="locale"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="In 2h 15m" />
+
+</LinearLayout>

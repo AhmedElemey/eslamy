@@ -101,11 +101,7 @@ class _SurahHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              '${ayah.surahNumber}. ${localizedChapterName(
-                context: context,
-                arabicName: ayah.surahArabicName,
-                englishName: ayah.surahEnglishName,
-              )}',
+              '${ayah.surahNumber}. ${localizedChapterName(context: context, arabicName: ayah.surahArabicName, englishName: ayah.surahEnglishName)}',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryOnBg(context),

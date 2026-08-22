@@ -104,10 +104,7 @@ class AyahBlock extends StatelessWidget {
                 ),
               ),
             ],
-            if (footer != null) ...[
-              const SizedBox(height: 8),
-              footer!,
-            ],
+            if (footer != null) ...[const SizedBox(height: 8), footer!],
           ],
         ),
       ),

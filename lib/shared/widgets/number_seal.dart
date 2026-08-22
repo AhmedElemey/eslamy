@@ -31,7 +31,12 @@ class NumberSeal extends StatelessWidget {
 }
 
 class IconSeal extends StatelessWidget {
-  const IconSeal({super.key, required this.icon, this.size = 40, this.iconSize = 20});
+  const IconSeal({
+    super.key,
+    required this.icon,
+    this.size = 40,
+    this.iconSize = 20,
+  });
 
   final IconData icon;
   final double size;

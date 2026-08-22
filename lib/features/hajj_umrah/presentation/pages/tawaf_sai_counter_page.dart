@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/ring_progress_painter.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../data/hajj_umrah_content.dart';
 import '../controllers/tawaf_sai_counter_provider.dart';
 
@@ -22,6 +23,10 @@ class TawafSaiCounterPage extends ConsumerWidget {
     final progress = state.count / tawafSaiTarget;
     final isTawaf = state.mode == TawafSaiMode.tawaf;
     final dua = duaById(isTawaf ? 'between_rukns' : 'sai_running_dua');
+    // Reserve room below the dua card for the global mini player when
+    // something is loaded, so it doesn't cover the dua text.
+    final miniPlayerActive =
+        ref.watch(currentMediaItemProvider).valueOrNull != null;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -130,7 +135,12 @@ class TawafSaiCounterPage extends ConsumerWidget {
               ),
               if (dua != null)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    0,
+                    16,
+                    miniPlayerActive ? 190 : 16,
+                  ),
                   child: GlassCard(
                     borderRadius: 20,
                     child: Column(

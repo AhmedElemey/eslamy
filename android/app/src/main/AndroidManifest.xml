@@ -74,6 +74,30 @@
                 android:value="quran_now_playing_bubble" />
         </service>
 
+        <!-- Home-screen widget rotating next prayer / ayah of the day / dua
+             of the day; data is written by lib/core/widget/widget_data_service.dart. -->
+        <receiver
+            android:name=".EslamyWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/eslamy_widget_info" />
+        </receiver>
+
+        <!-- home_widget: required for HomeWidget.updateWidget/saveWidgetData
+             background wiring even though this app doesn't use interactive
+             widgets. -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

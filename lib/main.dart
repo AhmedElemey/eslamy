@@ -35,7 +35,7 @@ import 'package:audio_service/audio_service.dart';
 import 'firebase_options.dart';
 import 'features/quran/service/quran_audio_handler.dart';
 import 'features/quran/presentation/controllers/quran_providers.dart';
-import 'features/quran/presentation/widgets/quran_now_playing_fab.dart';
+import 'features/quran/presentation/widgets/quran_mini_player_bar.dart';
 import 'features/quran/presentation/pages/quran_now_playing_page.dart';
 import 'features/quran/models/quran_models.dart';
 import 'features/quran/service/bubble_overlay_channel.dart';
@@ -65,7 +65,8 @@ Future<void> main() async {
         builder: () => QuranAudioHandler(),
         config: AudioServiceConfig(
           androidNotificationChannelId: 'com.eslamy.eslamy.audio',
-          androidNotificationChannelName: startupL10n.notificationChannelQuranPlayback,
+          androidNotificationChannelName:
+              startupL10n.notificationChannelQuranPlayback,
           androidNotificationOngoing: true,
           androidStopForegroundOnPause: true,
         ),
@@ -80,7 +81,9 @@ Future<void> main() async {
       });
       BubbleOverlayChannel.setOpenNowPlayingHandler(openNowPlayingPage);
 
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
 
       // Only report real crashes to Crashlytics — debug builds stay local
       // so day-to-day development noise doesn't pollute the dashboard.
@@ -103,7 +106,9 @@ Future<void> main() async {
 
       runApp(
         ProviderScope(
-          overrides: [quranAudioHandlerProvider.overrideWithValue(_audioHandler)],
+          overrides: [
+            quranAudioHandlerProvider.overrideWithValue(_audioHandler),
+          ],
           child: const MyApp(),
         ),
       );
@@ -156,7 +161,8 @@ Future<void> _initFirebaseMessaging() async {
     final notification = message.notification;
     if (notification != null) {
       await NotificationService().showNow(
-        title: notification.title ??
+        title:
+            notification.title ??
             (await loadStoredLocalizations()).notificationFallbackTitle,
         body: notification.body ?? '',
       );
@@ -218,7 +224,10 @@ Future<void> _pushNoNetworkWhenReady() async {
 
     final nav = rootNavigatorKey.currentState;
     final offSplash =
-        nav != null && nav.mounted && tracker.hasObservedRoute && !tracker.isSplash;
+        nav != null &&
+        nav.mounted &&
+        tracker.hasObservedRoute &&
+        !tracker.isSplash;
     if (offSplash) {
       // Re-check fresh rather than trusting the `connected` value captured
       // when this loop started — connectivity may have flipped back during
@@ -239,7 +248,9 @@ const _kOverlayPermissionAskedKey = 'quran_overlay_permission_asked';
 /// already granted; otherwise asks once (via a rationale dialog tied to the
 /// moment the user actually started audio) and never nags again after a
 /// decline — `_kOverlayPermissionAskedKey` persists that choice.
-Future<void> _ensureOverlayPermissionAndShowBubble(AppLocalizations l10n) async {
+Future<void> _ensureOverlayPermissionAndShowBubble(
+  AppLocalizations l10n,
+) async {
   if (!Platform.isAndroid) return;
   if (await BubbleOverlayChannel.hasOverlayPermission()) {
     await BubbleOverlayChannel.show();
@@ -321,7 +332,9 @@ class MyApp extends ConsumerWidget {
         if (playing && !wasPlaying) {
           // Resolved fresh here (not captured from build-time `language`)
           // since this listener can fire long after MyApp last rebuilt.
-          final locale = ref.read(languageProvider).valueOrNull?.locale ?? const Locale('ar');
+          final locale =
+              ref.read(languageProvider).valueOrNull?.locale ??
+              const Locale('ar');
           _ensureOverlayPermissionAndShowBubble(lookupAppLocalizations(locale));
         }
       });
@@ -334,9 +347,9 @@ class MyApp extends ConsumerWidget {
       });
     }
 
-    ref.read(quranAudioHandlerProvider).setArabicTitles(
-          language == AppLanguage.arabic,
-        );
+    ref
+        .read(quranAudioHandlerProvider)
+        .setArabicTitles(language == AppLanguage.arabic);
 
     double scaleForDelta(int delta) {
       switch (delta) {
@@ -387,9 +400,9 @@ class MyApp extends ConsumerWidget {
                   child: child ?? const SizedBox.shrink(),
                 ),
                 // Sits above every pushed route (not just MainShell's tabs) so
-                // the bubble follows the user into chapter/verse detail pages
-                // and back out again — see quran_now_playing_fab.dart.
-                const QuranNowPlayingFab(),
+                // the mini player follows the user into chapter/verse detail
+                // pages and back out again — see quran_mini_player_bar.dart.
+                const QuranMiniPlayerBar(),
               ],
             ),
           ),

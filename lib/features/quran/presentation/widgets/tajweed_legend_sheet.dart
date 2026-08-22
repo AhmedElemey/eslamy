@@ -62,7 +62,11 @@ class _TajweedLegendSheet extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          localizedTajweedRuleName(l10n, rule.code, rule.englishName),
+                          localizedTajweedRuleName(
+                            l10n,
+                            rule.code,
+                            rule.englishName,
+                          ),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),

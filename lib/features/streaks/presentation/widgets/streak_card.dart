@@ -14,7 +14,10 @@ class StreakCard extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final today = DateTime.now();
-    final last7 = List.generate(7, (i) => today.subtract(Duration(days: 6 - i)));
+    final last7 = List.generate(
+      7,
+      (i) => today.subtract(Duration(days: 6 - i)),
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -49,22 +52,30 @@ class StreakCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  children: last7.map((day) {
-                    final active = state.recentActiveDates.contains(formatDate(day));
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: active
-                              ? AppColors.primary
-                              : (isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.15)),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  children:
+                      last7.map((day) {
+                        final active = state.recentActiveDates.contains(
+                          formatDate(day),
+                        );
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color:
+                                  active
+                                      ? AppColors.primary
+                                      : (isDark
+                                          ? Colors.white10
+                                          : Colors.grey.withValues(
+                                            alpha: 0.15,
+                                          )),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                 ),
               ],
             ),

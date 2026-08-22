@@ -22,7 +22,7 @@ class SearchableSurahList extends ConsumerWidget {
   /// Opens a custom chapter page (e.g. Tafseer). Defaults to the mushaf
   /// [QuranChapterDetailPage].
   final Widget Function(int chapterNumber, String chapterName)?
-      chapterPageBuilder;
+  chapterPageBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,22 +99,23 @@ class SearchableSurahList extends ConsumerWidget {
                   '$origin • ${l10n.versesCountCaps(chapter.numberOfAyahs)}',
                   style: TextStyle(color: textMuted),
                 ),
-                trailing: isArabicLocale(context)
-                    ? Text(
-                        chapter.englishName,
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
+                trailing:
+                    isArabicLocale(context)
+                        ? Text(
+                          chapter.englishName,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )
+                        : Text(
+                          chapter.name,
+                          textDirection: TextDirection.rtl,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      )
-                    : Text(
-                  chapter.name,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
                 onTap: () {
                   final chapterName = localizedChapterName(
                     context: context,

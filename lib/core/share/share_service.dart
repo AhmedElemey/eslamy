@@ -14,7 +14,8 @@ class ShareService {
     String? text,
   }) async {
     final boundary =
-        boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        boundaryKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     final image = await boundary.toImage(pixelRatio: 3);

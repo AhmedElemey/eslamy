@@ -84,21 +84,21 @@ class _SplashPageState extends State<SplashPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sealColor = isDark ? Colors.white : AppColors.primaryDeep;
     final titleColor = isDark ? Colors.white : AppColors.ink;
-    final taglineColor = isDark
-        ? Colors.white.withValues(alpha: 0.82)
-        : AppColors.mutedLight;
+    final taglineColor =
+        isDark ? Colors.white.withValues(alpha: 0.82) : AppColors.mutedLight;
 
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isDark
-                ? const [
-                    AppColors.bgDark,
-                    AppColors.primaryDeepest,
-                    AppColors.primaryDeep,
-                  ]
-                : const [AppColors.bgLight, AppColors.bgLightBottom],
+            colors:
+                isDark
+                    ? const [
+                      AppColors.bgDark,
+                      AppColors.primaryDeepest,
+                      AppColors.primaryDeep,
+                    ]
+                    : const [AppColors.bgLight, AppColors.bgLightBottom],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -129,7 +129,9 @@ class _SplashPageState extends State<SplashPage>
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: sealColor.withValues(alpha: isDark ? 0.14 : 0.1),
+                              color: sealColor.withValues(
+                                alpha: isDark ? 0.14 : 0.1,
+                              ),
                               border: Border.all(
                                 color: sealColor.withValues(alpha: 0.4),
                                 width: 1.5,

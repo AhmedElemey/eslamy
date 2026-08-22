@@ -28,7 +28,9 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(favoritesProvider.notifier).loadFavorites());
+    Future.microtask(
+      () => ref.read(favoritesProvider.notifier).loadFavorites(),
+    );
   }
 
   @override
@@ -40,7 +42,11 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final bookName = localizedHadithBookName(l10n, widget.book.slug, widget.book.name);
+    final bookName = localizedHadithBookName(
+      l10n,
+      widget.book.slug,
+      widget.book.name,
+    );
     final state = ref.watch(bookHadithsProvider(widget.book));
     final notifier = ref.read(bookHadithsProvider(widget.book).notifier);
 
@@ -64,7 +70,10 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
                       hintText: l10n.searchBookHint(bookName),
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
-                      fillColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white,
+                      fillColor:
+                          isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -94,7 +103,8 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CircularProgressIndicator(
-                value: state.downloadProgress > 0 ? state.downloadProgress : null,
+                value:
+                    state.downloadProgress > 0 ? state.downloadProgress : null,
                 color: AppColors.primary,
               ),
               const SizedBox(height: 16),
@@ -146,7 +156,8 @@ class _HadithBookDetailPageState extends ConsumerState<HadithBookDetailPage> {
       padding: const EdgeInsets.all(16),
       itemCount: state.visible.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _HadithCard(hadith: state.visible[index]),
+      itemBuilder:
+          (context, index) => _HadithCard(hadith: state.visible[index]),
     );
   }
 }

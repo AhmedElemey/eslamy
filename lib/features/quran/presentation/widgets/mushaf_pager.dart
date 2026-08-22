@@ -24,6 +24,7 @@ class MushafPager extends StatefulWidget {
     this.tajweedByVerse = const {},
     this.highlightedAyahs = const {},
     this.scrollToAyah,
+    this.onPositionChanged,
   });
 
   final String surahArabicName;
@@ -31,6 +32,12 @@ class MushafPager extends StatefulWidget {
   final bool showBasmala;
   final Map<int, String> tajweedByVerse;
   final void Function(int verseNumber, String verseText) onVerseTap;
+
+  /// Fired whenever the visible page changes, with the mushaf page number
+  /// and the `numberInSurah` of the first ayah on it — the single point
+  /// where "what page is the user on" is known, used to persist the last
+  /// read position for the home screen's "Continue Reading" card.
+  final void Function(int pageNumber, int ayahNumber)? onPositionChanged;
 
   /// Verse numbers (numberInSurah) to shade — e.g. the ayah range currently
   /// selected for playback.
@@ -55,6 +62,19 @@ class _MushafPagerState extends State<MushafPager> {
     super.initState();
     _pages = _groupByPage(widget.ayahs);
     _controller = PageController();
+    // Deferred to after this frame: reporting synchronously here would mean
+    // notifying lastReadPositionProvider's listeners while this widget's
+    // own ancestor is still mid-build, which Riverpod/Flutter disallow.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _reportPosition(_currentIndex);
+    });
+  }
+
+  void _reportPosition(int index) {
+    final callback = widget.onPositionChanged;
+    if (callback == null || _pages.isEmpty) return;
+    final entry = _pages[index];
+    callback(entry.key, entry.value.first.numberInSurah);
   }
 
   @override
@@ -126,7 +146,11 @@ class _MushafPagerState extends State<MushafPager> {
       final painter = TextPainter(
         text: TextSpan(
           text: text,
-          style: TextStyle(fontFamily: 'ScheherazadeNew', fontSize: fontSize, height: 1.9),
+          style: TextStyle(
+            fontFamily: 'ScheherazadeNew',
+            fontSize: fontSize,
+            height: 1.9,
+          ),
         ),
         textDirection: TextDirection.rtl,
         textAlign: TextAlign.justify,
@@ -217,7 +241,10 @@ class _MushafPagerState extends State<MushafPager> {
             controller: _controller,
             scrollDirection: Axis.vertical,
             itemCount: _pages.length,
-            onPageChanged: (index) => setState(() => _currentIndex = index),
+            onPageChanged: (index) {
+              setState(() => _currentIndex = index);
+              _reportPosition(index);
+            },
             itemBuilder: (context, index) {
               final verses = _pages[index].value;
               final isFirstPageOfSurah = verses.any(
@@ -255,8 +282,7 @@ class _MushafPagerState extends State<MushafPager> {
                           surahArabicName: widget.surahArabicName,
                           ayahs: verses,
                           showSurahBanner: isFirstPageOfSurah,
-                          showBasmala:
-                              isFirstPageOfSurah && widget.showBasmala,
+                          showBasmala: isFirstPageOfSurah && widget.showBasmala,
                           tajweedByVerse: widget.tajweedByVerse,
                           onVerseTap: widget.onVerseTap,
                           bodyFontSize: fontSize,
@@ -288,7 +314,8 @@ class _MushafPagerState extends State<MushafPager> {
         ),
         _PagerBar(
           pageNumber: currentPageNumber,
-          onPrev: _currentIndex > 0 ? () => _goToIndex(_currentIndex - 1) : null,
+          onPrev:
+              _currentIndex > 0 ? () => _goToIndex(_currentIndex - 1) : null,
           onNext:
               _currentIndex < _pages.length - 1
                   ? () => _goToIndex(_currentIndex + 1)
@@ -400,7 +427,10 @@ class _PagerBar extends StatelessWidget {
                     child: Text(
                       '$pageNumber',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w700, color: heading),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: heading,
+                      ),
                     ),
                   ),
                 ),

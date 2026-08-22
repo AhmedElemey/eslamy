@@ -70,7 +70,9 @@ class ErrorPage extends StatelessWidget {
                           constraints: const BoxConstraints(maxHeight: 140),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: scheme.errorContainer.withValues(alpha: 0.18),
+                            color: scheme.errorContainer.withValues(
+                              alpha: 0.18,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: scheme.error.withValues(alpha: 0.25),
@@ -102,9 +104,10 @@ class ErrorPage extends StatelessWidget {
                           Expanded(
                             child: FilledButton(
                               onPressed: () {
-                                Navigator.of(
-                                  context,
-                                ).pushNamedAndRemoveUntil('/home', (_) => false);
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  '/home',
+                                  (_) => false,
+                                );
                               },
                               child: Text(l10n.goHome),
                             ),

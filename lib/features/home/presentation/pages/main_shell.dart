@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widget/widget_sync_bootstrapper.dart';
 import '../../../prayer_times/presentation/pages/prayer_times_page.dart';
 import '../../../quran/presentation/pages/quran_index_page.dart';
 import '../controllers/shell_providers.dart';
@@ -20,19 +21,24 @@ class MainShell extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.pageBackground(context),
       drawer: const AppDrawer(),
-      body: IndexedStack(
-        index: index,
-        children: const [
-          HomePage(),
-          QuranIndexPage(),
-          PrayerTimesPage(),
-          MorePage(),
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: index,
+            children: const [
+              HomePage(),
+              QuranIndexPage(),
+              PrayerTimesPage(),
+              MorePage(),
+            ],
+          ),
+          const WidgetSyncBootstrapper(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (i) =>
-            ref.read(mainTabIndexProvider.notifier).state = i,
+        onDestinationSelected:
+            (i) => ref.read(mainTabIndexProvider.notifier).state = i,
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),

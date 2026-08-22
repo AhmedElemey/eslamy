@@ -3,7 +3,11 @@ class AzkarCategory {
   final String name;
   final String description;
 
-  const AzkarCategory({required this.id, required this.name, required this.description});
+  const AzkarCategory({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
 
   factory AzkarCategory.fromJson(Map<String, dynamic> json) => AzkarCategory(
     id: json['id'] as String,
@@ -58,10 +62,14 @@ class AzkarDataset {
     final categoriesJson = data['categories'] as List<dynamic>;
     final duasJson = data['duas'] as List<dynamic>;
     return AzkarDataset(
-      categories: categoriesJson
-          .map((e) => AzkarCategory.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      items: duasJson.map((e) => AzkarItem.fromJson(e as Map<String, dynamic>)).toList(),
+      categories:
+          categoriesJson
+              .map((e) => AzkarCategory.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      items:
+          duasJson
+              .map((e) => AzkarItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 }

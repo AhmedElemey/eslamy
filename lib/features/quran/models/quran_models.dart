@@ -46,6 +46,7 @@ class QuranVerse {
   final int page;
   final int ruku;
   final int hizbQuarter;
+
   /// Al Quran Cloud returns `false` for most ayahs and a *map*
   /// `{id, recommended, obligatory}` for sajda ayahs — never `true`.
   @JsonKey(fromJson: sajdaFromJson)
@@ -276,8 +277,7 @@ class AyahTafsir {
     final edition = data['edition'];
     String editionName = '';
     if (edition is Map) {
-      editionName =
-          (edition['englishName'] ?? edition['name'] ?? '') as String;
+      editionName = (edition['englishName'] ?? edition['name'] ?? '') as String;
     }
     return AyahTafsir(text: text, editionName: editionName);
   }

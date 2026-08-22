@@ -54,7 +54,9 @@ class TasbihPage extends ConsumerWidget {
                     final preset = dhikrPresets[i];
                     final selected = preset.id == state.preset.id;
                     return ChoiceChip(
-                      label: Text(localizedDhikrName(l10n, preset.id, preset.englishName)),
+                      label: Text(
+                        localizedDhikrName(l10n, preset.id, preset.englishName),
+                      ),
                       selected: selected,
                       onSelected: (_) => notifier.selectPreset(preset),
                       selectedColor: AppColors.primary,

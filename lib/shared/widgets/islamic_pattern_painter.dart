@@ -38,19 +38,26 @@ class _IslamicLatticePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
 
     final half = tileSize / 2;
     for (double cy = 0; cy < size.height + tileSize; cy += tileSize) {
       for (double cx = 0; cx < size.width + tileSize; cx += tileSize) {
         canvas.save();
         canvas.translate(cx, cy);
-        canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: half, height: half), paint);
+        canvas.drawRect(
+          Rect.fromCenter(center: Offset.zero, width: half, height: half),
+          paint,
+        );
         canvas.rotate(0.7853981633974483); // 45°
-        canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: half, height: half), paint);
+        canvas.drawRect(
+          Rect.fromCenter(center: Offset.zero, width: half, height: half),
+          paint,
+        );
         canvas.restore();
       }
     }

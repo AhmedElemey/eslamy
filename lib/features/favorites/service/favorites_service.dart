@@ -1,6 +1,7 @@
 import 'package:eslamy/features/hadith/models/hadith.dart';
 
 import '../models/favorite_hadith.dart';
+import '../models/favorite_surah.dart';
 import 'favorites_database.dart';
 
 class FavoritesService {
@@ -80,6 +81,53 @@ class FavoritesService {
       return await _database.getFavoritesCount();
     } catch (e) {
       return 0;
+    }
+  }
+
+  Future<List<FavoriteSurah>> getQuranFavorites() async {
+    try {
+      return await _database.getAllQuranFavorites();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> addChapterToFavorites({
+    required int chapterNumber,
+    required String chapterName,
+    required String chapterEnglishName,
+  }) async {
+    try {
+      await _database.insertQuranFavorite(
+        FavoriteSurah(
+          chapterNumber: chapterNumber,
+          chapterName: chapterName,
+          chapterEnglishName: chapterEnglishName,
+          savedAt: DateTime.now(),
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> removeChapterFromFavorites(int chapterNumber) async {
+    try {
+      final result = await _database.deleteQuranFavoriteByChapter(
+        chapterNumber,
+      );
+      return result > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> isChapterFavorite(int chapterNumber) async {
+    try {
+      return await _database.isQuranFavorite(chapterNumber);
+    } catch (e) {
+      return false;
     }
   }
 }

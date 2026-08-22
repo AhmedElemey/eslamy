@@ -2,6 +2,7 @@ import 'package:eslamy/features/hadith/models/hadith.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/favorite_hadith.dart';
+import '../models/favorite_surah.dart';
 
 class FavoritesDatabase {
   static final FavoritesDatabase _instance = FavoritesDatabase._internal();
@@ -21,7 +22,7 @@ class FavoritesDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createTables,
       onUpgrade: _upgradeTables,
     );
@@ -46,15 +47,35 @@ class FavoritesDatabase {
     await db.execute('''
       CREATE INDEX idx_hadith_id ON favorites(hadith_id)
     ''');
+
+    await db.execute(_quranFavoritesTableSql);
   }
 
-  Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
+  Future<void> _upgradeTables(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE favorites ADD COLUMN book_slug TEXT');
       await db.execute('ALTER TABLE favorites ADD COLUMN book_name TEXT');
-      await db.execute('ALTER TABLE favorites ADD COLUMN hadith_number INTEGER');
+      await db.execute(
+        'ALTER TABLE favorites ADD COLUMN hadith_number INTEGER',
+      );
+    }
+    if (oldVersion < 3) {
+      await db.execute(_quranFavoritesTableSql);
     }
   }
+
+  static const String _quranFavoritesTableSql = '''
+    CREATE TABLE IF NOT EXISTS quran_favorites (
+      chapter_number INTEGER PRIMARY KEY,
+      chapter_name TEXT,
+      chapter_english_name TEXT,
+      saved_at TEXT NOT NULL
+    )
+  ''';
 
   FavoriteHadith _favoriteFromMap(Map<String, dynamic> map) {
     return FavoriteHadith(
@@ -155,6 +176,56 @@ class FavoritesDatabase {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM favorites');
     return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  FavoriteSurah _quranFavoriteFromMap(Map<String, dynamic> map) {
+    return FavoriteSurah(
+      chapterNumber: map['chapter_number'] as int,
+      chapterName: map['chapter_name'] as String? ?? '',
+      chapterEnglishName: map['chapter_english_name'] as String? ?? '',
+      savedAt: DateTime.parse(map['saved_at'] as String),
+    );
+  }
+
+  Future<int> insertQuranFavorite(FavoriteSurah favorite) async {
+    final db = await database;
+    return await db.insert('quran_favorites', {
+      'chapter_number': favorite.chapterNumber,
+      'chapter_name': favorite.chapterName,
+      'chapter_english_name': favorite.chapterEnglishName,
+      'saved_at': favorite.savedAt.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<FavoriteSurah>> getAllQuranFavorites() async {
+    final db = await database;
+    final maps = await db.query('quran_favorites', orderBy: 'saved_at DESC');
+    return maps.map(_quranFavoriteFromMap).toList();
+  }
+
+  Future<int> deleteQuranFavoriteByChapter(int chapterNumber) async {
+    final db = await database;
+    return await db.delete(
+      'quran_favorites',
+      where: 'chapter_number = ?',
+      whereArgs: [chapterNumber],
+    );
+  }
+
+  Future<bool> isQuranFavorite(int chapterNumber) async {
+    final db = await database;
+    final maps = await db.query(
+      'quran_favorites',
+      where: 'chapter_number = ?',
+      whereArgs: [chapterNumber],
+      limit: 1,
+    );
+    return maps.isNotEmpty;
+  }
+
+  Future<int> deleteAllQuranFavorites() async {
+    final db = await database;
+    return await db.delete('quran_favorites');
   }
 
   Future<void> close() async {

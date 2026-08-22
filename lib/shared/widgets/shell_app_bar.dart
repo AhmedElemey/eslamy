@@ -4,11 +4,7 @@ import '../../../core/theme/app_colors.dart';
 /// App bar that shows a back button on pushed routes and the shell menu
 /// when the page is hosted as a tab.
 class ShellAwareAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ShellAwareAppBar({
-    super.key,
-    required this.title,
-    this.actions,
-  });
+  const ShellAwareAppBar({super.key, required this.title, this.actions});
 
   final Widget title;
   final List<Widget>? actions;
@@ -22,12 +18,16 @@ class ShellAwareAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: title,
       actions: actions,
-      leading: canPop
-          ? null
-          : IconButton(
-              icon: Icon(Icons.menu_rounded, color: AppColors.heading(context)),
-              onPressed: () => _openShellDrawer(context),
-            ),
+      leading:
+          canPop
+              ? null
+              : IconButton(
+                icon: Icon(
+                  Icons.menu_rounded,
+                  color: AppColors.heading(context),
+                ),
+                onPressed: () => _openShellDrawer(context),
+              ),
     );
   }
 }

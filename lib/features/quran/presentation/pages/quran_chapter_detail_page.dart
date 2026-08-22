@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../models/last_read_position.dart';
 import '../../models/quran_models.dart';
 import '../../service/quran_audio_handler.dart';
 import '../../service/quran_audio_service.dart';
@@ -18,10 +19,16 @@ class QuranChapterDetailPage extends ConsumerStatefulWidget {
   final int chapterNumber;
   final String chapterName;
 
+  /// Ayah (numberInSurah) to open the pager on, e.g. when navigating in
+  /// from the home screen's "Continue Reading" card. Defaults to the start
+  /// of the surah when null.
+  final int? startingAyah;
+
   const QuranChapterDetailPage({
     super.key,
     required this.chapterNumber,
     required this.chapterName,
+    this.startingAyah,
   });
 
   @override
@@ -35,6 +42,34 @@ class _QuranChapterDetailPageState
   RangeValues? _ayahRange;
   ({int ayah, int nonce})? _scrollToAyah;
   int _scrollNonce = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final startingAyah = widget.startingAyah;
+    if (startingAyah != null) {
+      _scrollToAyah = (ayah: startingAyah, nonce: _scrollNonce++);
+    }
+  }
+
+  void _saveLastReadPosition(
+    QuranChapter chapter,
+    int pageNumber,
+    int ayahNumber,
+  ) {
+    ref
+        .read(lastReadPositionProvider.notifier)
+        .save(
+          LastReadPosition(
+            chapterNumber: chapter.number,
+            chapterArabicName: chapter.name,
+            chapterEnglishName: chapter.englishName,
+            ayahNumber: ayahNumber,
+            pageNumber: pageNumber,
+            updatedAt: DateTime.now(),
+          ),
+        );
+  }
 
   Set<int> get _highlightedAyahs {
     final range = _ayahRange;
@@ -186,7 +221,10 @@ class _QuranChapterDetailPageState
                   title: Text(l10n.playFullSurahLabel),
                   trailing:
                       _audioMode == _ChapterAudioMode.full
-                          ? Icon(Icons.check_circle, color: AppColors.primaryOnBg(context))
+                          ? Icon(
+                            Icons.check_circle,
+                            color: AppColors.primaryOnBg(context),
+                          )
                           : null,
                   onTap: () {
                     setState(() => _audioMode = _ChapterAudioMode.full);
@@ -198,7 +236,10 @@ class _QuranChapterDetailPageState
                   title: Text(l10n.playAyahRangeLabel),
                   trailing:
                       _audioMode == _ChapterAudioMode.range
-                          ? Icon(Icons.check_circle, color: AppColors.primaryOnBg(context))
+                          ? Icon(
+                            Icons.check_circle,
+                            color: AppColors.primaryOnBg(context),
+                          )
                           : null,
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -234,13 +275,6 @@ class _QuranChapterDetailPageState
       _audioMode = _ChapterAudioMode.range;
       _ayahRange = result;
     });
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
   }
 
   @override
@@ -280,6 +314,25 @@ class _QuranChapterDetailPageState
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: Icon(
+              isPlaying
+                  ? Icons.pause_circle_filled_rounded
+                  : Icons.play_circle_fill_rounded,
+            ),
+            onPressed:
+                isPlaying
+                    ? handler.pause
+                    : () =>
+                        _audioMode == _ChapterAudioMode.range &&
+                                _ayahRange != null
+                            ? _startRangeAudio(handler, _ayahRange!)
+                            : _startChapterAudio(handler),
+            tooltip:
+                isPlaying
+                    ? l10n.pauseChapterAudioTooltip
+                    : l10n.playChapterAudioTooltip,
+          ),
           IconButton(
             icon: const Icon(Icons.format_list_numbered_rounded),
             onPressed:
@@ -359,6 +412,12 @@ class _QuranChapterDetailPageState
                       tajweedByVerse: tajweedByVerse,
                       highlightedAyahs: _highlightedAyahs,
                       scrollToAyah: _scrollToAyah,
+                      onPositionChanged:
+                          (pageNumber, ayahNumber) => _saveLastReadPosition(
+                            chapterResponse.data,
+                            pageNumber,
+                            ayahNumber,
+                          ),
                       onVerseTap: (verseNumber, verseText) {
                         Navigator.push(
                           context,
@@ -373,63 +432,6 @@ class _QuranChapterDetailPageState
                         );
                       },
                     ),
-                  ),
-                  StreamBuilder<Duration>(
-                    stream: handler.player.positionStream,
-                    builder: (context, snapshot) {
-                      final isActiveRange =
-                          isThisChapterActive && handler.isRangeMode;
-                      final position =
-                          isThisChapterActive
-                              ? (isActiveRange
-                                  ? handler.rangeElapsedBeforeCurrent +
-                                      (snapshot.data ?? Duration.zero)
-                                  : (snapshot.data ?? Duration.zero))
-                              : Duration.zero;
-                      final rawDuration =
-                          isThisChapterActive
-                              ? (isActiveRange
-                                  ? handler.rangeTotalDuration
-                                  : (handler.player.duration ?? Duration.zero))
-                              : Duration.zero;
-                      // The range total is a running estimate (see
-                      // rangeTotalDuration) — never let it show less than
-                      // what's already elapsed.
-                      final duration =
-                          rawDuration < position ? position : rawDuration;
-                      final range = _ayahRange;
-                      final label =
-                          _audioMode == _ChapterAudioMode.range && range != null
-                              ? l10n.ayahRangeSummary(
-                                range.start.round(),
-                                range.end.round(),
-                                range.end.round() - range.start.round() + 1,
-                              )
-                              : l10n.chapterAudioLabel;
-                      return _ChapterAudioBar(
-                        label: label,
-                        isPlaying: isPlaying,
-                        position: position,
-                        duration: duration,
-                        onPlayPause:
-                            isPlaying
-                                ? handler.pause
-                                : () =>
-                                    _audioMode == _ChapterAudioMode.range
-                                        ? _startRangeAudio(handler, _ayahRange!)
-                                        : _startChapterAudio(handler),
-                        onStop: handler.stop,
-                        formatDuration: _formatDuration,
-                        onSeek: (value) {
-                          final target = Duration(milliseconds: value.toInt());
-                          if (isActiveRange) {
-                            handler.seekInRange(target);
-                          } else {
-                            handler.seek(target);
-                          }
-                        },
-                      );
-                    },
                   ),
                 ],
               );
@@ -481,7 +483,10 @@ class _QuranChapterDetailPageState
 /// user to pick a different reciter instead — reactively, so choosing one
 /// from within this same dialog immediately reveals the controls.
 class _AyahRangeDialog extends ConsumerStatefulWidget {
-  const _AyahRangeDialog({required this.totalAyahs, required this.initialRange});
+  const _AyahRangeDialog({
+    required this.totalAyahs,
+    required this.initialRange,
+  });
 
   final int totalAyahs;
   final RangeValues initialRange;
@@ -679,89 +684,6 @@ class _AyahRangeDialogState extends ConsumerState<_AyahRangeDialog> {
           child: Text(l10n.ok),
         ),
       ],
-    );
-  }
-}
-
-class _ChapterAudioBar extends StatelessWidget {
-  const _ChapterAudioBar({
-    required this.label,
-    required this.isPlaying,
-    required this.position,
-    required this.duration,
-    required this.onPlayPause,
-    required this.onStop,
-    required this.formatDuration,
-    required this.onSeek,
-  });
-
-  final String label;
-  final bool isPlaying;
-  final Duration position;
-  final Duration duration;
-  final VoidCallback onPlayPause;
-  final VoidCallback onStop;
-  final String Function(Duration) formatDuration;
-  final ValueChanged<double> onSeek;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxMs = duration.inMilliseconds.toDouble();
-    return Material(
-      color: AppColors.surface(context),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.heading(context),
-                      ),
-                    ),
-                  ),
-                  IconButton.filled(
-                    onPressed: onPlayPause,
-                    icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.outlined(
-                    onPressed: onStop,
-                    icon: const Icon(Icons.stop),
-                  ),
-                ],
-              ),
-              if (maxMs > 0) ...[
-                Slider(
-                  value: position.inMilliseconds.toDouble().clamp(0.0, maxMs),
-                  max: maxMs,
-                  onChanged: onSeek,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formatDuration(position),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    Text(
-                      formatDuration(duration),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

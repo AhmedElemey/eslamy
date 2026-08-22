@@ -6,6 +6,7 @@ import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../data/models/azkar_models.dart';
 import '../controllers/azkar_providers.dart';
 import 'azkar_category_detail_page.dart';
@@ -16,6 +17,10 @@ class AzkarCategoriesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(azkarCategoriesProvider);
+    // Reserve room below the list for the global mini player when something
+    // is loaded, so it doesn't clip the last category.
+    final miniPlayerActive =
+        ref.watch(currentMediaItemProvider).valueOrNull != null;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -25,26 +30,33 @@ class AzkarCategoriesPage extends ConsumerWidget {
         child: SafeArea(
           child: categoriesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  context.l10n.couldNotLoadAzkarWithError(
-                    localizedError(context.l10n, e),
+            error:
+                (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      context.l10n.couldNotLoadAzkarWithError(
+                        localizedError(context.l10n, e),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-            ),
-            data: (categories) => ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final category = categories[i];
-                return _CategoryTile(category: category, index: i);
-              },
-            ),
+            data:
+                (categories) => ListView.separated(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    miniPlayerActive ? 190 : 16,
+                  ),
+                  itemCount: categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) {
+                    final category = categories[i];
+                    return _CategoryTile(category: category, index: i);
+                  },
+                ),
           ),
         ),
       ),

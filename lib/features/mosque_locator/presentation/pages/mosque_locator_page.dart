@@ -48,7 +48,9 @@ class MosqueLocatorPage extends ConsumerWidget {
     if (state.error != null && state.mosques.isEmpty) {
       return _MessageView(
         icon: Icons.error_outline,
-        message: l10n.mosqueLocatorFailedWithError(localizedError(l10n, state.error!)),
+        message: l10n.mosqueLocatorFailedWithError(
+          localizedError(l10n, state.error!),
+        ),
         onRetry: notifier.load,
       );
     }
@@ -80,8 +82,7 @@ class MosqueLocatorPage extends ConsumerWidget {
     }
 
     final bannerCount =
-        (state.isShowingStaleCache ? 1 : 0) +
-        (state.usingCachedGps ? 1 : 0);
+        (state.isShowingStaleCache ? 1 : 0) + (state.usingCachedGps ? 1 : 0);
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -90,9 +91,7 @@ class MosqueLocatorPage extends ConsumerWidget {
       itemBuilder: (context, index) {
         if (state.isShowingStaleCache) {
           if (index == 0) {
-            return _FallbackLocationBanner(
-              text: l10n.mosqueLocatorStaleCache,
-            );
+            return _FallbackLocationBanner(text: l10n.mosqueLocatorStaleCache);
           }
           index -= 1;
         }
@@ -153,7 +152,9 @@ class _MosqueTile extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 Text(
-                  l10n.mosqueLocatorDistance(_formatDistance(context, mosque.distanceMeters)),
+                  l10n.mosqueLocatorDistance(
+                    _formatDistance(context, mosque.distanceMeters),
+                  ),
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.mutedText(context),
@@ -190,9 +191,9 @@ class _MosqueTile extends StatelessWidget {
       mode: LaunchMode.externalApplication,
     );
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.mosqueLocatorCouldNotOpenMaps)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.mosqueLocatorCouldNotOpenMaps)),
+      );
     }
   }
 
@@ -215,12 +216,19 @@ class _FallbackLocationBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 18, color: AppColors.mutedText(context)),
+          Icon(
+            Icons.info_outline,
+            size: 18,
+            color: AppColors.mutedText(context),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 13, color: AppColors.mutedText(context)),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.mutedText(context),
+              ),
             ),
           ),
         ],
@@ -260,18 +268,12 @@ class _MessageView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Center(
-          child: ElevatedButton(
-            onPressed: onRetry,
-            child: Text(l10n.retry),
-          ),
+          child: ElevatedButton(onPressed: onRetry, child: Text(l10n.retry)),
         ),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 8),
           Center(
-            child: TextButton(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
+            child: TextButton(onPressed: onAction, child: Text(actionLabel!)),
           ),
         ],
       ],

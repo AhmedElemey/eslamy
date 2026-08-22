@@ -86,9 +86,9 @@ void main() {
       );
       await tester.pump();
 
-      Navigator.of(tester.element(find.byType(SplashPage))).pushNamed(
-        '/now-playing',
-      );
+      Navigator.of(
+        tester.element(find.byType(SplashPage)),
+      ).pushNamed('/now-playing');
       await tester.pumpAndSettle();
       expect(find.text('NOW'), findsOneWidget);
 

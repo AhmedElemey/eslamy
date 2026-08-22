@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/glass_card.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../data/models/azkar_models.dart';
 import '../controllers/azkar_providers.dart';
 
@@ -20,6 +21,10 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(azkarItemsProvider(category.id));
+    // Reserve room below the list for the global mini player when something
+    // is loaded, so it doesn't clip the last item.
+    final miniPlayerActive =
+        ref.watch(currentMediaItemProvider).valueOrNull != null;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -33,23 +38,30 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
         child: SafeArea(
           child: itemsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  context.l10n.couldNotLoadSectionWithError(
-                    localizedError(context.l10n, e),
+            error:
+                (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      context.l10n.couldNotLoadSectionWithError(
+                        localizedError(context.l10n, e),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-            ),
-            data: (items) => ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) => _AzkarItemCard(item: items[i]),
-            ),
+            data:
+                (items) => ListView.separated(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    miniPlayerActive ? 190 : 16,
+                  ),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) => _AzkarItemCard(item: items[i]),
+                ),
           ),
         ),
       ),
@@ -83,7 +95,10 @@ class _AzkarItemCardState extends State<_AzkarItemCard> {
           if (item.title.isNotEmpty)
             Text(
               item.title,
-              style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
           if (item.title.isNotEmpty) const SizedBox(height: 8),
           Text(
@@ -100,14 +115,21 @@ class _AzkarItemCardState extends State<_AzkarItemCard> {
             const SizedBox(height: 10),
             Text(
               item.translation,
-              style: TextStyle(color: AppColors.mutedText(context), fontSize: 15, height: 1.5),
+              style: TextStyle(
+                color: AppColors.mutedText(context),
+                fontSize: 15,
+                height: 1.5,
+              ),
             ),
           ],
           if (item.source.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               item.source,
-              style: TextStyle(fontSize: 12, color: AppColors.mutedText(context)),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.mutedText(context),
+              ),
             ),
           ],
           const SizedBox(height: 12),
@@ -116,16 +138,16 @@ class _AzkarItemCardState extends State<_AzkarItemCard> {
               if (target > 1)
                 Expanded(
                   child: FilledButton(
-                    onPressed: complete
-                        ? null
-                        : () {
-                            HapticFeedback.lightImpact();
-                            setState(() => _done++);
-                          },
+                    onPressed:
+                        complete
+                            ? null
+                            : () {
+                              HapticFeedback.lightImpact();
+                              setState(() => _done++);
+                            },
                     style: FilledButton.styleFrom(
-                      backgroundColor: complete
-                          ? AppColors.success
-                          : AppColors.primary,
+                      backgroundColor:
+                          complete ? AppColors.success : AppColors.primary,
                     ),
                     child: Text('$_done / $target'),
                   ),
@@ -133,8 +155,13 @@ class _AzkarItemCardState extends State<_AzkarItemCard> {
               else
                 const Spacer(),
               IconButton(
-                icon: Icon(Icons.share_outlined, size: 20, color: AppColors.mutedText(context)),
-                onPressed: () => Share.share('${item.arabic}\n\n${item.translation}'),
+                icon: Icon(
+                  Icons.share_outlined,
+                  size: 20,
+                  color: AppColors.mutedText(context),
+                ),
+                onPressed:
+                    () => Share.share('${item.arabic}\n\n${item.translation}'),
               ),
             ],
           ),

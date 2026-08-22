@@ -95,9 +95,7 @@ List<HadithItem> parseHadithsDocument(
       final rawText = (m['text'] as String?)?.trim() ?? '';
       if (rawText.isEmpty) {
         skippedEmpty++;
-        debugPrint(
-          'Hadith $label ${book.slug} #$number: empty text, skipping',
-        );
+        debugPrint('Hadith $label ${book.slug} #$number: empty text, skipping');
         continue;
       }
 

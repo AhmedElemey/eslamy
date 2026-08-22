@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../data/surah_names.dart';
@@ -10,6 +11,14 @@ import 'reciter_avatar_art.dart';
 
 const int kFirstSurahNumber = 1;
 const int kLastSurahNumber = 114;
+
+// `_player.setUrl()` is a real network fetch with no built-in timeout of its
+// own — if it stalls (e.g. a momentary connectivity drop), it can hang
+// indefinitely. Since it runs inside `_runExclusive`'s critical section, a
+// stall that never resolves or throws would hold that lock forever and
+// permanently block every future play/skip request, not just the current
+// one. Capping it here guarantees the lock is always eventually released.
+const Duration _kAudioLoadTimeout = Duration(seconds: 15);
 
 /// Single app-wide audio session for surah playback. Replaces the old
 /// per-screen `AudioPlayer` instances so play state (and the audio itself)
@@ -204,10 +213,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
 
   /// Plays [chapterNumber] (clamped 1..114) with [reciter] (falls back to the
   /// last-used reciter). Notification title is always the real surah name.
-  Future<void> playSurah(
-    int chapterNumber, {
-    Reciter? reciter,
-  }) async {
+  Future<void> playSurah(int chapterNumber, {Reciter? reciter}) async {
     final clamped = chapterNumber.clamp(kFirstSurahNumber, kLastSurahNumber);
     final token = ++_playToken;
     _currentSurah = clamped;
@@ -217,6 +223,25 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     if (reciter != null) _currentReciter = reciter;
 
     final currentReciter = _currentReciter;
+
+    // Publish the new title immediately, before the URL/art even start
+    // resolving. Without this, the displayed title lags behind
+    // `_currentSurah` while those awaits are in flight — long enough that a
+    // manual skip tap landing in that window reads the already-updated
+    // `_currentSurah` and computes one surah further than what's on screen,
+    // looking like it skipped two surahs at once (most visible when this
+    // races the auto-advance-on-completion below).
+    final previousItem = mediaItem.value;
+    mediaItem.add(
+      MediaItem(
+        id: previousItem?.id ?? '',
+        title: _titleFor(clamped),
+        artist: currentReciter?.name,
+        artUri: previousItem?.artUri,
+        extras: {'chapterNumber': clamped},
+      ),
+    );
+
     final urlFuture = QuranAudioService.getChapterAudioUrl(
       clamped,
       reciterId: currentReciter?.relativePath,
@@ -236,15 +261,72 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       ),
     );
 
+    // `_player.setUrl()` below is a real network fetch of the audio file —
+    // it can take seconds, and once started it can't be cancelled. Without
+    // this settle window, a burst of rapid skip taps each grab the
+    // exclusive lock in turn and each fully load their (soon-to-be-discarded)
+    // audio before the next one gets a turn, so the real, audible track can
+    // lag the displayed title by however many wasted loads came before it —
+    // or, if one of those loads stalls, never catch up at all. Waiting here
+    // lets a newer tap supersede this one (via the token check just below)
+    // before any network request is made, so a fast burst costs one real
+    // load — for the final target — instead of one per tap.
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (token != _playToken) return; // superseded during the settle window
+
     await _runExclusive(() async {
-      if (token != _playToken) return;
-      try {
-        await _player.setUrl(url);
-        if (token != _playToken) return;
-        await _player.play();
-      } catch (_) {
-        // Load/play was interrupted by a newer request superseding this
-        // one — nothing to do, the newer request will take over the player.
+      // Loops instead of returning on staleness: if a burst of taps is
+      // spread out wider than the settle window above, more than one of
+      // them can independently reach this point and queue up behind each
+      // other on `_runExclusive`, each about to load real (uncancellable)
+      // audio that's already known to be discarded by the time its turn
+      // comes. Rather than let a stale call queue its own doomed load, only
+      // ever act on whichever target is *current* right now, and if that
+      // changes again mid-load, re-fetch and retry in place — so no matter
+      // how the taps are spaced, only ever one real load is in flight, and
+      // it's always chasing the latest tap rather than an abandoned one.
+      var loopToken = token;
+      var loopClamped = clamped;
+      var loopUrl = url;
+      while (true) {
+        if (loopToken != _playToken) {
+          loopToken = _playToken;
+          loopClamped = _currentSurah;
+          final loopReciter = _currentReciter;
+          loopUrl = await QuranAudioService.getChapterAudioUrl(
+            loopClamped,
+            reciterId: loopReciter?.relativePath,
+          );
+          if (loopToken != _playToken) continue; // moved on again already
+          final loopArtUri = await _artUriFor(loopReciter);
+          if (loopToken != _playToken) continue;
+          mediaItem.add(
+            MediaItem(
+              id: loopUrl,
+              title: _titleFor(loopClamped),
+              artist: loopReciter?.name,
+              artUri: loopArtUri,
+              extras: {'chapterNumber': loopClamped},
+            ),
+          );
+        }
+        try {
+          await _player.setUrl(loopUrl).timeout(_kAudioLoadTimeout);
+          if (loopToken != _playToken) continue; // resync to the latest tap
+          // `play()`'s Future does not complete until playback pauses or
+          // ends (documented just_audio behavior) — awaiting it here would
+          // hold this critical section for the rest of the track's runtime,
+          // blocking every future skip/play request behind it. We only need
+          // playback to *start*, so fire-and-forget it.
+          unawaited(_player.play());
+          if (loopToken == _playToken) return; // stable — done
+        } catch (e) {
+          // A genuine load/play failure (bad connection, dead URL) must
+          // surface to the caller so the UI can show an error and offer a
+          // retry — only a request superseded by a newer one is silently
+          // retried against the newer target instead.
+          if (loopToken == _playToken) rethrow;
+        }
       }
     });
   }
@@ -260,7 +342,10 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     required int toAyah,
     Reciter? reciter,
   }) async {
-    final clampedSurah = chapterNumber.clamp(kFirstSurahNumber, kLastSurahNumber);
+    final clampedSurah = chapterNumber.clamp(
+      kFirstSurahNumber,
+      kLastSurahNumber,
+    );
     final start = fromAyah <= toAyah ? fromAyah : toAyah;
     final end = fromAyah <= toAyah ? toAyah : fromAyah;
     _currentSurah = clampedSurah;
@@ -278,6 +363,26 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     final rangeIndexAtRequest = _rangeIndex;
     final token = ++_playToken;
     final currentReciter = _currentReciter;
+
+    // See the matching comment in playSurah: publish immediately so a
+    // rapid follow-up step (or the completion listener's auto-advance)
+    // never computes its target against a UI that's still showing the
+    // previous ayah/surah.
+    final previousItem = mediaItem.value;
+    mediaItem.add(
+      MediaItem(
+        id: previousItem?.id ?? '',
+        title: _titleFor(_currentSurah),
+        artist: currentReciter?.name,
+        artUri: previousItem?.artUri,
+        extras: {
+          'chapterNumber': _currentSurah,
+          'ayahNumber': ayahNumber,
+          'rangeStart': ayahs.first,
+          'rangeEnd': ayahs.last,
+        },
+      ),
+    );
 
     final urlFuture = QuranAudioService.getVerseAudioUrl(
       _currentSurah,
@@ -304,17 +409,69 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       ),
     );
 
+    // See the matching comment/fix in playSurah: settle briefly so a rapid
+    // burst of range-step taps only pays for one real network load — the
+    // final target — instead of one wasted load per step.
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (token != _playToken) return; // superseded during the settle window
+
     await _runExclusive(() async {
-      if (token != _playToken) return;
-      try {
-        final duration = await _player.setUrl(url);
-        if (token != _playToken) return;
-        if (duration != null && rangeIndexAtRequest < _rangeDurations.length) {
-          _rangeDurations[rangeIndexAtRequest] = duration;
+      // See the matching comment/fix in playSurah: keep chasing whatever
+      // step is current instead of returning and leaving a stale queued
+      // call to redo (and likely also lose) the same real network load.
+      var loopToken = token;
+      var loopUrl = url;
+      var loopRangeIndex = rangeIndexAtRequest;
+      while (true) {
+        if (loopToken != _playToken) {
+          final loopAyahs = _rangeAyahs;
+          if (loopAyahs == null) return; // switched out of range mode
+          loopToken = _playToken;
+          loopRangeIndex = _rangeIndex;
+          final loopAyahNumber = loopAyahs[loopRangeIndex];
+          final loopReciter = _currentReciter;
+          loopUrl = await QuranAudioService.getVerseAudioUrl(
+            _currentSurah,
+            loopAyahNumber,
+            reciterId: loopReciter?.relativePath,
+          );
+          if (loopToken != _playToken) continue; // moved on again already
+          final loopArtUri = await _artUriFor(loopReciter);
+          if (loopToken != _playToken) continue;
+          mediaItem.add(
+            MediaItem(
+              id: loopUrl,
+              title: _titleFor(_currentSurah),
+              artist: loopReciter?.name,
+              artUri: loopArtUri,
+              extras: {
+                'chapterNumber': _currentSurah,
+                'ayahNumber': loopAyahNumber,
+                'rangeStart': loopAyahs.first,
+                'rangeEnd': loopAyahs.last,
+              },
+            ),
+          );
         }
-        await _player.play();
-      } catch (_) {
-        // Superseded/interrupted — a newer request will take over the player.
+        try {
+          final duration = await _player
+              .setUrl(loopUrl)
+              .timeout(_kAudioLoadTimeout);
+          if (loopToken != _playToken) continue; // resync to the latest step
+          if (duration != null && loopRangeIndex < _rangeDurations.length) {
+            _rangeDurations[loopRangeIndex] = duration;
+          }
+          // See the matching comment/fix in playSurah: don't await — its
+          // Future doesn't resolve until playback pauses or ends, which
+          // would hold this lock for the rest of the track and block every
+          // future skip/play request behind it.
+          unawaited(_player.play());
+          if (loopToken == _playToken) return; // stable — done
+        } catch (e) {
+          // See the matching comment in playSurah: only swallow when this
+          // request was superseded, otherwise let the caller see the failure.
+          if (loopToken == _playToken) rethrow;
+        }
       }
     });
   }
@@ -334,7 +491,13 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    // See the comment in playSurah: `_player.play()`'s Future doesn't
+    // complete until playback pauses or ends, so returning it directly here
+    // would leave any awaiting caller (including audio_service's own OS
+    // media-control handling) hanging for the entire remaining playback.
+    unawaited(_player.play());
+  }
 
   @override
   Future<void> pause() => _player.pause();
@@ -353,15 +516,30 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> skipToNext() {
-    if (_rangeAyahs != null) return _stepRange(1);
-    return playSurah(_currentSurah + 1);
-  }
+  Future<void> skipToNext() => _skipSafely(
+    () => _rangeAyahs != null ? _stepRange(1) : playSurah(_currentSurah + 1),
+  );
 
   @override
-  Future<void> skipToPrevious() {
-    if (_rangeAyahs != null) return _stepRange(-1);
-    return playSurah(_currentSurah - 1);
+  Future<void> skipToPrevious() => _skipSafely(
+    () => _rangeAyahs != null ? _stepRange(-1) : playSurah(_currentSurah - 1),
+  );
+
+  /// Runs a skip action without letting a failure (e.g. a network timeout
+  /// loading the next track) become an unhandled exception. The mini player
+  /// and OS media controls call `skipToNext`/`skipToPrevious` without
+  /// awaiting or catching, so unlike a page's own "play this chapter"
+  /// action — which does await `playSurah` directly and shows its own error
+  /// snackbar — there's no local error UI for a skip failure to reach.
+  /// Letting it propagate instead trips the app's global error handler and
+  /// replaces the whole screen for what's usually just a transient hiccup
+  /// the next tap (or the loop's own self-healing) would recover from.
+  Future<void> _skipSafely(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (e) {
+      debugPrint('Quran skip failed: $e');
+    }
   }
 
   /// Moves within the current ayah range by [delta] (±1), clamped to its
@@ -376,7 +554,10 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) async {
+  Future<dynamic> customAction(
+    String name, [
+    Map<String, dynamic>? extras,
+  ]) async {
     if (name == 'openNowPlaying') {
       _openNowPlayingController.add(null);
     }

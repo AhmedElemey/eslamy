@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/islamic_pattern_painter.dart';
 import '../../../duas/presentation/pages/azkar_categories_page.dart';
@@ -12,6 +13,7 @@ import '../../../tafseer/presentation/pages/tafseer_index_page.dart';
 import '../../../hijri_calendar/presentation/pages/hijri_calendar_page.dart';
 import '../../../prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../../prayer_times/presentation/pages/qibla_page.dart';
+import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../tasbih/presentation/pages/tasbih_page.dart';
 import '../controllers/shell_providers.dart';
@@ -22,8 +24,21 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final hijriDate = ref.watch(prayerTimesProvider).timings?.hijriDate;
+    final timings = ref.watch(prayerTimesProvider).timings;
+    final hijriDate =
+        timings == null
+            ? null
+            : localizedHijriDateAh(
+              l10n,
+              day: timings.hijriDay,
+              month: timings.hijriMonth,
+              year: timings.hijriYear,
+            );
     final today = DateTime.now();
+    // Reserve room below the last item for the global mini player when
+    // something is loaded, so it doesn't cover the bottom menu entries.
+    final miniPlayerActive =
+        ref.watch(currentMediaItemProvider).valueOrNull != null;
 
     final sections = <_DrawerSection>[
       _DrawerSection(null, [
@@ -97,7 +112,7 @@ class AppDrawer extends ConsumerWidget {
     return Drawer(
       backgroundColor: AppColors.pageBackground(context),
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(bottom: miniPlayerActive ? 190 : 0),
         children: [
           _DrawerHeader(
             hijriDate: hijriDate,

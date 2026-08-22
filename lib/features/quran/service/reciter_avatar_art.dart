@@ -85,7 +85,10 @@ Future<Uri> reciterAvatarArtUri(int reciterId, String name) {
   // Don't leave a failed attempt cached forever — let the next call retry.
   // (A separate listener, not the future itself: the caller below still
   // sees and can handle the original error.)
-  future.then((_) {}, onError: (Object _) => _reciterArtCache.remove(reciterId));
+  future.then(
+    (_) {},
+    onError: (Object _) => _reciterArtCache.remove(reciterId),
+  );
   return future;
 }
 
@@ -103,16 +106,15 @@ Future<Uri> _generateReciterAvatarArt(int reciterId, String name) async {
   final photoAsset = _reciterPhotoAssets[reciterId];
   if (photoAsset != null) {
     final data = await rootBundle.load(photoAsset);
-    final codec = await ui.instantiateImageCodec(
-      data.buffer.asUint8List(),
-    );
+    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final photo = (await codec.getNextFrame()).image;
 
     // Cover-fit crop: the largest centered square from the source photo,
     // scaled to fill the circular canvas.
-    final srcSize = photo.width < photo.height
-        ? photo.width.toDouble()
-        : photo.height.toDouble();
+    final srcSize =
+        photo.width < photo.height
+            ? photo.width.toDouble()
+            : photo.height.toDouble();
     final srcRect = Rect.fromCenter(
       center: Offset(photo.width / 2, photo.height / 2),
       width: srcSize,

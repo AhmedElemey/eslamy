@@ -7,48 +7,48 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get light => _build(
-        brightness: Brightness.light,
-        scheme: const ColorScheme(
-          brightness: Brightness.light,
-          primary: AppColors.primary,
-          onPrimary: Colors.white,
-          secondary: AppColors.goldDeep,
-          onSecondary: AppColors.ink,
-          tertiary: AppColors.primaryDeep,
-          onTertiary: Colors.white,
-          error: Color(0xFFB3261E),
-          onError: Colors.white,
-          surface: AppColors.surfaceLight,
-          onSurface: AppColors.ink,
-          outline: AppColors.hairlineLight,
-          surfaceContainerHighest: AppColors.bgLightBottom,
-        ),
-        scaffold: AppColors.bgLight,
-        divider: AppColors.hairlineLight,
-        card: AppColors.surfaceLight,
-      );
+    brightness: Brightness.light,
+    scheme: const ColorScheme(
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      onPrimary: Colors.white,
+      secondary: AppColors.goldDeep,
+      onSecondary: AppColors.ink,
+      tertiary: AppColors.primaryDeep,
+      onTertiary: Colors.white,
+      error: Color(0xFFB3261E),
+      onError: Colors.white,
+      surface: AppColors.surfaceLight,
+      onSurface: AppColors.ink,
+      outline: AppColors.hairlineLight,
+      surfaceContainerHighest: AppColors.bgLightBottom,
+    ),
+    scaffold: AppColors.bgLight,
+    divider: AppColors.hairlineLight,
+    card: AppColors.surfaceLight,
+  );
 
   static ThemeData get dark => _build(
-        brightness: Brightness.dark,
-        scheme: const ColorScheme(
-          brightness: Brightness.dark,
-          primary: AppColors.primaryOnDark,
-          onPrimary: AppColors.primaryDeepest,
-          secondary: AppColors.gold,
-          onSecondary: AppColors.primaryDeepest,
-          tertiary: AppColors.primary,
-          onTertiary: AppColors.inkDark,
-          error: Color(0xFFFFB4AB),
-          onError: Color(0xFF690005),
-          surface: AppColors.surfaceDark,
-          onSurface: AppColors.inkDark,
-          outline: AppColors.hairlineDark,
-          surfaceContainerHighest: Color(0xFF1C2A26),
-        ),
-        scaffold: AppColors.bgDark,
-        divider: AppColors.hairlineDark,
-        card: AppColors.surfaceDark,
-      );
+    brightness: Brightness.dark,
+    scheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: AppColors.primaryOnDark,
+      onPrimary: AppColors.primaryDeepest,
+      secondary: AppColors.gold,
+      onSecondary: AppColors.primaryDeepest,
+      tertiary: AppColors.primary,
+      onTertiary: AppColors.inkDark,
+      error: Color(0xFFFFB4AB),
+      onError: Color(0xFF690005),
+      surface: AppColors.surfaceDark,
+      onSurface: AppColors.inkDark,
+      outline: AppColors.hairlineDark,
+      surfaceContainerHighest: Color(0xFF1C2A26),
+    ),
+    scaffold: AppColors.bgDark,
+    divider: AppColors.hairlineDark,
+    card: AppColors.surfaceDark,
+  );
 
   /// Transparent system bars so the page background fills the Android
   /// gesture-nav inset instead of showing a black window behind it
@@ -124,9 +124,10 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         selectedColor: scheme.primary,
-        backgroundColor: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : AppColors.bgLightBottom,
+        backgroundColor:
+            isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : AppColors.bgLightBottom,
         labelStyle: TextStyle(
           fontFamily: AppTypography.ui,
           fontWeight: FontWeight.w600,
@@ -142,9 +143,10 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : AppColors.surfaceLight,
+        fillColor:
+            isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : AppColors.surfaceLight,
         hintStyle: TextStyle(color: AppColors.mutedTextFrom(isDark)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -159,7 +161,10 @@ class AppTheme {
           borderSide: BorderSide(color: scheme.primary, width: 2),
         ),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: scheme.primary,
@@ -190,14 +195,18 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: scheme.primary,
           foregroundColor: isDark ? AppColors.primaryDeepest : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: scheme.primary,
           side: BorderSide(color: scheme.primary.withValues(alpha: 0.4)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),

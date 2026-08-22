@@ -30,9 +30,9 @@ class _NoNetworkPageState extends ConsumerState<NoNetworkPage> {
     if (connected) {
       Navigator.of(context).maybePop();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.noNetworkMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.noNetworkMessage)));
     }
   }
 

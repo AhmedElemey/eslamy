@@ -115,7 +115,9 @@ class HajjUmrahHomePage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.pilgrimModeNear(nearestSite.localizedName(context)),
+                              l10n.pilgrimModeNear(
+                                nearestSite.localizedName(context),
+                              ),
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.heading(context),

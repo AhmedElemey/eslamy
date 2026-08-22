@@ -46,7 +46,11 @@ ResponseBody _okOverpassResponse() => ResponseBody.fromString(
         'id': 1,
         'lat': 30.05,
         'lon': 31.24,
-        'tags': {'amenity': 'place_of_worship', 'religion': 'muslim', 'name': 'Test Mosque'},
+        'tags': {
+          'amenity': 'place_of_worship',
+          'religion': 'muslim',
+          'name': 'Test Mosque',
+        },
       },
     ],
   }),
@@ -70,43 +74,52 @@ void main() {
       expect(await service.getCachedNearby(), isNull);
     });
 
-    test('a successful findNearby caches its result for later retrieval', () async {
-      final service = _serviceWith([_okOverpassResponse]);
+    test(
+      'a successful findNearby caches its result for later retrieval',
+      () async {
+        final service = _serviceWith([_okOverpassResponse]);
 
-      final live = await service.findNearby(latitude: 30.0444, longitude: 31.2357);
-      expect(live, hasLength(1));
-      expect(live.single.name, 'Test Mosque');
+        final live = await service.findNearby(
+          latitude: 30.0444,
+          longitude: 31.2357,
+        );
+        expect(live, hasLength(1));
+        expect(live.single.name, 'Test Mosque');
 
-      final cached = await service.getCachedNearby();
-      expect(cached, isNotNull);
-      expect(cached!.mosques, hasLength(1));
-      expect(cached.mosques.single.name, 'Test Mosque');
-      expect(cached.mosques.single.id, live.single.id);
-      expect(
-        cached.cachedAt.difference(DateTime.now()).abs(),
-        lessThan(const Duration(seconds: 5)),
-      );
-    });
+        final cached = await service.getCachedNearby();
+        expect(cached, isNotNull);
+        expect(cached!.mosques, hasLength(1));
+        expect(cached.mosques.single.name, 'Test Mosque');
+        expect(cached.mosques.single.id, live.single.id);
+        expect(
+          cached.cachedAt.difference(DateTime.now()).abs(),
+          lessThan(const Duration(seconds: 5)),
+        );
+      },
+    );
 
-    test('a failed findNearby leaves an earlier cached result retrievable', () async {
-      // First call succeeds and populates the cache...
-      final warmedUp = _serviceWith([_okOverpassResponse]);
-      await warmedUp.findNearby(latitude: 30.0444, longitude: 31.2357);
+    test(
+      'a failed findNearby leaves an earlier cached result retrievable',
+      () async {
+        // First call succeeds and populates the cache...
+        final warmedUp = _serviceWith([_okOverpassResponse]);
+        await warmedUp.findNearby(latitude: 30.0444, longitude: 31.2357);
 
-      // ...a later service instance (e.g. after the app restarts) hitting a
-      // wall of 504s still finds that cached result on disk.
-      final failingService = _serviceWith(
-        List.filled(3, _serverErrorResponse),
-      );
-      await expectLater(
-        failingService.findNearby(latitude: 30.0444, longitude: 31.2357),
-        throwsA(anything),
-      );
+        // ...a later service instance (e.g. after the app restarts) hitting a
+        // wall of 504s still finds that cached result on disk.
+        final failingService = _serviceWith(
+          List.filled(3, _serverErrorResponse),
+        );
+        await expectLater(
+          failingService.findNearby(latitude: 30.0444, longitude: 31.2357),
+          throwsA(anything),
+        );
 
-      final cached = await failingService.getCachedNearby();
-      expect(cached, isNotNull);
-      expect(cached!.mosques.single.name, 'Test Mosque');
-    });
+        final cached = await failingService.getCachedNearby();
+        expect(cached, isNotNull);
+        expect(cached!.mosques.single.name, 'Test Mosque');
+      },
+    );
 
     test('getCachedNearby ignores a result from a different city', () async {
       final service = _serviceWith([_okOverpassResponse]);

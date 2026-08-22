@@ -40,7 +40,12 @@ class HifzPage extends ConsumerWidget {
         child: SafeArea(
           child: chaptersAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text(l10n.failedToLoadSurahsWithError(localizedError(l10n, e)))),
+            error:
+                (e, _) => Center(
+                  child: Text(
+                    l10n.failedToLoadSurahsWithError(localizedError(l10n, e)),
+                  ),
+                ),
             data: (chapters) => _buildList(context, chapters, memorized, ref),
           ),
         ),
@@ -90,8 +95,9 @@ class HifzPage extends ConsumerWidget {
               final isMemorized = memorized.contains(chapter.number);
               return CheckboxListTile(
                 value: isMemorized,
-                onChanged: (_) =>
-                    ref.read(hifzProvider.notifier).toggle(chapter.number),
+                onChanged:
+                    (_) =>
+                        ref.read(hifzProvider.notifier).toggle(chapter.number),
                 activeColor: AppColors.primary,
                 title: Text(
                   localizedChapterName(
@@ -132,8 +138,8 @@ class HifzPage extends ConsumerWidget {
     );
 
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.dailyReviewReminderScheduled)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.dailyReviewReminderScheduled)));
   }
 }

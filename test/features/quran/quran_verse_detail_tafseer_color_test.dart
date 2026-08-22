@@ -9,14 +9,13 @@ import 'package:eslamy/core/theme/app_theme.dart';
 import 'package:eslamy/features/quran/models/quran_models.dart';
 import 'package:eslamy/features/quran/presentation/controllers/quran_providers.dart';
 import 'package:eslamy/features/quran/presentation/pages/quran_verse_detail_page.dart';
+import 'package:eslamy/features/quran/service/quran_audio_handler.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    SharedPreferences.setMockInitialValues({
-      'tajweed_coloring_enabled': false,
-    });
+    SharedPreferences.setMockInitialValues({'tajweed_coloring_enabled': false});
   });
 
   testWidgets('tafseer body uses themed text color in dark mode', (
@@ -32,6 +31,10 @@ void main() {
               editionName: 'Al-Jalalayn',
             );
           }),
+          // The page now drives its audio through the shared handler (no
+          // more page-local AudioPlayer) — provide one so the widget tree
+          // builds without hitting the "must be overridden" guard.
+          quranAudioHandlerProvider.overrideWithValue(QuranAudioHandler()),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

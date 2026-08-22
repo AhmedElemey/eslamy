@@ -129,4 +129,3 @@ class LocationService {
     return (lat, lng);
   }
 }
-

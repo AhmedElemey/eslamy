@@ -83,13 +83,6 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
-
   @override
   Widget build(BuildContext context) {
     final chapterAsync = ref.watch(chapterProvider(widget.chapterNumber));
@@ -143,6 +136,19 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: Icon(
+              isPlaying
+                  ? Icons.pause_circle_filled_rounded
+                  : Icons.play_circle_fill_rounded,
+            ),
+            onPressed:
+                isPlaying ? handler.pause : () => _startChapterAudio(handler),
+            tooltip:
+                isPlaying
+                    ? l10n.pauseChapterAudioTooltip
+                    : l10n.playChapterAudioTooltip,
+          ),
+          IconButton(
             icon: const Icon(Icons.record_voice_over),
             onPressed: _openReciterPicker,
             tooltip: selectedReciter?.name ?? l10n.quranReciterLabel,
@@ -173,6 +179,9 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
               final ayahs = chapterResponse.data.ayahs ?? <QuranVerse>[];
               final showBasmala =
                   widget.chapterNumber != 1 && widget.chapterNumber != 9;
+              // Reserve room below the list for the global mini player when
+              // something is loaded, so it doesn't clip the last ayah.
+              final bottomReserve = activeMediaItem != null ? 190.0 : 16.0;
               return Column(
                 children: [
                   Padding(
@@ -212,7 +221,7 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
                   ),
                   Expanded(
                     child: ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.only(bottom: bottomReserve),
                       itemCount: ayahs.length + (showBasmala ? 1 : 0),
                       separatorBuilder:
                           (_, __) => Divider(
@@ -277,34 +286,6 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
                       },
                     ),
                   ),
-                  StreamBuilder<Duration>(
-                    stream: handler.player.positionStream,
-                    builder: (context, snapshot) {
-                      final position =
-                          isThisChapterActive
-                              ? (snapshot.data ?? Duration.zero)
-                              : Duration.zero;
-                      final duration =
-                          isThisChapterActive
-                              ? (handler.player.duration ?? Duration.zero)
-                              : Duration.zero;
-                      return _ChapterAudioBar(
-                        label: l10n.chapterAudioLabel,
-                        isPlaying: isPlaying,
-                        position: position,
-                        duration: duration,
-                        onPlayPause:
-                            isPlaying
-                                ? handler.pause
-                                : () => _startChapterAudio(handler),
-                        onStop: handler.stop,
-                        formatDuration: _formatDuration,
-                        onSeek: (value) {
-                          handler.seek(Duration(milliseconds: value.toInt()));
-                        },
-                      );
-                    },
-                  ),
                 ],
               );
             },
@@ -341,89 +322,6 @@ class _TafseerChapterPageState extends ConsumerState<TafseerChapterPage> {
                     ],
                   ),
                 ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChapterAudioBar extends StatelessWidget {
-  const _ChapterAudioBar({
-    required this.label,
-    required this.isPlaying,
-    required this.position,
-    required this.duration,
-    required this.onPlayPause,
-    required this.onStop,
-    required this.formatDuration,
-    required this.onSeek,
-  });
-
-  final String label;
-  final bool isPlaying;
-  final Duration position;
-  final Duration duration;
-  final VoidCallback onPlayPause;
-  final VoidCallback onStop;
-  final String Function(Duration) formatDuration;
-  final ValueChanged<double> onSeek;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxMs = duration.inMilliseconds.toDouble();
-    return Material(
-      color: AppColors.surface(context),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.heading(context),
-                      ),
-                    ),
-                  ),
-                  IconButton.filled(
-                    onPressed: onPlayPause,
-                    icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.outlined(
-                    onPressed: onStop,
-                    icon: const Icon(Icons.stop),
-                  ),
-                ],
-              ),
-              if (maxMs > 0) ...[
-                Slider(
-                  value: position.inMilliseconds.toDouble().clamp(0.0, maxMs),
-                  max: maxMs,
-                  onChanged: onSeek,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formatDuration(position),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    Text(
-                      formatDuration(duration),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
-            ],
           ),
         ),
       ),

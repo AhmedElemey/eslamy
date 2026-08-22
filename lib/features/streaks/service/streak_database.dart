@@ -36,7 +36,9 @@ class StreakDatabase {
       'date': formatDate(DateTime.now()),
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-    final cutoff = formatDate(DateTime.now().subtract(const Duration(days: 90)));
+    final cutoff = formatDate(
+      DateTime.now().subtract(const Duration(days: 90)),
+    );
     await db.delete('activity_log', where: 'date < ?', whereArgs: [cutoff]);
   }
 

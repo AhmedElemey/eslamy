@@ -1,11 +1,16 @@
+import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../service/ayah_of_the_day_service.dart';
+import '../../service/last_read_position_service.dart';
 import '../../service/quran_api_service.dart';
 import '../../service/quran_audio_handler.dart';
 import '../../service/quran_audio_service.dart';
 import '../../service/reciter_preferences_service.dart';
 import '../../service/tajweed_preferences_service.dart';
 import '../../service/translation_preferences_service.dart';
+import '../../models/ayah_of_the_day.dart';
+import '../../models/last_read_position.dart';
 import '../../models/quran_models.dart';
 import '../../../settings/presentation/controllers/language_providers.dart';
 
@@ -201,8 +206,11 @@ TranslationEdition defaultTranslationForLanguage(AppLanguage language) {
 }
 
 class SelectedTranslationNotifier extends StateNotifier<TranslationEdition> {
-  SelectedTranslationNotifier(this._prefs, this._service, AppLanguage appLanguage)
-    : super(defaultTranslationForLanguage(appLanguage)) {
+  SelectedTranslationNotifier(
+    this._prefs,
+    this._service,
+    AppLanguage appLanguage,
+  ) : super(defaultTranslationForLanguage(appLanguage)) {
     _restore();
   }
 
@@ -245,7 +253,8 @@ final selectedTranslationProvider =
       // Watched (not read) so a fresh notifier — and thus a fresh
       // language-based default — is created whenever app language changes,
       // same pattern relied on for the reciter/translation restore flow.
-      final appLanguage = ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
+      final appLanguage =
+          ref.watch(languageProvider).valueOrNull ?? AppLanguage.arabic;
       return SelectedTranslationNotifier(
         ref.watch(translationPreferencesServiceProvider),
         ref.watch(quranApiServiceProvider),
@@ -329,3 +338,82 @@ class SelectedReciterNotifier extends StateNotifier<Reciter?> {
 
 // Selected language state
 final selectedLanguageProvider = StateProvider<String>((ref) => 'en');
+
+final ayahOfTheDayServiceProvider = Provider((ref) => AyahOfTheDayService());
+
+/// A random ayah picked once per calendar day, cached so it stays the same
+/// across app opens on the same day. Falls back to the last cached pick
+/// (even if stale) when a fresh fetch fails, so the home widget still shows
+/// something offline instead of an error.
+final ayahOfTheDayProvider = FutureProvider<AyahOfTheDay>((ref) async {
+  final cacheService = ref.watch(ayahOfTheDayServiceProvider);
+  final apiService = ref.watch(quranApiServiceProvider);
+  final editionIdentifier = ref.watch(selectedTranslationProvider).identifier;
+  final todayKey = todayDateKey();
+
+  final cached = await cacheService.loadCached();
+  if (cached != null && cached.dateKey == todayKey) {
+    return cached;
+  }
+
+  try {
+    final chapters = await apiService.getChapters();
+    final random = Random(int.parse(todayKey.replaceAll('-', '')));
+    final chapter = chapters[random.nextInt(chapters.length)];
+    final verseNumber = 1 + random.nextInt(chapter.numberOfAyahs);
+
+    final verse = await apiService.getVerse(chapter.number, verseNumber);
+    final translation = await apiService.getAyahInEdition(
+      chapter.number,
+      verseNumber,
+      editionIdentifier,
+    );
+
+    final ayah = AyahOfTheDay(
+      chapterNumber: chapter.number,
+      chapterArabicName: chapter.name,
+      chapterEnglishName: chapter.englishName,
+      verseNumber: verseNumber,
+      arabicText: verse.verse.text,
+      translationText: translation.text,
+      dateKey: todayKey,
+    );
+    await cacheService.save(ayah);
+    return ayah;
+  } catch (e) {
+    if (cached != null) return cached;
+    rethrow;
+  }
+});
+
+final lastReadPositionServiceProvider = Provider(
+  (ref) => LastReadPositionService(),
+);
+
+class LastReadPositionNotifier extends StateNotifier<LastReadPosition?> {
+  LastReadPositionNotifier(this._service) : super(null) {
+    _restore();
+  }
+
+  final LastReadPositionService _service;
+
+  Future<void> _restore() async {
+    final saved = await _service.load();
+    if (mounted) state = saved;
+  }
+
+  Future<void> save(LastReadPosition position) async {
+    state = position;
+    await _service.save(position);
+  }
+}
+
+/// Where the user last left off in the Mushaf reader, or null if they
+/// haven't read anything yet — drives the home screen's "Continue Reading"
+/// card.
+final lastReadPositionProvider =
+    StateNotifierProvider<LastReadPositionNotifier, LastReadPosition?>((ref) {
+      return LastReadPositionNotifier(
+        ref.watch(lastReadPositionServiceProvider),
+      );
+    });

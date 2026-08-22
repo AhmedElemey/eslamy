@@ -30,7 +30,12 @@ class QuranNowPlayingPage extends ConsumerWidget {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
+    // Without this, any surah over 59 minutes (most of them) silently drops
+    // the hour and shows just the leftover minutes — e.g. Al-Baqara's ~2:05
+    // runtime rendered as "05:39" instead of "2:05:39".
+    return duration.inHours > 0
+        ? '${duration.inHours}:$minutes:$seconds'
+        : '$minutes:$seconds';
   }
 
   @override
@@ -42,7 +47,8 @@ class QuranNowPlayingPage extends ConsumerWidget {
     final reciter = ref.watch(selectedReciterProvider);
     final chaptersAsync = ref.watch(chaptersProvider);
 
-    final chapterNumber = mediaItem?.extras?['chapterNumber'] as int? ?? handler.currentSurah;
+    final chapterNumber =
+        mediaItem?.extras?['chapterNumber'] as int? ?? handler.currentSurah;
     final chapterName = chaptersAsync.maybeWhen(
       data: (chapters) {
         for (final c in chapters) {
@@ -75,24 +81,37 @@ class QuranNowPlayingPage extends ConsumerWidget {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).maybePop(),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.heading(context)),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.heading(context),
+                      ),
                     ),
                     Expanded(
                       child: Text(
                         l10n.nowPlayingTitle,
                         textAlign: TextAlign.center,
-                        style: AppTypography.textTheme(Theme.of(context).colorScheme).titleMedium,
+                        style:
+                            AppTypography.textTheme(
+                              Theme.of(context).colorScheme,
+                            ).titleMedium,
                       ),
                     ),
                     const SizedBox(width: 48),
                   ],
                 ),
                 const Spacer(),
-                Icon(Icons.menu_book_rounded, size: 96, color: AppColors.primaryOnBg(context)),
+                Icon(
+                  Icons.menu_book_rounded,
+                  size: 96,
+                  color: AppColors.primaryOnBg(context),
+                ),
                 const SizedBox(height: 24),
                 Text(
                   chapterName ?? mediaItem?.title ?? '',
-                  style: AppTypography.textTheme(Theme.of(context).colorScheme).headlineSmall,
+                  style:
+                      AppTypography.textTheme(
+                        Theme.of(context).colorScheme,
+                      ).headlineSmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -100,7 +119,10 @@ class QuranNowPlayingPage extends ConsumerWidget {
                   onTap: () => _openReciterPicker(context),
                   child: Text(
                     reciter?.name ?? '',
-                    style: TextStyle(color: AppColors.mutedText(context), fontSize: 15),
+                    style: TextStyle(
+                      color: AppColors.mutedText(context),
+                      fontSize: 15,
+                    ),
                   ),
                 ),
                 if (isRangeMode) ...[
@@ -111,7 +133,10 @@ class QuranNowPlayingPage extends ConsumerWidget {
                       rangeStart ?? rangeAyah,
                       rangeEnd ?? rangeAyah,
                     ),
-                    style: TextStyle(color: AppColors.mutedText(context), fontSize: 13),
+                    style: TextStyle(
+                      color: AppColors.mutedText(context),
+                      fontSize: 13,
+                    ),
                   ),
                 ],
                 const Spacer(),
@@ -131,8 +156,14 @@ class QuranNowPlayingPage extends ConsumerWidget {
                     // show less than what's already elapsed.
                     final duration =
                         rawDuration < position ? position : rawDuration;
-                    final max = duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1.0;
-                    final value = position.inMilliseconds.clamp(0, max.toInt()).toDouble();
+                    final max =
+                        duration.inMilliseconds > 0
+                            ? duration.inMilliseconds.toDouble()
+                            : 1.0;
+                    final value =
+                        position.inMilliseconds
+                            .clamp(0, max.toInt())
+                            .toDouble();
                     return Column(
                       children: [
                         Slider(
@@ -154,8 +185,18 @@ class QuranNowPlayingPage extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(_formatDuration(position), style: TextStyle(color: AppColors.mutedText(context))),
-                              Text(_formatDuration(duration), style: TextStyle(color: AppColors.mutedText(context))),
+                              Text(
+                                _formatDuration(position),
+                                style: TextStyle(
+                                  color: AppColors.mutedText(context),
+                                ),
+                              ),
+                              Text(
+                                _formatDuration(duration),
+                                style: TextStyle(
+                                  color: AppColors.mutedText(context),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -179,7 +220,10 @@ class QuranNowPlayingPage extends ConsumerWidget {
                                   : chapterNumber > kFirstSurahNumber)
                               ? handler.skipToPrevious
                               : null,
-                      icon: Icon(Icons.skip_previous_rounded, color: AppColors.heading(context)),
+                      icon: Icon(
+                        Icons.skip_previous_rounded,
+                        color: AppColors.heading(context),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Material(
@@ -191,7 +235,9 @@ class QuranNowPlayingPage extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(18),
                           child: Icon(
-                            playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            playing
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
                             size: 36,
                             color: AppColors.white,
                           ),
@@ -211,7 +257,10 @@ class QuranNowPlayingPage extends ConsumerWidget {
                                   : chapterNumber < kLastSurahNumber)
                               ? handler.skipToNext
                               : null,
-                      icon: Icon(Icons.skip_next_rounded, color: AppColors.heading(context)),
+                      icon: Icon(
+                        Icons.skip_next_rounded,
+                        color: AppColors.heading(context),
+                      ),
                     ),
                   ],
                 ),
@@ -221,7 +270,10 @@ class QuranNowPlayingPage extends ConsumerWidget {
                     await handler.stop();
                     if (context.mounted) Navigator.of(context).maybePop();
                   },
-                  icon: Icon(Icons.stop_rounded, color: AppColors.mutedText(context)),
+                  icon: Icon(
+                    Icons.stop_rounded,
+                    color: AppColors.mutedText(context),
+                  ),
                   label: Text(
                     l10n.nowPlayingStopTooltip,
                     style: TextStyle(color: AppColors.mutedText(context)),

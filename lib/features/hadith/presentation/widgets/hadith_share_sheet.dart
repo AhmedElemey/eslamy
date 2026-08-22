@@ -60,18 +60,25 @@ class _HadithShareSheetState extends State<_HadithShareSheet> {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: _isSharing ? null : _share,
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                icon: _isSharing
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.share),
-                label: Text(_isSharing ? context.l10n.preparingShare : context.l10n.shareAsImage),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                icon:
+                    _isSharing
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(Icons.share),
+                label: Text(
+                  _isSharing
+                      ? context.l10n.preparingShare
+                      : context.l10n.shareAsImage,
+                ),
               ),
             ),
           ],

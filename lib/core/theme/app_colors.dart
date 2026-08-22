@@ -38,8 +38,7 @@ class AppColors {
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
-  static Color heading(BuildContext context) =>
-      isDark(context) ? inkDark : ink;
+  static Color heading(BuildContext context) => isDark(context) ? inkDark : ink;
 
   static Color mutedText(BuildContext context) =>
       isDark(context) ? mutedDark : mutedLight;
@@ -64,11 +63,13 @@ class AppColors {
   static Color pageBackground(BuildContext context) =>
       isDark(context) ? bgDark : bgLight;
 
-  static List<Color> pageGradient(BuildContext context) => isDark(context)
-      ? const [bgDark, bgDarkBottom]
-      : const [bgLight, bgLightBottom];
+  static List<Color> pageGradient(BuildContext context) =>
+      isDark(context)
+          ? const [bgDark, bgDarkBottom]
+          : const [bgLight, bgLightBottom];
 
-  static List<Color> heroGradient(BuildContext context) => isDark(context)
-      ? const [primaryDeepest, primaryDeep, primary]
-      : const [primaryDeep, primary];
+  static List<Color> heroGradient(BuildContext context) =>
+      isDark(context)
+          ? const [primaryDeepest, primaryDeep, primary]
+          : const [primaryDeep, primary];
 }

@@ -11,7 +11,9 @@ import 'package:flutter/services.dart';
 class BubbleOverlayChannel {
   BubbleOverlayChannel._();
 
-  static const MethodChannel _channel = MethodChannel('com.eslamy.eslamy/bubble');
+  static const MethodChannel _channel = MethodChannel(
+    'com.eslamy.eslamy/bubble',
+  );
 
   static Future<bool> hasOverlayPermission() async =>
       (await _channel.invokeMethod<bool>('hasOverlayPermission')) ?? false;

@@ -88,8 +88,9 @@ class _MushafViewState extends State<MushafView> {
                     Text(
                       rule.arabicName,
                       textDirection: TextDirection.rtl,
-                      style: Theme.of(context).textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(rule.englishName, style: TextStyle(color: muted)),
                   ],

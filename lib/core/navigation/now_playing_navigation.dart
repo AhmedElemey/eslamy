@@ -95,9 +95,7 @@ Future<void> _pushNowPlayingWhenReady() async {
   }
 
   final nav = rootNavigatorKey.currentState;
-  if (nav != null &&
-      nav.mounted &&
-      !RootRouteTracker.instance.isNowPlaying) {
+  if (nav != null && nav.mounted && !RootRouteTracker.instance.isNowPlaying) {
     nav.pushNamed(kNowPlayingRoute);
   }
 }

@@ -94,18 +94,33 @@ class QuranApiService {
   /// Al-Jalalayn) is a real per-ayah tafsir edition, unlike ar.muyassar
   /// (a translation) which this used to call by mistake.
   Future<AyahTafsir> getTafseer(int chapterNumber, int verseNumber) async {
+    return getAyahInEdition(chapterNumber, verseNumber, 'ar.jalalayn');
+  }
+
+  /// Get one ayah's text in a given edition (a translation, a tafsir, or a
+  /// plain recitation edition) — same `/ayah/{s}:{a}/{edition}` shape
+  /// [getTafseer] uses, just with the edition identifier parametrized so it
+  /// can also serve a single verse's translation text (e.g. for the "ayah
+  /// of the day" home widget) without a whole-chapter fetch.
+  Future<AyahTafsir> getAyahInEdition(
+    int chapterNumber,
+    int verseNumber,
+    String editionIdentifier,
+  ) async {
     try {
       final response = await _dio.get(
-        '/ayah/$chapterNumber:$verseNumber/ar.jalalayn',
+        '/ayah/$chapterNumber:$verseNumber/$editionIdentifier',
       );
       return AyahTafsir.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       debugPrint(
-        'DioException in getTafseer($chapterNumber:$verseNumber): ${e.toString()}',
+        'DioException in getAyahInEdition($chapterNumber:$verseNumber/$editionIdentifier): ${e.toString()}',
       );
       throw _handleError(e);
     } catch (e, st) {
-      debugPrint('Failed parsing tafseer $chapterNumber:$verseNumber: $e\n$st');
+      debugPrint(
+        'Failed parsing ayah $chapterNumber:$verseNumber/$editionIdentifier: $e\n$st',
+      );
       rethrow;
     }
   }
@@ -169,8 +184,7 @@ class QuranApiService {
       );
       return _parseChapterResponse(
         response.data,
-        context:
-            'getChapterTranslation($chapterNumber, $editionIdentifier)',
+        context: 'getChapterTranslation($chapterNumber, $editionIdentifier)',
       );
     } on DioException catch (e) {
       debugPrint('DioException in getChapterTranslation: ${e.toString()}');
@@ -237,9 +251,7 @@ class QuranApiService {
       final expected = parsed.data.numberOfAyahs;
       final actual = parsed.data.ayahs?.length;
       if (actual != null && actual != expected) {
-        debugPrint(
-          '$context: ayah count $actual != numberOfAyahs $expected',
-        );
+        debugPrint('$context: ayah count $actual != numberOfAyahs $expected');
       }
       return parsed;
     } catch (e, st) {

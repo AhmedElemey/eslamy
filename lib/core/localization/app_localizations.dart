@@ -346,6 +346,18 @@ abstract class AppLocalizations {
   /// **'streak'**
   String get streakStatLabel;
 
+  /// No description provided for @streakDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading Streak'**
+  String get streakDetailTitle;
+
+  /// No description provided for @streakExplanationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak counts consecutive days you\'ve opened Eslamy. Come back daily to keep it going.'**
+  String get streakExplanationBody;
+
   /// No description provided for @memorizedStatLabel.
   ///
   /// In en, this message translates to:
@@ -370,6 +382,72 @@ abstract class AppLocalizations {
   /// **'Qibla direction'**
   String get qiblaDirectionTooltip;
 
+  /// No description provided for @homeHighlightAyahOfDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AYAH OF THE DAY'**
+  String get homeHighlightAyahOfDayTitle;
+
+  /// No description provided for @homeHighlightAyahOfDayError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load today\'s ayah'**
+  String get homeHighlightAyahOfDayError;
+
+  /// No description provided for @homeHighlightSurahAyahLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{surah} · Ayah {ayah}'**
+  String homeHighlightSurahAyahLabel(String surah, int ayah);
+
+  /// No description provided for @homeHighlightContinueReadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE READING'**
+  String get homeHighlightContinueReadingTitle;
+
+  /// No description provided for @homeHighlightContinueReadingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t started reading yet'**
+  String get homeHighlightContinueReadingEmpty;
+
+  /// No description provided for @homeHighlightContinueReadingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get homeHighlightContinueReadingCta;
+
+  /// No description provided for @homeHighlightAyahPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayah {ayah} · Page {page}'**
+  String homeHighlightAyahPageLabel(int ayah, int page);
+
+  /// No description provided for @homeHighlightDuaOfDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DUA OF THE DAY'**
+  String get homeHighlightDuaOfDayTitle;
+
+  /// No description provided for @homeHighlightDuaOfDayError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load today\'s dua'**
+  String get homeHighlightDuaOfDayError;
+
+  /// No description provided for @widgetNextPrayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT PRAYER'**
+  String get widgetNextPrayerTitle;
+
+  /// No description provided for @widgetHijriDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY\'S HIJRI DATE'**
+  String get widgetHijriDateTitle;
+
   /// No description provided for @favoritesTitle.
   ///
   /// In en, this message translates to:
@@ -387,6 +465,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 hadith saved} other{{count} hadiths saved}}'**
   String hadithsSavedCount(num count);
+
+  /// No description provided for @bookmarkedQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarked Quran'**
+  String get bookmarkedQuran;
+
+  /// No description provided for @surahsSavedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 surah saved} other{{count} surahs saved}}'**
+  String surahsSavedCount(num count);
+
+  /// No description provided for @noQuranFavoritesYetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the heart while listening to a surah\nand it\'ll appear here'**
+  String get noQuranFavoritesYetBody;
 
   /// No description provided for @failedToLoadFavorites.
   ///
@@ -1270,6 +1366,78 @@ abstract class AppLocalizations {
   /// **'{day} {month} {year} AH'**
   String hijriDateAh(int day, String month, int year);
 
+  /// No description provided for @hijriMonthMuharram.
+  ///
+  /// In en, this message translates to:
+  /// **'Muharram'**
+  String get hijriMonthMuharram;
+
+  /// No description provided for @hijriMonthSafar.
+  ///
+  /// In en, this message translates to:
+  /// **'Safar'**
+  String get hijriMonthSafar;
+
+  /// No description provided for @hijriMonthRabiAlAwwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Rabi\' al-Awwal'**
+  String get hijriMonthRabiAlAwwal;
+
+  /// No description provided for @hijriMonthRabiAlThani.
+  ///
+  /// In en, this message translates to:
+  /// **'Rabi\' al-Thani'**
+  String get hijriMonthRabiAlThani;
+
+  /// No description provided for @hijriMonthJumadaAlAwwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumada al-Awwal'**
+  String get hijriMonthJumadaAlAwwal;
+
+  /// No description provided for @hijriMonthJumadaAlThani.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumada al-Thani'**
+  String get hijriMonthJumadaAlThani;
+
+  /// No description provided for @hijriMonthRajab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rajab'**
+  String get hijriMonthRajab;
+
+  /// No description provided for @hijriMonthShaban.
+  ///
+  /// In en, this message translates to:
+  /// **'Sha\'ban'**
+  String get hijriMonthShaban;
+
+  /// No description provided for @hijriMonthRamadan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan'**
+  String get hijriMonthRamadan;
+
+  /// No description provided for @hijriMonthShawwal.
+  ///
+  /// In en, this message translates to:
+  /// **'Shawwal'**
+  String get hijriMonthShawwal;
+
+  /// No description provided for @hijriMonthDhuAlQidah.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhu al-Qi\'dah'**
+  String get hijriMonthDhuAlQidah;
+
+  /// No description provided for @hijriMonthDhuAlHijjah.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhu al-Hijjah'**
+  String get hijriMonthDhuAlHijjah;
+
   /// No description provided for @upcomingLabel.
   ///
   /// In en, this message translates to:
@@ -1281,6 +1449,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading upcoming occasions…'**
   String get loadingUpcomingOccasions;
+
+  /// No description provided for @noUpcomingOccasions.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming occasions found.'**
+  String get noUpcomingOccasions;
 
   /// No description provided for @todayCountdown.
   ///

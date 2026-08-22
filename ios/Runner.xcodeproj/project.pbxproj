@@ -8,16 +8,21 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		29901942A4E7568F4044C2A2 /* EslamyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4197894910608984E5E7BF1 /* EslamyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		35247469FC194E17A171C278 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E69ABBA725DE283AFB2D2D90 /* GoogleService-Info.plist */; };
-		7900D0EB087B14B3296CADD3 /* adhan_call.caf in Resources */ = {isa = PBXBuildFile; fileRef = 74275D80698557E4FFD154FA /* adhan_call.caf */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		6A55881FEC257431E9DB8E08 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C429977CDFDA50A04C36DE4 /* Pods_Runner.framework */; };
+		6ABACE6965B5D5E1F659A82C /* EslamyWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C8E7C78E56A30245642C74 /* EslamyWidget.swift */; };
+		FF2E8405CBBC4DDB9E9664E0 /* EslamyLockScreenWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04D9A1211624E6391AD2430 /* EslamyLockScreenWidgets.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		7900D0EB087B14B3296CADD3 /* adhan_call.caf in Resources */ = {isa = PBXBuildFile; fileRef = 74275D80698557E4FFD154FA /* adhan_call.caf */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9CE79EBDE3CAEC91722EBEBC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84628D98ABEE02462D5FE282 /* Foundation.framework */; };
 		A72B23D0D5D3A7864F26CDFA /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4CDA178007AD369E3F12393 /* Pods_RunnerTests.framework */; };
+		B3B4D0517BFB44AE01D38ADF /* EslamyWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E562B02BB1887615C03BCA /* EslamyWidgetBundle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +32,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		581526071B7577F2CE1B14E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27FE67EE0B9A30426DE58302;
+			remoteInfo = EslamyWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -41,6 +53,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E56D1EA2731C0FF8AF2EA711 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				29901942A4E7568F4044C2A2 /* EslamyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -50,9 +73,11 @@
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		5B160E60251FDEFFA4564E12 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		74275D80698557E4FFD154FA /* adhan_call.caf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = adhan_call.caf; path = Runner/adhan_call.caf; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		84628D98ABEE02462D5FE282 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		87E4A225975264FDB8A257D5 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		8C429977CDFDA50A04C36DE4 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		929D8A4B7636DD28CEE2E6FF /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -63,12 +88,17 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		98129331F26B7ED5303A31A2 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9E6F3D29C5D5A26DFF60D749 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		A4CDA178007AD369E3F12393 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDD5DFFC1CE69DCBD900855C /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		C4197894910608984E5E7BF1 /* EslamyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EslamyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C5E562B02BB1887615C03BCA /* EslamyWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EslamyWidgetBundle.swift; sourceTree = "<group>"; };
 		E69ABBA725DE283AFB2D2D90 /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		74275D80698557E4FFD154FA /* adhan_call.caf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "adhan_call.caf"; path = "Runner/adhan_call.caf"; sourceTree = "<group>"; };
 		E851D1585CC84EE2103719BE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		E9C8E7C78E56A30245642C74 /* EslamyWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EslamyWidget.swift; sourceTree = "<group>"; };
+		E04D9A1211624E6391AD2430 /* EslamyLockScreenWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EslamyLockScreenWidgets.swift; sourceTree = "<group>"; };
+		F142F04CA16C5490AFAA1D76 /* EslamyWidgetExtension.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = EslamyWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,15 +118,44 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F32532EC62AE0742345C9D71 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9CE79EBDE3CAEC91722EBEBC /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		07989220A3F5736EF7C4002F /* EslamyWidgetExtension */ = {
+			isa = PBXGroup;
+			children = (
+				C5E562B02BB1887615C03BCA /* EslamyWidgetBundle.swift */,
+				E9C8E7C78E56A30245642C74 /* EslamyWidget.swift */,
+				E04D9A1211624E6391AD2430 /* EslamyLockScreenWidgets.swift */,
+				98129331F26B7ED5303A31A2 /* Info.plist */,
+				F142F04CA16C5490AFAA1D76 /* EslamyWidgetExtension.entitlements */,
+			);
+			name = EslamyWidgetExtension;
+			path = EslamyWidgetExtension;
+			sourceTree = "<group>";
+		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
 				331C807B294A618700263BE5 /* RunnerTests.swift */,
 			);
 			path = RunnerTests;
+			sourceTree = "<group>";
+		};
+		4D2A1EF682C20F73E54E215D /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				84628D98ABEE02462D5FE282 /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
@@ -121,6 +180,7 @@
 				9B8AB486C070F58588E13E64 /* Frameworks */,
 				E69ABBA725DE283AFB2D2D90 /* GoogleService-Info.plist */,
 				74275D80698557E4FFD154FA /* adhan_call.caf */,
+				07989220A3F5736EF7C4002F /* EslamyWidgetExtension */,
 			);
 			sourceTree = "<group>";
 		};
@@ -129,6 +189,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				C4197894910608984E5E7BF1 /* EslamyWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -153,6 +214,7 @@
 			children = (
 				8C429977CDFDA50A04C36DE4 /* Pods_Runner.framework */,
 				A4CDA178007AD369E3F12393 /* Pods_RunnerTests.framework */,
+				4D2A1EF682C20F73E54E215D /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -174,6 +236,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		27FE67EE0B9A30426DE58302 /* EslamyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 94D16150E4E1A673831177F1 /* Build configuration list for PBXNativeTarget "EslamyWidgetExtension" */;
+			buildPhases = (
+				E6B8E1C895FC6BA0373C69F1 /* Sources */,
+				F32532EC62AE0742345C9D71 /* Frameworks */,
+				D7F77DD764AE9C51E88B1237 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EslamyWidgetExtension;
+			productName = EslamyWidgetExtension;
+			productReference = C4197894910608984E5E7BF1 /* EslamyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		331C8080294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 331C8087294A63A400263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */;
@@ -203,6 +282,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				E56D1EA2731C0FF8AF2EA711 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				CB14AB8BAB982AE16FB53DA2 /* [CP] Embed Pods Frameworks */,
 				A2F7AD642704B0F5CF49922E /* [CP] Copy Pods Resources */,
@@ -210,6 +290,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				08EB096E41E7515B6B65C9CE /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -251,6 +332,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				27FE67EE0B9A30426DE58302 /* EslamyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -273,6 +355,13 @@
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				35247469FC194E17A171C278 /* GoogleService-Info.plist in Resources */,
 				7900D0EB087B14B3296CADD3 /* adhan_call.caf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7F77DD764AE9C51E88B1237 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,9 +497,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E6B8E1C895FC6BA0373C69F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3B4D0517BFB44AE01D38ADF /* EslamyWidgetBundle.swift in Sources */,
+				6ABACE6965B5D5E1F659A82C /* EslamyWidget.swift in Sources */,
+				FF2E8405CBBC4DDB9E9664E0 /* EslamyLockScreenWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		08EB096E41E7515B6B65C9CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = EslamyWidgetExtension;
+			target = 27FE67EE0B9A30426DE58302 /* EslamyWidgetExtension */;
+			targetProxy = 581526071B7577F2CE1B14E8 /* PBXContainerItemProxy */;
+		};
 		331C8086294A63A400263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
@@ -481,7 +586,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -496,6 +601,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -561,6 +667,32 @@
 			};
 			name = Profile;
 		};
+		5A61444918453ABE275DA3D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = EslamyWidgetExtension/EslamyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = EslamyWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eslamy.eslamy.EslamyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -610,7 +742,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -661,7 +793,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -678,6 +810,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -700,6 +833,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -715,6 +849,57 @@
 			};
 			name = Release;
 		};
+		BA5A40AC8E8AE2978A9B9C06 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = EslamyWidgetExtension/EslamyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = EslamyWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eslamy.eslamy.EslamyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FAF9C09B27E246CF92390836 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = EslamyWidgetExtension/EslamyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = EslamyWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eslamy.eslamy.EslamyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -724,6 +909,16 @@
 				331C8088294A63A400263BE5 /* Debug */,
 				331C8089294A63A400263BE5 /* Release */,
 				331C808A294A63A400263BE5 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		94D16150E4E1A673831177F1 /* Build configuration list for PBXNativeTarget "EslamyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A61444918453ABE275DA3D8 /* Release */,
+				BA5A40AC8E8AE2978A9B9C06 /* Debug */,
+				FAF9C09B27E246CF92390836 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

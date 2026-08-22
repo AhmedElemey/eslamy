@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/azkar_cache_database.dart';
 import '../../data/azkar_local_datasource.dart';
@@ -8,7 +9,10 @@ import '../../data/models/azkar_models.dart';
 final azkarCacheDatabaseProvider = Provider((ref) => AzkarCacheDatabase());
 final azkarLocalDataSourceProvider = Provider((ref) => AzkarLocalDataSource());
 
-Future<void> _ensureSeeded(AzkarCacheDatabase cache, AzkarLocalDataSource local) async {
+Future<void> _ensureSeeded(
+  AzkarCacheDatabase cache,
+  AzkarLocalDataSource local,
+) async {
   if (await cache.isEmpty()) {
     final seed = await local.load();
     await cache.replaceAll(seed);
@@ -19,7 +23,8 @@ Future<void> _ensureSeeded(AzkarCacheDatabase cache, AzkarLocalDataSource local)
 /// run, then opportunistically refreshed from UmmahAPI in the background.
 /// The UI never blocks on and never surfaces a network error for the
 /// refresh — offline users simply keep the bundled snapshot.
-class AzkarCategoriesNotifier extends StateNotifier<AsyncValue<List<AzkarCategory>>> {
+class AzkarCategoriesNotifier
+    extends StateNotifier<AsyncValue<List<AzkarCategory>>> {
   AzkarCategoriesNotifier(this._cache, this._local, this._remote)
     : super(const AsyncValue.loading()) {
     _load();
@@ -53,17 +58,40 @@ class AzkarCategoriesNotifier extends StateNotifier<AsyncValue<List<AzkarCategor
   }
 }
 
-final azkarCategoriesProvider =
-    StateNotifierProvider<AzkarCategoriesNotifier, AsyncValue<List<AzkarCategory>>>((ref) {
-      return AzkarCategoriesNotifier(
-        ref.watch(azkarCacheDatabaseProvider),
-        ref.watch(azkarLocalDataSourceProvider),
-        ref.watch(azkarRemoteDataSourceProvider),
-      );
-    });
+final azkarCategoriesProvider = StateNotifierProvider<
+  AzkarCategoriesNotifier,
+  AsyncValue<List<AzkarCategory>>
+>((ref) {
+  return AzkarCategoriesNotifier(
+    ref.watch(azkarCacheDatabaseProvider),
+    ref.watch(azkarLocalDataSourceProvider),
+    ref.watch(azkarRemoteDataSourceProvider),
+  );
+});
 
-final azkarItemsProvider = FutureProvider.family<List<AzkarItem>, String>((ref, categoryId) async {
+final azkarItemsProvider = FutureProvider.family<List<AzkarItem>, String>((
+  ref,
+  categoryId,
+) async {
   final cache = ref.watch(azkarCacheDatabaseProvider);
   await _ensureSeeded(cache, ref.watch(azkarLocalDataSourceProvider));
   return cache.getItemsForCategory(categoryId);
+});
+
+/// A dua picked deterministically once per calendar day (same seeding
+/// approach as Quran's ayahOfTheDayProvider), for the home screen's "Dua of
+/// the Day" card. No separate persistence needed — the dataset is already
+/// local (sqflite), so re-deriving the same date-seeded index each load is
+/// enough to keep the pick stable for the whole day.
+final duaOfTheDayProvider = FutureProvider<AzkarItem>((ref) async {
+  final cache = ref.watch(azkarCacheDatabaseProvider);
+  await _ensureSeeded(cache, ref.watch(azkarLocalDataSourceProvider));
+  final items = await cache.getAllItems();
+  if (items.isEmpty) {
+    throw StateError('No duas available');
+  }
+  final now = DateTime.now();
+  final dateKey = now.year * 10000 + now.month * 100 + now.day;
+  final index = Random(dateKey).nextInt(items.length);
+  return items[index];
 });

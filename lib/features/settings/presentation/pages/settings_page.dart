@@ -120,8 +120,11 @@ class SettingsPage extends ConsumerWidget {
                           ),
                       loading: () => const CircularProgressIndicator(),
                       error:
-                          (e, _) =>
-                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
+                          (e, _) => Text(
+                            l10n.genericErrorWithMessage(
+                              localizedError(l10n, e),
+                            ),
+                          ),
                     ),
                   ],
                 ),
@@ -162,8 +165,11 @@ class SettingsPage extends ConsumerWidget {
                           ),
                       loading: () => const CircularProgressIndicator(),
                       error:
-                          (e, _) =>
-                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
+                          (e, _) => Text(
+                            l10n.genericErrorWithMessage(
+                              localizedError(l10n, e),
+                            ),
+                          ),
                     ),
                   ],
                 ),
@@ -221,8 +227,11 @@ class SettingsPage extends ConsumerWidget {
                       },
                       loading: () => const CircularProgressIndicator(),
                       error:
-                          (e, _) =>
-                              Text(l10n.genericErrorWithMessage(localizedError(l10n, e))),
+                          (e, _) => Text(
+                            l10n.genericErrorWithMessage(
+                              localizedError(l10n, e),
+                            ),
+                          ),
                     ),
                   ],
                 ),

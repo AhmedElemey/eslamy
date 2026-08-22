@@ -11,10 +11,16 @@ void main() {
     editionSlug: 'eng-bukhari',
   );
 
-  test('fractional hadith numbers get ids that do not collide with integers', () {
-    expect(syntheticHadithId('bukhari', 402), isNot(syntheticHadithId('bukhari', 402.2)));
-    expect(syntheticHadithId('bukhari', 402), 1 * 1000000 + 402);
-  });
+  test(
+    'fractional hadith numbers get ids that do not collide with integers',
+    () {
+      expect(
+        syntheticHadithId('bukhari', 402),
+        isNot(syntheticHadithId('bukhari', 402.2)),
+      );
+      expect(syntheticHadithId('bukhari', 402), 1 * 1000000 + 402);
+    },
+  );
 
   test('parseHadithsDocument keeps 402.2 and skips empty/invalid rows', () {
     final items = parseHadithsDocument(

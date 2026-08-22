@@ -8,12 +8,16 @@ class PrayerTime {
 class DailyPrayerTimes {
   final DateTime date;
   final List<PrayerTime> prayers;
-  final String hijriDate;
+  final int hijriDay;
+  final int hijriMonth;
+  final int hijriYear;
 
   const DailyPrayerTimes({
     required this.date,
     required this.prayers,
-    required this.hijriDate,
+    required this.hijriDay,
+    required this.hijriMonth,
+    required this.hijriYear,
   });
 
   /// The next prayer still ahead today, or null if Isha has already passed.

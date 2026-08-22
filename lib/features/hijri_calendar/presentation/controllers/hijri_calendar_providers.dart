@@ -8,7 +8,11 @@ class UpcomingHoliday {
   final DateTime date;
   final int daysRemaining;
 
-  const UpcomingHoliday({required this.holiday, required this.date, required this.daysRemaining});
+  const UpcomingHoliday({
+    required this.holiday,
+    required this.date,
+    required this.daysRemaining,
+  });
 }
 
 class HijriCalendarState {
@@ -18,6 +22,7 @@ class HijriCalendarState {
   final HijriDate? todayHijri;
   final List<UpcomingHoliday> upcoming;
   final bool isLoading;
+  final bool upcomingLoading;
   final String? error;
 
   const HijriCalendarState({
@@ -27,6 +32,7 @@ class HijriCalendarState {
     this.todayHijri,
     this.upcoming = const [],
     this.isLoading = false,
+    this.upcomingLoading = true,
     this.error,
   });
 
@@ -37,6 +43,7 @@ class HijriCalendarState {
     HijriDate? todayHijri,
     List<UpcomingHoliday>? upcoming,
     bool? isLoading,
+    bool? upcomingLoading,
     String? error,
   }) {
     return HijriCalendarState(
@@ -46,6 +53,7 @@ class HijriCalendarState {
       todayHijri: todayHijri ?? this.todayHijri,
       upcoming: upcoming ?? this.upcoming,
       isLoading: isLoading ?? this.isLoading,
+      upcomingLoading: upcomingLoading ?? this.upcomingLoading,
       error: error,
     );
   }
@@ -53,7 +61,12 @@ class HijriCalendarState {
 
 class HijriCalendarNotifier extends StateNotifier<HijriCalendarState> {
   HijriCalendarNotifier(this._service)
-    : super(HijriCalendarState(viewMonth: DateTime.now().month, viewYear: DateTime.now().year)) {
+    : super(
+        HijriCalendarState(
+          viewMonth: DateTime.now().month,
+          viewYear: DateTime.now().year,
+        ),
+      ) {
     _loadMonth();
     _loadTodayAndUpcoming();
   }
@@ -85,7 +98,8 @@ class HijriCalendarNotifier extends StateNotifier<HijriCalendarState> {
       final todayDateOnly = DateTime(now.year, now.month, now.day);
       final results = await Future.wait(
         islamicHolidays.map((h) async {
-          final passedThisYear = h.hijriMonth < today.month ||
+          final passedThisYear =
+              h.hijriMonth < today.month ||
               (h.hijriMonth == today.month && h.hijriDay < today.day);
           final targetYear = passedThisYear ? today.year + 1 : today.year;
           final date = await _service.hijriToGregorian(
@@ -102,9 +116,12 @@ class HijriCalendarNotifier extends StateNotifier<HijriCalendarState> {
       );
       if (!mounted) return;
       results.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
-      state = state.copyWith(upcoming: results);
+      state = state.copyWith(upcoming: results, upcomingLoading: false);
     } catch (_) {
-      // Upcoming-holiday countdowns are a bonus — leave the list empty on failure.
+      // Upcoming-holiday countdowns are a bonus — leave the list empty on
+      // failure, but still clear the loading flag so the UI shows a genuine
+      // empty state instead of "loading" forever.
+      if (mounted) state = state.copyWith(upcomingLoading: false);
     }
   }
 
@@ -123,8 +140,7 @@ class HijriCalendarNotifier extends StateNotifier<HijriCalendarState> {
   }
 }
 
-final hijriCalendarProvider = StateNotifierProvider<HijriCalendarNotifier, HijriCalendarState>((
-  ref,
-) {
-  return HijriCalendarNotifier(ref.watch(hijriCalendarServiceProvider));
-});
+final hijriCalendarProvider =
+    StateNotifierProvider<HijriCalendarNotifier, HijriCalendarState>((ref) {
+      return HijriCalendarNotifier(ref.watch(hijriCalendarServiceProvider));
+    });

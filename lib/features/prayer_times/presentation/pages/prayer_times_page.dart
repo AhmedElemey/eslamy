@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
+import '../../../../core/localization/display_names.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/shell_app_bar.dart';
 import '../controllers/prayer_times_providers.dart';
@@ -123,7 +124,12 @@ class PrayerTimesPage extends ConsumerWidget {
           ),
         Center(
           child: Text(
-            timings.hijriDate,
+            localizedHijriDateAh(
+              context.l10n,
+              day: timings.hijriDay,
+              month: timings.hijriMonth,
+              year: timings.hijriYear,
+            ),
             style: const TextStyle(
               color: AppColors.muted,
               fontWeight: FontWeight.w600,

@@ -36,7 +36,9 @@ class HijriCalendarService {
       baseUrl: _baseUrl,
     );
     final days = response.data['data'] as List<dynamic>;
-    return days.map((e) => HijriCalendarDay.fromJson(e as Map<String, dynamic>)).toList();
+    return days
+        .map((e) => HijriCalendarDay.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Gregorian date a given Hijri day/month/year falls on — used to turn a
@@ -48,7 +50,10 @@ class HijriCalendarService {
   }) async {
     final hijriDate =
         '${day.toString().padLeft(2, '0')}-${month.toString().padLeft(2, '0')}-$year';
-    final response = await requests.get('/v1/hToG/$hijriDate', baseUrl: _baseUrl);
+    final response = await requests.get(
+      '/v1/hToG/$hijriDate',
+      baseUrl: _baseUrl,
+    );
     final g = response.data['data']['gregorian'] as Map<String, dynamic>;
     return DateTime(
       int.parse(g['year'] as String),
