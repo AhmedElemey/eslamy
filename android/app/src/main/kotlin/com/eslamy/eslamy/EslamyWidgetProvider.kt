@@ -81,7 +81,6 @@ class EslamyWidgetProvider : HomeWidgetProvider() {
                 R.id.eslamy_prayer_kicker,
                 data.getString("widget_prayer_kicker", null) ?: "NEXT PRAYER",
             )
-            setTextViewText(R.id.eslamy_prayer_hijri, data.getString("widget_hijri_primary", null) ?: "")
             setTextViewText(
                 R.id.eslamy_prayer_next_line,
                 data.getString("widget_prayer_primary", null) ?: "—",

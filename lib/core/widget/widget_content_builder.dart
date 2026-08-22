@@ -16,10 +16,13 @@ import 'widget_content_kind.dart';
 class WidgetContentBuilder {
   WidgetContentBuilder._();
 
-  /// Primary line is the current/next prayer (name, time, countdown);
-  /// secondary is today's full schedule, so both the "what's next" and
-  /// "what's the whole day" views the user asked for fit in the same
-  /// kicker/primary/secondary shape every widget surface already renders.
+  /// Primary line is the current/next prayer (name, time); secondary is
+  /// today's full schedule, so both the "what's next" and "what's the whole
+  /// day" views the user asked for fit in the same kicker/primary/secondary
+  /// shape every widget surface already renders. No countdown here — it
+  /// made the line too long to fit on the narrower widget surfaces (the
+  /// exact time is right there, and the Android Prayer card's schedule row
+  /// already shows every prayer's time for the day).
   static WidgetContent? prayer(PrayerTimesState state, AppLocalizations l10n) {
     final timings = state.timings;
     final prayer = timings?.nextPrayer;
@@ -28,7 +31,7 @@ class WidgetContentBuilder {
       kind: WidgetContentKind.prayer,
       kicker: l10n.widgetNextPrayerTitle,
       primary:
-          '${localizedPrayerName(l10n, prayer.name)} · ${_formatTime(prayer.time, l10n)} · ${_countdown(prayer.time, l10n)}',
+          '${localizedPrayerName(l10n, prayer.name)} · ${_formatTime(prayer.time, l10n)}',
       secondary: _scheduleLine(timings.prayers, l10n),
     );
   }
@@ -124,14 +127,5 @@ class WidgetContentBuilder {
     final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
     final minute = t.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
-  }
-
-  static String _countdown(DateTime target, AppLocalizations l10n) {
-    final diff = target.difference(DateTime.now());
-    if (diff.isNegative) return l10n.countdownNow;
-    final h = diff.inHours;
-    final m = diff.inMinutes % 60;
-    if (h > 0) return l10n.countdownHoursMinutes(h, m);
-    return l10n.countdownMinutes(m);
   }
 }
