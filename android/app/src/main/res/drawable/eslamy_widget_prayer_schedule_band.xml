@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The slightly-darker inset panel behind the 5-column schedule row,
+     giving the two-tone card look from the reference design. AppColors.
+     bgLightBottom — the same warm parchment tone used at the bottom of the
+     in-app background gradient. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="#F1EBE0" />
+</shape>

@@ -4,14 +4,19 @@
      have room for a full daily schedule, so this kind gets its own
      RemoteViews swapped in instead of reusing eslamy_widget_layout. Same
      root id (eslamy_widget_root) as that layout so the click intent wiring
-     stays identical regardless of which one is active. -->
+     stays identical regardless of which one is active.
+
+     Light card style (reference design), not the teal gradient the other
+     3-line kinds use — a light parchment card with a slightly darker inset
+     band behind the schedule row, and a dark pill on the current prayer's
+     time instead of gold-on-teal. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/eslamy_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/eslamy_widget_background"
+    android:background="@drawable/eslamy_widget_prayer_card_background"
     android:padding="16dp">
 
     <LinearLayout
@@ -32,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:textColor="#E8C170"
+            android:textColor="#6B736F"
             android:textSize="11sp"
             android:textStyle="bold"
             android:singleLine="true"
@@ -44,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textColor="#D9FFFFFF"
+            android:textColor="#6B736F"
             android:textSize="11sp"
             android:singleLine="true"
             android:ellipsize="end"
@@ -58,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="#FFFFFF"
+        android:textColor="#1C2A26"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textDirection="locale"
@@ -66,11 +71,16 @@
         android:ellipsize="end"
         tools:text="Maghrib · 7:31 PM · In 45m" />
 
+    <!-- Inset band, slightly darker than the card, holding the 5-column
+         schedule row — the two-tone look from the reference design. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@drawable/eslamy_widget_prayer_schedule_band"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="10dp">
 
         <!-- 5 fixed columns: Fajr, Dhuhr, Asr, Maghrib, Isha (Sunrise
              excluded — see WidgetContentBuilder.prayerSchedule). Fixed
@@ -87,7 +97,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#D9FFFFFF"
+                android:textColor="#6B736F"
                 android:textSize="10sp"
                 android:singleLine="true"
                 android:ellipsize="end"
@@ -99,7 +109,7 @@
                 android:layout_marginTop="3dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#1C2A26"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
@@ -118,7 +128,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#D9FFFFFF"
+                android:textColor="#6B736F"
                 android:textSize="10sp"
                 android:singleLine="true"
                 android:ellipsize="end"
@@ -130,7 +140,7 @@
                 android:layout_marginTop="3dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#1C2A26"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
@@ -149,7 +159,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#D9FFFFFF"
+                android:textColor="#6B736F"
                 android:textSize="10sp"
                 android:singleLine="true"
                 android:ellipsize="end"
@@ -161,7 +171,7 @@
                 android:layout_marginTop="3dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#1C2A26"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
@@ -180,7 +190,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#D9FFFFFF"
+                android:textColor="#6B736F"
                 android:textSize="10sp"
                 android:singleLine="true"
                 android:ellipsize="end"
@@ -192,7 +202,7 @@
                 android:layout_marginTop="3dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#1C2A26"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
@@ -211,7 +221,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#D9FFFFFF"
+                android:textColor="#6B736F"
                 android:textSize="10sp"
                 android:singleLine="true"
                 android:ellipsize="end"
@@ -223,7 +233,7 @@
                 android:layout_marginTop="3dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#1C2A26"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"

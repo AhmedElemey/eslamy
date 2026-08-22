@@ -73,7 +73,8 @@ class EslamyWidgetProvider : HomeWidgetProvider() {
 
     /** Populates eslamy_widget_prayer_layout: the next-prayer header plus a fixed 5-column
      * schedule row (Fajr..Isha, no Sunrise — see WidgetContentBuilder.prayerSchedule on the
-     * Flutter side), with the current/next prayer's time highlighted in a gold pill. */
+     * Flutter side), with the current/next prayer's name+time emphasized (dark pill, darker
+     * label) against the lighter, muted styling of the other four. */
     private fun buildPrayerViews(context: Context, data: SharedPreferences): RemoteViews {
         return RemoteViews(context.packageName, R.layout.eslamy_widget_prayer_layout).apply {
             setTextViewText(
@@ -96,10 +97,12 @@ class EslamyWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(timeId, times.getOrNull(i) ?: "")
                 if (i == nextIndex) {
                     setInt(timeId, "setBackgroundResource", R.drawable.eslamy_widget_pill_active)
-                    setTextColor(timeId, 0xFF0B3D32.toInt())
+                    setTextColor(timeId, 0xFFFFFFFF.toInt())
+                    setTextColor(nameId, 0xFF1C2A26.toInt())
                 } else {
                     setInt(timeId, "setBackgroundResource", 0)
-                    setTextColor(timeId, 0xFFFFFFFF.toInt())
+                    setTextColor(timeId, 0xFF1C2A26.toInt())
+                    setTextColor(nameId, 0xFF6B736F.toInt())
                 }
             }
         }
