@@ -28,11 +28,15 @@ class WidgetCustomizationPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final enabledAsync = ref.watch(widgetPreferencesProvider);
 
+    final prayerState = ref.watch(prayerTimesProvider);
+    final prayerSchedule = WidgetContentBuilder.prayerSchedule(
+      prayerState,
+      l10n,
+    );
+    final prayerDate = WidgetContentBuilder.prayerDateCompact(l10n);
+
     final contents = <WidgetContentKind, WidgetContent?>{
-      WidgetContentKind.prayer: WidgetContentBuilder.prayer(
-        ref.watch(prayerTimesProvider),
-        l10n,
-      ),
+      WidgetContentKind.prayer: WidgetContentBuilder.prayer(prayerState, l10n),
       WidgetContentKind.ayah: ref
           .watch(ayahOfTheDayProvider)
           .maybeWhen(
@@ -73,6 +77,12 @@ class WidgetCustomizationPage extends ConsumerWidget {
                       kind: kind,
                       enabled: enabledSet.contains(kind),
                       content: contents[kind],
+                      prayerSchedule:
+                          kind == WidgetContentKind.prayer
+                              ? prayerSchedule
+                              : null,
+                      prayerDate:
+                          kind == WidgetContentKind.prayer ? prayerDate : null,
                       onToggle: (value) {
                         if (!value && enabledSet.length <= 1) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -123,12 +133,20 @@ class _WidgetKindCard extends StatelessWidget {
     required this.enabled,
     required this.content,
     required this.onToggle,
+    this.prayerSchedule,
+    this.prayerDate,
   });
 
   final WidgetContentKind kind;
   final bool enabled;
   final WidgetContent? content;
   final ValueChanged<bool> onToggle;
+
+  /// Only set (and only rendered) for [WidgetContentKind.prayer] — the
+  /// Android home-screen widget's dedicated schedule row, see
+  /// eslamy_widget_prayer_layout.xml.
+  final List<PrayerScheduleEntry>? prayerSchedule;
+  final String? prayerDate;
 
   @override
   Widget build(BuildContext context) {
@@ -166,6 +184,12 @@ class _WidgetKindCard extends StatelessWidget {
                 ? SizedBox(
                   height: 96,
                   child: Center(child: Text(l10n.loadingEllipsis)),
+                )
+                : kind == WidgetContentKind.prayer && prayerSchedule != null
+                ? _PrayerWidgetPreview(
+                  content: content!,
+                  schedule: prayerSchedule!,
+                  date: prayerDate ?? '',
                 )
                 : _WidgetPreview(content: content!),
           ],
@@ -241,6 +265,134 @@ class _WidgetPreview extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Mirrors eslamy_widget_prayer_layout.xml / EslamyWidgetProvider.kt: light
+/// parchment card, darker inset band behind the schedule row, dark teal
+/// pill on the current prayer — the Prayer kind's own layout on Android is
+/// nothing like the shared teal 3-line one every other kind still uses, so
+/// it gets its own preview here too instead of going through
+/// [_WidgetPreview].
+class _PrayerWidgetPreview extends StatelessWidget {
+  const _PrayerWidgetPreview({
+    required this.content,
+    required this.schedule,
+    required this.date,
+  });
+
+  final WidgetContent content;
+  final List<PrayerScheduleEntry> schedule;
+  final String date;
+
+  static const _muted = Color(0xFF6B736F);
+  static const _ink = Color(0xFF1C2A26);
+  static const _band = Color(0xFFF1EBE0);
+  static const _activePill = Color(0xFF0B3D32);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xFFFFFCF6),
+        border: Border.all(color: const Color(0xFFE6DFD2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(content.kind.icon, color: _muted, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  content.kicker,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                date,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _muted, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content.primary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ink,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            decoration: BoxDecoration(
+              color: _band,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                for (final entry in schedule)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          entry.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: entry.isNext ? _ink : _muted,
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: entry.isNext ? _activePill : null,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            entry.time,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: entry.isNext ? Colors.white : _ink,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
