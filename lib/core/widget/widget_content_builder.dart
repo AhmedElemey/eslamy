@@ -1,5 +1,6 @@
 import '../../features/duas/data/models/azkar_models.dart';
 import '../../features/hijri_calendar/presentation/controllers/hijri_calendar_providers.dart';
+import '../../features/prayer_times/models/prayer_times.dart';
 import '../../features/prayer_times/presentation/controllers/prayer_times_providers.dart';
 import '../../features/prayer_times/presentation/widgets/prayer_name_localizer.dart';
 import '../../features/quran/models/ayah_of_the_day.dart';
@@ -15,16 +16,30 @@ import 'widget_content_kind.dart';
 class WidgetContentBuilder {
   WidgetContentBuilder._();
 
+  /// Primary line is the current/next prayer (name, time, countdown);
+  /// secondary is today's full schedule, so both the "what's next" and
+  /// "what's the whole day" views the user asked for fit in the same
+  /// kicker/primary/secondary shape every widget surface already renders.
   static WidgetContent? prayer(PrayerTimesState state, AppLocalizations l10n) {
-    final prayer = state.timings?.nextPrayer;
-    if (prayer == null) return null;
+    final timings = state.timings;
+    final prayer = timings?.nextPrayer;
+    if (timings == null || prayer == null) return null;
     return WidgetContent(
       kind: WidgetContentKind.prayer,
       kicker: l10n.widgetNextPrayerTitle,
       primary:
-          '${localizedPrayerName(l10n, prayer.name)} · ${_formatTime(prayer.time, l10n)}',
-      secondary: _countdown(prayer.time, l10n),
+          '${localizedPrayerName(l10n, prayer.name)} · ${_formatTime(prayer.time, l10n)} · ${_countdown(prayer.time, l10n)}',
+      secondary: _scheduleLine(timings.prayers, l10n),
     );
+  }
+
+  static String _scheduleLine(List<PrayerTime> prayers, AppLocalizations l10n) {
+    return prayers
+        .map(
+          (p) =>
+              '${localizedPrayerName(l10n, p.name)} ${_formatTime(p.time, l10n)}',
+        )
+        .join(' · ');
   }
 
   static WidgetContent ayah(AyahOfTheDay ayah, AppLocalizations l10n) =>
