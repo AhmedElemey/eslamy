@@ -89,67 +89,71 @@ class TasbihPage extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        state.preset.arabic,
-                        textDirection: TextDirection.rtl,
-                        style: AppTypography.naskh(
-                          size: 34,
-                          weight: FontWeight.w700,
-                          color: AppColors.heading(context),
-                          height: 1.5,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          state.preset.arabic,
+                          textDirection: TextDirection.rtl,
+                          style: AppTypography.naskh(
+                            size: 34,
+                            weight: FontWeight.w700,
+                            color: AppColors.heading(context),
+                            height: 1.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.mediumImpact();
-                          notifier.increment();
-                        },
-                        child: SizedBox(
-                          width: 220,
-                          height: 220,
-                          child: CustomPaint(
-                            painter: RingProgressPainter(
-                              progress: progress,
-                              trackColor: AppColors.primary.withValues(
-                                alpha: 0.18,
+                        const SizedBox(height: 28),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.mediumImpact();
+                            notifier.increment();
+                          },
+                          child: SizedBox(
+                            width: 220,
+                            height: 220,
+                            child: CustomPaint(
+                              painter: RingProgressPainter(
+                                progress: progress,
+                                trackColor: AppColors.primary.withValues(
+                                  alpha: 0.18,
+                                ),
+                                fillColor:
+                                    reached
+                                        ? AppColors.success
+                                        : AppColors.primary,
                               ),
-                              fillColor:
-                                  reached
-                                      ? AppColors.success
-                                      : AppColors.primary,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${state.count}',
-                                style: const TextStyle(
-                                  fontSize: 64,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                              child: Center(
+                                child: Text(
+                                  '${state.count}',
+                                  style: const TextStyle(
+                                    fontSize: 64,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        reached
-                            ? l10n.targetReached
-                            : l10n.targetLabel(state.preset.target),
-                        style: TextStyle(
-                          color:
-                              reached
-                                  ? AppColors.success
-                                  : AppColors.mutedText(context),
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 20),
+                        Text(
+                          reached
+                              ? l10n.targetReached
+                              : l10n.targetLabel(state.preset.target),
+                          style: TextStyle(
+                            color:
+                                reached
+                                    ? AppColors.success
+                                    : AppColors.mutedText(context),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
