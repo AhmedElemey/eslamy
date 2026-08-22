@@ -29,7 +29,12 @@ jobs:
         run: flutter pub get
 
       - name: Build release APK
-        run: flutter build apk --release
+        # The Flutter "stable" channel can outpace this project's pinned
+        # Gradle wrapper (android/gradle/wrapper/gradle-wrapper.properties),
+        # which trips the Flutter Gradle plugin's minimum-Gradle-version
+        # check. Skip that check rather than floating the wrapper version,
+        # which local devs also build against.
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Rename APK with version and commit info
         id: apk
