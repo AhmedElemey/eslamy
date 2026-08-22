@@ -104,6 +104,38 @@ func content(for kind: EslamyWidgetKind) -> EslamyWidgetContent {
     }
 }
 
+/// One column of the Prayer card's schedule row — mirrors
+/// WidgetContentBuilder.prayerSchedule / PrayerScheduleEntry on the Flutter
+/// side and eslamy_widget_prayer_layout.xml's 5-cell row on Android.
+struct EslamyPrayerScheduleEntry {
+    let name: String
+    let time: String
+    let isNext: Bool
+}
+
+/// Reads the structured schedule WidgetDataService.pushPrayerSchedule wrote
+/// (widget_prayer_names/times/next_index — comma-joined, same order),
+/// empty until the app has synced at least once.
+func prayerSchedule() -> [EslamyPrayerScheduleEntry] {
+    let defaults = UserDefaults(suiteName: appGroupId)
+    guard let namesRaw = defaults?.string(forKey: "widget_prayer_names"), !namesRaw.isEmpty,
+          let timesRaw = defaults?.string(forKey: "widget_prayer_times"), !timesRaw.isEmpty else {
+        return []
+    }
+    let names = namesRaw.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+    let times = timesRaw.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+    let nextIndex = defaults?.integer(forKey: "widget_prayer_next_index") ?? -1
+    return zip(names, times).enumerated().map { i, pair in
+        EslamyPrayerScheduleEntry(name: pair.0, time: pair.1, isNext: i == nextIndex)
+    }
+}
+
+/// Today's real Gregorian date (e.g. "Sat 22 Aug"), see
+/// WidgetContentBuilder.prayerDateCompact on the Flutter side.
+func prayerDate() -> String {
+    UserDefaults(suiteName: appGroupId)?.string(forKey: "widget_prayer_date") ?? ""
+}
+
 struct EslamyWidgetProvider: TimelineProvider {
     func placeholder(in context: Context) -> EslamyWidgetEntry {
         EslamyWidgetEntry(date: Date(), content: .placeholder)
@@ -180,16 +212,109 @@ struct EslamyWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
+    /// Light parchment card background behind [EslamyPrayerCardView] — see
+    /// eslamy_widget_prayer_card_background.xml on Android for the same
+    /// #FFFCF6 fill.
+    private var prayerCardBackground: Color {
+        Color(red: 1.0, green: 0.988, blue: 0.965)
+    }
+
     var body: some View {
         // iOS 17 deprecated a plain view background behind widget content in
         // favor of containerBackground (needed for the new removable-
         // background home screen); older OS versions don't have that API at
         // all, hence the availability split rather than always calling it.
-        if #available(iOSApplicationExtension 17.0, *) {
+        //
+        // The Prayer kind gets its own light-card layout (matching
+        // eslamy_widget_prayer_layout.xml / EslamyWidgetProvider.kt on
+        // Android and _PrayerWidgetPreview in the Flutter in-app preview)
+        // instead of the shared teal gradient card every other kind uses.
+        if entry.content.kind == .prayer {
+            let card = EslamyPrayerCardView(
+                content: entry.content,
+                schedule: prayerSchedule(),
+                date: prayerDate()
+            )
+            if #available(iOSApplicationExtension 17.0, *) {
+                card.containerBackground(for: .widget) { prayerCardBackground }
+            } else {
+                card.background(prayerCardBackground)
+            }
+        } else if #available(iOSApplicationExtension 17.0, *) {
             foreground.containerBackground(for: .widget) { gradient }
         } else {
             foreground.background(gradient)
         }
+    }
+}
+
+/// Mirrors eslamy_widget_prayer_layout.xml / EslamyWidgetProvider.kt on
+/// Android and _PrayerWidgetPreview in widget_customization_page.dart: light
+/// parchment card, muted header (icon/kicker/date), bold ink next-prayer
+/// line, and a schedule band with a dark teal pill on the current prayer.
+/// Used only for [EslamyWidgetKind.prayer] — every other kind keeps the
+/// shared teal gradient card above.
+struct EslamyPrayerCardView: View {
+    var content: EslamyWidgetContent
+    var schedule: [EslamyPrayerScheduleEntry]
+    var date: String
+
+    private let muted = Color(red: 0.420, green: 0.451, blue: 0.435)
+    private let ink = Color(red: 0.110, green: 0.165, blue: 0.149)
+    private let band = Color(red: 0.945, green: 0.922, blue: 0.878)
+    private let activePill = Color(red: 0.043, green: 0.239, blue: 0.196)
+    private let border = Color(red: 0.902, green: 0.875, blue: 0.824)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: content.kind.systemImageName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(muted)
+                Text(content.kicker)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(muted)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Text(date)
+                    .font(.system(size: 11))
+                    .foregroundColor(muted)
+                    .lineLimit(1)
+            }
+            Text(content.primary)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(ink)
+                .lineLimit(1)
+            if !schedule.isEmpty {
+                HStack(spacing: 0) {
+                    ForEach(Array(schedule.enumerated()), id: \.offset) { _, entry in
+                        VStack(spacing: 3) {
+                            Text(entry.name)
+                                .font(.system(size: 10))
+                                .foregroundColor(entry.isNext ? ink : muted)
+                                .lineLimit(1)
+                            Text(entry.time)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(entry.isNext ? .white : ink)
+                                .lineLimit(1)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(entry.isNext ? activePill : Color.clear)
+                                )
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 16).fill(band))
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(border, lineWidth: 1))
     }
 }
 
