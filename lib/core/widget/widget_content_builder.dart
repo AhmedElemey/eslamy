@@ -42,6 +42,29 @@ class WidgetContentBuilder {
         .join(' · ');
   }
 
+  /// The 5 canonical daily prayers (Sunrise excluded) for the Android
+  /// home-screen widget's dedicated schedule-row layout — see
+  /// eslamy_widget_prayer_layout.xml. Returns null once no timings are
+  /// loaded yet, same as [prayer].
+  static List<PrayerScheduleEntry>? prayerSchedule(
+    PrayerTimesState state,
+    AppLocalizations l10n,
+  ) {
+    final timings = state.timings;
+    if (timings == null) return null;
+    final nextName = timings.nextPrayer?.name;
+    return timings.prayers
+        .where((p) => p.name != 'Sunrise')
+        .map(
+          (p) => PrayerScheduleEntry(
+            name: localizedPrayerName(l10n, p.name),
+            time: _formatTime(p.time, l10n),
+            isNext: p.name == nextName,
+          ),
+        )
+        .toList();
+  }
+
   static WidgetContent ayah(AyahOfTheDay ayah, AppLocalizations l10n) =>
       WidgetContent(
         kind: WidgetContentKind.ayah,

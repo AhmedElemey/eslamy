@@ -26,6 +26,22 @@ class EslamyWidgetProvider : HomeWidgetProvider() {
         HIJRI("hijri"),
     }
 
+    private val scheduleNameIds = intArrayOf(
+        R.id.eslamy_prayer_name_0,
+        R.id.eslamy_prayer_name_1,
+        R.id.eslamy_prayer_name_2,
+        R.id.eslamy_prayer_name_3,
+        R.id.eslamy_prayer_name_4,
+    )
+
+    private val scheduleTimeIds = intArrayOf(
+        R.id.eslamy_prayer_time_0,
+        R.id.eslamy_prayer_time_1,
+        R.id.eslamy_prayer_time_2,
+        R.id.eslamy_prayer_time_3,
+        R.id.eslamy_prayer_time_4,
+    )
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -33,18 +49,59 @@ class EslamyWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences,
     ) {
         val enabled = enabledKinds(widgetData)
+        val pendingIntent = HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java)
         appWidgetIds.forEach { widgetId ->
             val kind = nextKind(context, widgetId, enabled)
-            val views = RemoteViews(context.packageName, R.layout.eslamy_widget_layout).apply {
-                val pendingIntent = HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java)
-                setOnClickPendingIntent(R.id.eslamy_widget_root, pendingIntent)
-
-                val (kicker, primary, secondary) = contentFor(kind, widgetData)
-                setTextViewText(R.id.eslamy_widget_kicker, kicker)
-                setTextViewText(R.id.eslamy_widget_primary, primary)
-                setTextViewText(R.id.eslamy_widget_secondary, secondary)
+            // Prayer gets its own richer layout (today's schedule row) —
+            // RemoteViews lets a provider swap in a completely different
+            // layout resource per update, it's only the plain 3-line kinds
+            // that share eslamy_widget_layout by relabeling its TextViews.
+            val views = if (kind == Kind.PRAYER) {
+                buildPrayerViews(context, widgetData)
+            } else {
+                RemoteViews(context.packageName, R.layout.eslamy_widget_layout).apply {
+                    val (kicker, primary, secondary) = contentFor(kind, widgetData)
+                    setTextViewText(R.id.eslamy_widget_kicker, kicker)
+                    setTextViewText(R.id.eslamy_widget_primary, primary)
+                    setTextViewText(R.id.eslamy_widget_secondary, secondary)
+                }
             }
+            views.setOnClickPendingIntent(R.id.eslamy_widget_root, pendingIntent)
             appWidgetManager.updateAppWidget(widgetId, views)
+        }
+    }
+
+    /** Populates eslamy_widget_prayer_layout: the next-prayer header plus a fixed 5-column
+     * schedule row (Fajr..Isha, no Sunrise — see WidgetContentBuilder.prayerSchedule on the
+     * Flutter side), with the current/next prayer's time highlighted in a gold pill. */
+    private fun buildPrayerViews(context: Context, data: SharedPreferences): RemoteViews {
+        return RemoteViews(context.packageName, R.layout.eslamy_widget_prayer_layout).apply {
+            setTextViewText(
+                R.id.eslamy_prayer_kicker,
+                data.getString("widget_prayer_kicker", null) ?: "NEXT PRAYER",
+            )
+            setTextViewText(R.id.eslamy_prayer_hijri, data.getString("widget_hijri_primary", null) ?: "")
+            setTextViewText(
+                R.id.eslamy_prayer_next_line,
+                data.getString("widget_prayer_primary", null) ?: "—",
+            )
+
+            val names = (data.getString("widget_prayer_names", null) ?: "").split(",")
+            val times = (data.getString("widget_prayer_times", null) ?: "").split(",")
+            val nextIndex = data.getInt("widget_prayer_next_index", -1)
+
+            scheduleNameIds.forEachIndexed { i, nameId ->
+                setTextViewText(nameId, names.getOrNull(i) ?: "")
+                val timeId = scheduleTimeIds[i]
+                setTextViewText(timeId, times.getOrNull(i) ?: "")
+                if (i == nextIndex) {
+                    setInt(timeId, "setBackgroundResource", R.drawable.eslamy_widget_pill_active)
+                    setTextColor(timeId, 0xFF0B3D32.toInt())
+                } else {
+                    setInt(timeId, "setBackgroundResource", 0)
+                    setTextColor(timeId, 0xFFFFFFFF.toInt())
+                }
+            }
         }
     }
 

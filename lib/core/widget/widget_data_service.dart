@@ -1,5 +1,6 @@
 import 'package:home_widget/home_widget.dart';
 
+import 'widget_content.dart';
 import 'widget_content_kind.dart';
 
 /// Bridges Flutter data to the native home-screen and Lock Screen widgets
@@ -58,6 +59,33 @@ class WidgetDataService {
     required String primary,
     required String secondary,
   }) => _push('hijri', kicker: kicker, primary: primary, secondary: secondary);
+
+  /// Feeds the Android home-screen widget's dedicated Prayer-kind layout
+  /// (eslamy_widget_prayer_layout.xml) — the 5-column "today's schedule"
+  /// row with the current/next prayer highlighted. iOS doesn't render this
+  /// yet, but `EslamyWidget` is still reloaded so it stays consistent with
+  /// every other push in this class.
+  static Future<void> pushPrayerSchedule(
+    List<PrayerScheduleEntry> entries,
+  ) async {
+    await HomeWidget.setAppGroupId(_appGroupId);
+    await HomeWidget.saveWidgetData<String>(
+      'widget_prayer_names',
+      entries.map((e) => e.name).join(','),
+    );
+    await HomeWidget.saveWidgetData<String>(
+      'widget_prayer_times',
+      entries.map((e) => e.time).join(','),
+    );
+    await HomeWidget.saveWidgetData<int>(
+      'widget_prayer_next_index',
+      entries.indexWhere((e) => e.isNext),
+    );
+    await HomeWidget.updateWidget(
+      androidName: _androidProviderName,
+      iOSName: 'EslamyWidget',
+    );
+  }
 
   /// Tells the native rotating home-screen widget which kinds the user has
   /// switched on (see WidgetCustomizationPage) and their rotation order.

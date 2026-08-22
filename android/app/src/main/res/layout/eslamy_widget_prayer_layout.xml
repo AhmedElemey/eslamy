@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dedicated layout for the Prayer content kind only (see
+     EslamyWidgetProvider.kt#buildViews) — the plain 3-line layout doesn't
+     have room for a full daily schedule, so this kind gets its own
+     RemoteViews swapped in instead of reusing eslamy_widget_layout. Same
+     root id (eslamy_widget_root) as that layout so the click intent wiring
+     stays identical regardless of which one is active. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/eslamy_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/eslamy_widget_background"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/eslamy_prayer_kicker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:textColor="#E8C170"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="NEXT PRAYER" />
+
+        <TextView
+            android:id="@+id/eslamy_prayer_hijri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="#D9FFFFFF"
+            android:textSize="11sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:maxWidth="120dp"
+            android:textDirection="locale"
+            tools:text="9 Rabi' al-Awwal" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/eslamy_prayer_next_line"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textDirection="locale"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Maghrib · 7:31 PM · In 45m" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <!-- 5 fixed columns: Fajr, Dhuhr, Asr, Maghrib, Isha (Sunrise
+             excluded — see WidgetContentBuilder.prayerSchedule). Fixed
+             count/order lets Kotlin populate by index instead of needing a
+             RemoteViewsService-backed collection just for 5 static cells. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/eslamy_prayer_name_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D9FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true"
+                tools:text="Fajr" />
+            <TextView
+                android:id="@+id/eslamy_prayer_time_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                tools:text="4:54" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/eslamy_prayer_name_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D9FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true"
+                tools:text="Dhuhr" />
+            <TextView
+                android:id="@+id/eslamy_prayer_time_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                tools:text="12:59" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/eslamy_prayer_name_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D9FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true"
+                tools:text="Asr" />
+            <TextView
+                android:id="@+id/eslamy_prayer_time_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                tools:text="4:36" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/eslamy_prayer_name_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D9FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true"
+                tools:text="Maghrib" />
+            <TextView
+                android:id="@+id/eslamy_prayer_time_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                tools:text="7:31" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/eslamy_prayer_name_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D9FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true"
+                tools:text="Isha" />
+            <TextView
+                android:id="@+id/eslamy_prayer_time_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                tools:text="8:53" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

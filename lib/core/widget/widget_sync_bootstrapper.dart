@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,6 +30,8 @@ class WidgetSyncBootstrapper extends ConsumerStatefulWidget {
 
 class _WidgetSyncBootstrapperState
     extends ConsumerState<WidgetSyncBootstrapper> {
+  Timer? _minuteTimer;
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +50,22 @@ class _WidgetSyncBootstrapperState
           .read(widgetPreferencesProvider)
           .whenData(WidgetDataService.pushEnabledKinds);
     });
+    // prayerTimesProvider's state only changes when a fetch happens, but
+    // "next prayer" and its countdown are true continuously — without this,
+    // the widget would only catch up to a prayer boundary crossing (or a
+    // ticking countdown) the next time the app happens to refetch. Only
+    // covers the app-open window; Android/iOS both cap background widget
+    // refresh well above one minute regardless of what any app requests.
+    _minuteTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      _pushPrayer(ref.read(prayerTimesProvider), context.l10n);
+    });
+  }
+
+  @override
+  void dispose() {
+    _minuteTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -79,6 +99,8 @@ class _WidgetSyncBootstrapperState
       primary: content.primary,
       secondary: content.secondary,
     );
+    final schedule = WidgetContentBuilder.prayerSchedule(state, l10n);
+    if (schedule != null) WidgetDataService.pushPrayerSchedule(schedule);
   }
 
   void _pushAyah(AyahOfTheDay ayah, AppLocalizations l10n) {

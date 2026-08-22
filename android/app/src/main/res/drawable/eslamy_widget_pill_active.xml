@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Highlights the current/next prayer's time in the schedule row of
+     eslamy_widget_prayer_layout.xml — gold fill, matching the app's accent
+     color (AppColors.gold) so it reads against the teal card background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="10dp" />
+    <solid android:color="#E8C170" />
+</shape>
