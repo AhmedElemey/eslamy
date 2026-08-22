@@ -245,28 +245,35 @@ class _MonthGrid extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${day.gregorian.day}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color:
-                                isToday ? AppColors.primaryOnBg(context) : null,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${day.gregorian.day}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
+                              color:
+                                  isToday
+                                      ? AppColors.primaryOnBg(context)
+                                      : null,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${day.hijriDay}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color:
-                                isToday
-                                    ? AppColors.primaryOnBg(context)
-                                    : AppColors.mutedText(context),
+                          Text(
+                            '${day.hijriDay}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              height: 1.1,
+                              color:
+                                  isToday
+                                      ? AppColors.primaryOnBg(context)
+                                      : AppColors.mutedText(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     if (isHoliday)
                       Positioned(
