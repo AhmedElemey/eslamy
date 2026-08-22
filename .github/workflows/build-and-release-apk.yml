@@ -1,0 +1,214 @@
+# =============================================================================
+# GitHub Actions — APK build & release for Eslamy
+# =============================================================================
+#
+# Mirrors AhmedElemey/xstore's build-and-release-apk.yml: auto version bump,
+# release-signed APK, a GitHub Release with the APK attached, and an email
+# notification — minus xstore's dev/prod flavor split, which eslamy doesn't
+# have (single build variant).
+#
+# TRIGGERS
+# -----------------------------------------------------------------------------
+# - push to main (skips doc-only changes): builds and releases automatically.
+# - workflow_dispatch: manual run.
+# The version-bump commit is pushed with [skip ci] and the default GITHUB_TOKEN,
+# so it never retriggers this workflow.
+#
+# SECRETS (Settings → Secrets and variables → Actions → Secrets) — none of
+# these exist yet; every step that needs one fails with a clear ::error::
+# until it's added.
+# -----------------------------------------------------------------------------
+# MAIL_USERNAME      Gmail address used as SMTP login and "From" address
+# MAIL_PASSWORD      Gmail App Password (16-char token) — NOT your Gmail password
+# MAIL_TO            Recipient email address(es) for build notifications,
+#                     comma-separated for more than one
+# KEYSTORE_BASE64    Base64-encoded release keystore (android/app/release.keystore)
+# KEYSTORE_PASSWORD  Keystore store password
+# KEY_ALIAS          Key alias inside the keystore
+# KEY_PASSWORD       Key password (often the same as KEYSTORE_PASSWORD)
+#
+# GITHUB_TOKEN is provided automatically and is sufficient for creating
+# releases in this repository. This workflow requests `contents: write` so
+# the default token can publish releases, upload assets, and push the
+# version-bump commit.
+#
+# BUILD NOTES
+# -----------------------------------------------------------------------------
+# - Single build variant (no product flavors) — applicationId com.eslamy.eslamy.
+# - Flutter's stable channel can outpace this project's pinned Gradle wrapper
+#   (android/gradle/wrapper/gradle-wrapper.properties), which trips the
+#   Flutter Gradle plugin's minimum-Gradle-version check — build with
+#   --android-skip-build-dependency-validation rather than floating the
+#   wrapper version, which local devs also build against.
+# - Every run auto-increments the build number (the `+N` in pubspec.yaml's
+#   `version:` line) and commits that change back to the branch before
+#   building, so each release has a unique, traceable build number. Pull
+#   before your next push to main to pick up that bump.
+# - android/app/build.gradle.kts now requires android/key.properties (and the
+#   keystore it points at) for ANY release build, in CI or locally — with no
+#   keystore configured, `flutter build apk --release` fails with a clear
+#   error instead of silently signing with the debug key.
+# =============================================================================
+
+name: Build and Release APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".claude/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Serialize runs: overlapping pushes would race on the version-bump commit.
+concurrency:
+  group: build-and-release-apk
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_RUN_NUMBER: ${{ github.run_number }}
+      BUILD_SHA: ${{ github.sha }}
+      RELEASE_REPO: ${{ github.repository }}
+      RELEASE_HOST: ${{ github.server_url }}
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      MAIL_TO: ${{ secrets.MAIL_TO }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Bump build number in pubspec.yaml
+        run: |
+          VERSION_LINE=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          APP_VERSION="${VERSION_LINE%%+*}"
+          BUILD_NUMBER="${VERSION_LINE##*+}"
+          NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          FULL_VERSION="${APP_VERSION}+${NEW_BUILD_NUMBER}"
+          sed -i "s/^version: .*/version: ${FULL_VERSION}/" pubspec.yaml
+          {
+            echo "APP_VERSION=${APP_VERSION}"
+            echo "FULL_VERSION=${FULL_VERSION}"
+          } >> "$GITHUB_ENV"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump build number to ${FULL_VERSION} [skip ci]"
+          # main may have moved while this run was queued — rebase the bump on top.
+          git pull --rebase origin main
+          git push
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Configure release signing
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::Missing one or more signing secrets: KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          {
+            echo "storePassword=${KEYSTORE_PASSWORD}"
+            echo "keyPassword=${KEY_PASSWORD}"
+            echo "keyAlias=${KEY_ALIAS}"
+            echo "storeFile=app/release.keystore"
+          } > android/key.properties
+
+      - name: Build release APK
+        run: flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Remove signing material from workspace
+        if: always()
+        run: rm -f android/app/release.keystore android/key.properties
+
+      - name: Rename APK artifact
+        run: |
+          SRC="build/app/outputs/flutter-apk/app-release.apk"
+          DEST="eslamy-v${APP_VERSION}-${BUILD_RUN_NUMBER}.apk"
+          if [ ! -f "$SRC" ]; then
+            echo "::error::Expected APK not found at $SRC"
+            ls -la build/app/outputs/flutter-apk/ || true
+            exit 1
+          fi
+          cp "$SRC" "$DEST"
+          echo "APK_PATH=${DEST}" >> "$GITHUB_ENV"
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_PATH }}
+          path: ${{ env.APK_PATH }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${APP_VERSION}-${BUILD_RUN_NUMBER}"
+          gh release create "$TAG" "$APK_PATH" --title "Eslamy build #${BUILD_RUN_NUMBER}" --generate-notes
+          echo "RELEASE_URL=${RELEASE_HOST}/${RELEASE_REPO}/releases/tag/${TAG}" >> "$GITHUB_ENV"
+
+      - name: Send email notification
+        run: |
+          if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
+            echo "::error::Missing MAIL_USERNAME, MAIL_PASSWORD, or MAIL_TO secrets."
+            exit 1
+          fi
+          IFS=',' read -ra RECIPIENTS <<< "$MAIL_TO"
+          TO_HEADER=$(IFS=, ; echo "${RECIPIENTS[*]}")
+          MAIL_RCPT_ARGS=()
+          for rcpt in "${RECIPIENTS[@]}"; do
+            rcpt="${rcpt#"${rcpt%%[![:space:]]*}"}"
+            rcpt="${rcpt%"${rcpt##*[![:space:]]}"}"
+            [ -n "$rcpt" ] || continue
+            MAIL_RCPT_ARGS+=(--mail-rcpt "$rcpt")
+          done
+          SUBJECT="Eslamy APK - Build #${BUILD_RUN_NUMBER}"
+          BODY="Eslamy APK build completed successfully.
+
+          Build number: ${BUILD_RUN_NUMBER}
+          App version:  ${FULL_VERSION} (pubspec.yaml)
+          Commit SHA:   ${BUILD_SHA}
+
+          GitHub Release: ${RELEASE_URL}
+
+          Download the APK from the release assets on the page above."
+          {
+            echo "From: ${MAIL_USERNAME}"
+            echo "To: ${TO_HEADER}"
+            echo "Subject: ${SUBJECT}"
+            echo "Content-Type: text/plain; charset=utf-8"
+            echo
+            echo "$BODY"
+          } | curl --fail --silent --show-error \
+            --url "smtps://smtp.gmail.com:465" \
+            --ssl-reqd \
+            --mail-from "$MAIL_USERNAME" \
+            "${MAIL_RCPT_ARGS[@]}" \
+            --user "${MAIL_USERNAME}:${MAIL_PASSWORD}" \
+            --upload-file -
