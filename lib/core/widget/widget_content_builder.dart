@@ -58,7 +58,10 @@ class WidgetContentBuilder {
         .map(
           (p) => PrayerScheduleEntry(
             name: localizedPrayerName(l10n, p.name),
-            time: _formatTime(p.time, l10n),
+            // No AM/PM suffix here (unlike _formatTime): 5 equal-width
+            // columns don't have room for it, and the next-prayer line
+            // right above already gives the day-half context.
+            time: _formatTimeCompact(p.time),
             isNext: p.name == nextName,
           ),
         )
@@ -115,6 +118,12 @@ class WidgetContentBuilder {
     final minute = t.minute.toString().padLeft(2, '0');
     final period = t.hour >= 12 ? l10n.pmLabel : l10n.amLabel;
     return '$hour:$minute $period';
+  }
+
+  static String _formatTimeCompact(DateTime t) {
+    final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final minute = t.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   static String _countdown(DateTime target, AppLocalizations l10n) {

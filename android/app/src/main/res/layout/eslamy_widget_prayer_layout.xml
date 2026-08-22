@@ -84,11 +84,13 @@
             android:gravity="center_horizontal">
             <TextView
                 android:id="@+id/eslamy_prayer_name_0"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textColor="#D9FFFFFF"
                 android:textSize="10sp"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="Fajr" />
             <TextView
                 android:id="@+id/eslamy_prayer_time_0"
@@ -101,6 +103,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="4:54" />
         </LinearLayout>
 
@@ -112,11 +115,13 @@
             android:gravity="center_horizontal">
             <TextView
                 android:id="@+id/eslamy_prayer_name_1"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textColor="#D9FFFFFF"
                 android:textSize="10sp"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="Dhuhr" />
             <TextView
                 android:id="@+id/eslamy_prayer_time_1"
@@ -129,6 +134,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="12:59" />
         </LinearLayout>
 
@@ -140,11 +146,13 @@
             android:gravity="center_horizontal">
             <TextView
                 android:id="@+id/eslamy_prayer_name_2"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textColor="#D9FFFFFF"
                 android:textSize="10sp"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="Asr" />
             <TextView
                 android:id="@+id/eslamy_prayer_time_2"
@@ -157,6 +165,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="4:36" />
         </LinearLayout>
 
@@ -168,11 +177,13 @@
             android:gravity="center_horizontal">
             <TextView
                 android:id="@+id/eslamy_prayer_name_3"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textColor="#D9FFFFFF"
                 android:textSize="10sp"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="Maghrib" />
             <TextView
                 android:id="@+id/eslamy_prayer_time_3"
@@ -185,6 +196,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="7:31" />
         </LinearLayout>
 
@@ -196,11 +208,13 @@
             android:gravity="center_horizontal">
             <TextView
                 android:id="@+id/eslamy_prayer_name_4"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:textColor="#D9FFFFFF"
                 android:textSize="10sp"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="Isha" />
             <TextView
                 android:id="@+id/eslamy_prayer_time_4"
@@ -213,6 +227,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:singleLine="true"
+                android:ellipsize="end"
                 tools:text="8:53" />
         </LinearLayout>
     </LinearLayout>
