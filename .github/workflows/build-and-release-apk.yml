@@ -20,8 +20,8 @@
 # -----------------------------------------------------------------------------
 # MAIL_USERNAME      Gmail address used as SMTP login and "From" address
 # MAIL_PASSWORD      Gmail App Password (16-char token) — NOT your Gmail password
-# MAIL_TO            Recipient email address(es) for build notifications,
-#                     comma-separated for more than one
+# MAIL_TO            Recipient email address for build notifications
+#                     (single address for now)
 # KEYSTORE_BASE64    Base64-encoded release keystore (android/app/release.keystore)
 # KEYSTORE_PASSWORD  Keystore store password
 # KEY_ALIAS          Key alias inside the keystore
@@ -174,20 +174,13 @@ jobs:
           echo "RELEASE_URL=${RELEASE_HOST}/${RELEASE_REPO}/releases/tag/${TAG}" >> "$GITHUB_ENV"
 
       - name: Send email notification
+        # MAIL_TO is a single address for now (not comma-separated like
+        # xstore's MAIL_TO) — revisit if/when this needs multiple recipients.
         run: |
           if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
             echo "::error::Missing MAIL_USERNAME, MAIL_PASSWORD, or MAIL_TO secrets."
             exit 1
           fi
-          IFS=',' read -ra RECIPIENTS <<< "$MAIL_TO"
-          TO_HEADER=$(IFS=, ; echo "${RECIPIENTS[*]}")
-          MAIL_RCPT_ARGS=()
-          for rcpt in "${RECIPIENTS[@]}"; do
-            rcpt="${rcpt#"${rcpt%%[![:space:]]*}"}"
-            rcpt="${rcpt%"${rcpt##*[![:space:]]}"}"
-            [ -n "$rcpt" ] || continue
-            MAIL_RCPT_ARGS+=(--mail-rcpt "$rcpt")
-          done
           SUBJECT="Eslamy APK - Build #${BUILD_RUN_NUMBER}"
           BODY="Eslamy APK build completed successfully.
 
@@ -200,7 +193,7 @@ jobs:
           Download the APK from the release assets on the page above."
           {
             echo "From: ${MAIL_USERNAME}"
-            echo "To: ${TO_HEADER}"
+            echo "To: ${MAIL_TO}"
             echo "Subject: ${SUBJECT}"
             echo "Content-Type: text/plain; charset=utf-8"
             echo
@@ -209,6 +202,6 @@ jobs:
             --url "smtps://smtp.gmail.com:465" \
             --ssl-reqd \
             --mail-from "$MAIL_USERNAME" \
-            "${MAIL_RCPT_ARGS[@]}" \
+            --mail-rcpt "$MAIL_TO" \
             --user "${MAIL_USERNAME}:${MAIL_PASSWORD}" \
             --upload-file -
