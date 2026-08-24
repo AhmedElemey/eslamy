@@ -14,18 +14,20 @@
 # The version-bump commit is pushed with [skip ci] and the default GITHUB_TOKEN,
 # so it never retriggers this workflow.
 #
-# SECRETS (Settings → Secrets and variables → Actions → Secrets) — none of
-# these exist yet; every step that needs one fails with a clear ::error::
-# until it's added.
+# SECRETS (Settings → Secrets and variables → Actions → Secrets)
 # -----------------------------------------------------------------------------
-# MAIL_USERNAME      Gmail address used as SMTP login and "From" address
-# MAIL_PASSWORD      Gmail App Password (16-char token) — NOT your Gmail password
-# MAIL_TO            Recipient email address for build notifications
-#                     (single address for now)
 # KEYSTORE_BASE64    Base64-encoded release keystore (android/app/release.keystore)
 # KEYSTORE_PASSWORD  Keystore store password
 # KEY_ALIAS          Key alias inside the keystore
 # KEY_PASSWORD       Key password (often the same as KEYSTORE_PASSWORD)
+#                     Required — the build hard-fails with a clear ::error::
+#                     until all four are set.
+# MAIL_USERNAME      Gmail address used as SMTP login and "From" address
+# MAIL_PASSWORD      Gmail App Password (16-char token) — NOT your Gmail password
+# MAIL_TO            Recipient email address for build notifications
+#                     (single address for now)
+#                     Optional — the release still publishes without these;
+#                     only the notification email is skipped (::warning::).
 #
 # GITHUB_TOKEN is provided automatically and is sufficient for creating
 # releases in this repository. This workflow requests `contents: write` so
@@ -176,10 +178,15 @@ jobs:
       - name: Send email notification
         # MAIL_TO is a single address for now (not comma-separated like
         # xstore's MAIL_TO) — revisit if/when this needs multiple recipients.
+        # Non-fatal: the release itself (signed APK + GitHub Release) is
+        # already published by this point, so a missing/misconfigured mail
+        # secret shouldn't mark an otherwise-successful run as failed —
+        # unlike the signing secrets, which stay a hard failure.
+        continue-on-error: true
         run: |
           if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
-            echo "::error::Missing MAIL_USERNAME, MAIL_PASSWORD, or MAIL_TO secrets."
-            exit 1
+            echo "::warning::Skipping email notification — missing MAIL_USERNAME, MAIL_PASSWORD, or MAIL_TO secrets. The release above was still published."
+            exit 0
           fi
           SUBJECT="Eslamy APK - Build #${BUILD_RUN_NUMBER}"
           BODY="Eslamy APK build completed successfully.
