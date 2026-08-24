@@ -201,6 +201,19 @@ jobs:
             echo "::warning::Skipping email notification — missing MAIL_USERNAME, MAIL_PASSWORD, or MAIL_TO secrets. The release above was still published."
             exit 0
           fi
+          # Strip whitespace and any surrounding quote marks a copy/paste into
+          # the GitHub secrets UI can introduce (e.g. pasting "me@x.com" with
+          # the quotes as literal characters) — Gmail's SMTP server rejects a
+          # malformed RCPT TO with "553" and aborts the whole send, so one bad
+          # recipient silently drops the notification to everyone.
+          MAIL_TO="${MAIL_TO#"${MAIL_TO%%[![:space:]]*}"}"
+          MAIL_TO="${MAIL_TO%"${MAIL_TO##*[![:space:]]}"}"
+          MAIL_TO="${MAIL_TO#\"}"; MAIL_TO="${MAIL_TO%\"}"
+          MAIL_TO="${MAIL_TO#\'}"; MAIL_TO="${MAIL_TO%\'}"
+          if ! [[ "$MAIL_TO" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+            echo "::warning::Skipping email notification — MAIL_TO doesn't look like a valid email address (length ${#MAIL_TO}). Re-check the secret for stray quotes/whitespace. The release above was still published."
+            exit 0
+          fi
           RECIPIENTS=(
             "$MAIL_TO"
             "mohamedmax728@gmail.com"
