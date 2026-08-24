@@ -134,7 +134,15 @@ jobs:
             echo "::error::Missing one or more signing secrets: KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD"
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          # Strip whitespace the GitHub secrets UI (or a copy/paste through an
+          # editor that wraps long lines) can introduce into a pasted base64
+          # blob — `base64 --decode` treats anything outside the base64
+          # alphabet as invalid input and aborts instead of ignoring it.
+          echo "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/app/release.keystore
+          if ! keytool -list -keystore android/app/release.keystore -storepass "$KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+            echo "::error::KEYSTORE_BASE64 did not decode to a valid keystore openable with KEYSTORE_PASSWORD — re-check both secrets."
+            exit 1
+          fi
           {
             echo "storePassword=${KEYSTORE_PASSWORD}"
             echo "keyPassword=${KEY_PASSWORD}"
