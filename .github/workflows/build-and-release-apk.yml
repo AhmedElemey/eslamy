@@ -129,6 +129,9 @@ jobs:
           git pull --rebase origin main
           git push
 
+      - name: Flutter clean
+        run: flutter clean
+
       - name: Flutter pub get
         run: flutter pub get
 
