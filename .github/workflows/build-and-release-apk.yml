@@ -26,9 +26,10 @@
 # MAIL_PASSWORD      Gmail App Password (16-char token) — NOT your Gmail password
 # MAIL_TO            Primary recipient email address for build notifications
 #                     (mohamedmax728@gmail.com, Mohammedelbakly8@gmail.com,
-#                     rehab.mhmd2@gmail.com, and amlmhmd253@gmail.com are
-#                     also notified on every release, same list as xstore —
-#                     see Send email notification)
+#                     rehab.mhmd2@gmail.com, amlmhmd253@gmail.com — same
+#                     list as xstore — and abdalrhmanyasser12345@gmail.com
+#                     are also notified on every release; see Send email
+#                     notification)
 #                     Optional — the release still publishes without these;
 #                     only the notification email is skipped (::warning::).
 #
@@ -220,6 +221,7 @@ jobs:
             "Mohammedelbakly8@gmail.com"
             "rehab.mhmd2@gmail.com"
             "amlmhmd253@gmail.com"
+            "abdalrhmanyasser12345@gmail.com"
           )
           TO_HEADER=$(IFS=, ; echo "${RECIPIENTS[*]}")
           MAIL_RCPT_ARGS=()
