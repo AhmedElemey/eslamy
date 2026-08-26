@@ -5,6 +5,7 @@ import '../../../../core/localization/display_names.dart';
 import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
+import '../../../../shared/widgets/list_error_view.dart';
 import '../controllers/quran_providers.dart';
 import '../pages/quran_chapter_detail_page.dart';
 
@@ -33,14 +34,9 @@ class SearchableSurahList extends ConsumerWidget {
     return chaptersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error:
-          (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                l10n.failedToLoadSurahsWithError(localizedError(l10n, e)),
-                textAlign: TextAlign.center,
-              ),
-            ),
+          (e, _) => ListErrorView(
+            message: l10n.failedToLoadSurahsWithError(localizedError(l10n, e)),
+            onRetry: () => ref.invalidate(chaptersProvider),
           ),
       data: (chapters) {
         final q = query.trim().toLowerCase();

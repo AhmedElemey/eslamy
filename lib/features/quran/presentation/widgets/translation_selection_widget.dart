@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/list_error_view.dart';
 import '../controllers/quran_providers.dart';
 
 /// Compact button showing the currently-selected translation language;
@@ -109,12 +110,11 @@ class _TranslationSelectionSheetState
             child: editionsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error:
-                  (e, _) => Center(
-                    child: Text(
-                      context.l10n.couldNotLoadLanguagesWithError(
-                        localizedError(context.l10n, e),
-                      ),
+                  (e, _) => ListErrorView(
+                    message: context.l10n.couldNotLoadLanguagesWithError(
+                      localizedError(context.l10n, e),
                     ),
+                    onRetry: () => ref.invalidate(translationEditionsProvider),
                   ),
               data: (editions) {
                 final filtered =

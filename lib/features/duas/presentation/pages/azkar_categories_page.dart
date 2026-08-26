@@ -6,6 +6,7 @@ import '../../../../core/localization/display_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/number_seal.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/list_error_view.dart';
 import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../data/models/azkar_models.dart';
 import '../controllers/azkar_providers.dart';
@@ -31,16 +32,11 @@ class AzkarCategoriesPage extends ConsumerWidget {
           child: categoriesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error:
-                (e, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      context.l10n.couldNotLoadAzkarWithError(
-                        localizedError(context.l10n, e),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                (e, _) => ListErrorView(
+                  message: context.l10n.couldNotLoadAzkarWithError(
+                    localizedError(context.l10n, e),
                   ),
+                  onRetry: () => ref.invalidate(azkarCategoriesProvider),
                 ),
             data:
                 (categories) => ListView.separated(

@@ -6,6 +6,7 @@ import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
+import '../../../../shared/widgets/list_error_view.dart';
 import '../../../quran/models/quran_models.dart';
 import '../../../quran/presentation/controllers/quran_providers.dart';
 import '../../../settings/service/settings_database.dart';
@@ -41,10 +42,11 @@ class HifzPage extends ConsumerWidget {
           child: chaptersAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error:
-                (e, _) => Center(
-                  child: Text(
-                    l10n.failedToLoadSurahsWithError(localizedError(l10n, e)),
+                (e, _) => ListErrorView(
+                  message: l10n.failedToLoadSurahsWithError(
+                    localizedError(l10n, e),
                   ),
+                  onRetry: () => ref.invalidate(chaptersProvider),
                 ),
             data: (chapters) => _buildList(context, chapters, memorized, ref),
           ),

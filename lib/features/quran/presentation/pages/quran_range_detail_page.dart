@@ -6,6 +6,7 @@ import '../../../../core/localization/error_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../../../shared/widgets/ayah_block.dart';
+import '../../../../shared/widgets/list_error_view.dart';
 import '../../models/quran_models.dart';
 import 'quran_verse_detail_page.dart';
 
@@ -22,7 +23,7 @@ class QuranRangeDetailPage extends ConsumerWidget {
   });
 
   final String title;
-  final ProviderListenable<AsyncValue<List<AyahWithSurah>>> rangeProvider;
+  final ProviderBase<AsyncValue<List<AyahWithSurah>>> rangeProvider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,16 +38,11 @@ class QuranRangeDetailPage extends ConsumerWidget {
           child: ayahsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error:
-                (e, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      context.l10n.couldNotLoadSectionWithError(
-                        localizedError(context.l10n, e),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                (e, _) => ListErrorView(
+                  message: context.l10n.couldNotLoadSectionWithError(
+                    localizedError(context.l10n, e),
                   ),
+                  onRetry: () => ref.invalidate(rangeProvider),
                 ),
             data:
                 (ayahs) => ListView.builder(
