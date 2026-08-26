@@ -265,8 +265,12 @@ class SettingsPage extends ConsumerWidget {
                                 );
                                 if (picked != null) {
                                   await SettingsDatabase().setWerdTime(picked);
-                                  await NotificationService()
-                                      .requestPermissions();
+                                  try {
+                                    await NotificationService()
+                                        .requestPermissions();
+                                  } catch (_) {
+                                    // Best-effort — still try to schedule below.
+                                  }
                                   await NotificationService().scheduleDaily(
                                     time: picked,
                                     title: l10n.sectionDailyWerdTime,
@@ -290,8 +294,12 @@ class SettingsPage extends ConsumerWidget {
                             ),
                             FilledButton(
                               onPressed: () async {
-                                await NotificationService()
-                                    .requestPermissions();
+                                try {
+                                  await NotificationService()
+                                      .requestPermissions();
+                                } catch (_) {
+                                  // Best-effort — still try to schedule below.
+                                }
                                 final t =
                                     await SettingsDatabase().getWerdTime();
                                 if (t != null) {
@@ -312,8 +320,12 @@ class SettingsPage extends ConsumerWidget {
                             ),
                             OutlinedButton(
                               onPressed: () async {
-                                await NotificationService()
-                                    .requestPermissions();
+                                try {
+                                  await NotificationService()
+                                      .requestPermissions();
+                                } catch (_) {
+                                  // Best-effort — still check/show below.
+                                }
                                 final enabled =
                                     await NotificationService()
                                         .areNotificationsEnabled();
@@ -440,7 +452,13 @@ class _AdhanToggleRowState extends ConsumerState<_AdhanToggleRow> {
     setState(() => _enabled = value);
     await SettingsDatabase().setAdhanEnabled(value);
     if (value) {
-      await NotificationService().requestPermissions();
+      try {
+        await NotificationService().requestPermissions();
+      } catch (_) {
+        // Permission plumbing is best-effort — a failure here (e.g. another
+        // permission request already in flight) must not stop us from still
+        // trying to schedule alerts below.
+      }
     }
     if (!mounted) return;
     // Apply immediately — schedule or cancel alerts right away instead of
