@@ -24,7 +24,7 @@ class QuranNumberGrid extends StatelessWidget {
   final int count;
   final String labelPrefix;
   final String Function(int number) itemTitle;
-  final ProviderListenable<AsyncValue<List<AyahWithSurah>>> Function(int number)
+  final ProviderBase<AsyncValue<List<AyahWithSurah>>> Function(int number)
   rangeProviderBuilder;
   final String query;
 
