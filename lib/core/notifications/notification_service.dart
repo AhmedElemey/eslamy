@@ -93,7 +93,30 @@ class NotificationService {
     _initialized = true;
   }
 
-  Future<bool> requestPermissions() async {
+  // The native Android plugin guards requestNotificationsPermission,
+  // requestExactAlarmsPermission, etc. with a single shared "request in
+  // progress" flag and throws PlatformException(permissionRequestInProgress)
+  // for any call that overlaps another — which happens easily here since
+  // both the automatic scheduling in PrayerTimesNotifier and several
+  // Settings page buttons all call requestPermissions() independently.
+  // Coalesce concurrent calls onto the same in-flight request instead of
+  // letting the second one hit that error.
+  Future<bool>? _pendingPermissionRequest;
+
+  Future<bool> requestPermissions() {
+    final pending = _pendingPermissionRequest;
+    if (pending != null) return pending;
+    final request = _requestPermissions();
+    _pendingPermissionRequest = request;
+    request.whenComplete(() {
+      if (identical(_pendingPermissionRequest, request)) {
+        _pendingPermissionRequest = null;
+      }
+    });
+    return request;
+  }
+
+  Future<bool> _requestPermissions() async {
     // Android 13+
     final androidImpl =
         _plugin

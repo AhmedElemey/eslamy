@@ -65,4 +65,50 @@ void main() {
     expect(showCall.arguments['title'], 'Test');
     expect(showCall.arguments['body'], 'Body');
   });
+
+  test(
+    'requestPermissions() coalesces concurrent calls instead of racing the '
+    'native plugin (which throws permissionRequestInProgress for overlapping '
+    'requests)',
+    () async {
+      var permissionCallCount = 0;
+      var requestInProgress = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(pluginChannel, (call) async {
+            calls.add(call);
+            switch (call.method) {
+              case 'initialize':
+                return true;
+              case 'createNotificationChannel':
+              case 'deleteNotificationChannel':
+                return null;
+              case 'requestNotificationsPermission':
+                permissionCallCount++;
+                if (requestInProgress) {
+                  throw PlatformException(
+                    code: 'permissionRequestInProgress',
+                    message: 'Another permission request is already in progress',
+                  );
+                }
+                requestInProgress = true;
+                await Future<void>.delayed(const Duration(milliseconds: 20));
+                requestInProgress = false;
+                return true;
+              case 'canScheduleExactNotifications':
+                return true;
+              default:
+                return null;
+            }
+          });
+
+      await NotificationService().init();
+      final results = await Future.wait([
+        NotificationService().requestPermissions(),
+        NotificationService().requestPermissions(),
+      ]);
+
+      expect(results, [true, true]);
+      expect(permissionCallCount, 1);
+    },
+  );
 }
