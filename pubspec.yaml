@@ -84,6 +84,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.3
+  # Runs sqflite against a real SQLite binary on the host (no platform
+  # channel), so the *_database.dart singletons can be exercised in
+  # `flutter test` without a device/emulator.
+  sqflite_common_ffi: ^2.3.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
