@@ -15,21 +15,33 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
   static const _dailyChannelId = 'daily_werd_v2';
-  static const _adhanChannelId = 'adhan_calls_v2';
+  static const _adhanChannelId = 'adhan_calls_v3';
   String _dailyChannelName = 'Daily Wird';
   String _dailyChannelDescription = 'Daily reminder for your Wird';
   String _adhanChannelName = 'Adhan';
   String _adhanChannelDescription = 'Call-to-prayer alert at each prayer time';
 
-  // The full adhan recording (assets/audio/adhan_alafasy.mp3, played in-app
-  // via just_audio — see settings_page.dart's preview button) is a Flutter
-  // asset, which OS notification sounds can't reference directly: Android
-  // and iOS both need a short native-resource clip instead (android/app/src
-  // /main/res/raw/adhan_call.wav, ios/Runner/adhan_call.caf, an 18s trim of
-  // the opening takbir with a fade-out — regenerate both from the source
-  // mp3 if a different excerpt is wanted). Channel id carries a _v2 suffix
-  // because Android locks a channel's sound at creation time; bump it again
-  // if the sound file ever changes, or existing installs won't hear it.
+  // Android plays the *full* adhan recording (android/app/src/main/res/raw/
+  // adhan_full.mp3 — a native-resource copy of assets/audio/adhan_alafasy.mp3,
+  // which is also played in-app via just_audio for the Settings preview
+  // button), like a dedicated athan app (e.g. Nusuk) rather than a short
+  // notification blip. The channel is also given AudioAttributesUsage.alarm
+  // (see below) so it plays through the device's Alarm volume/DND exemption
+  // instead of the Notification stream — otherwise a multi-minute sound on a
+  // channel with normal notification audio attributes would be cut short the
+  // moment the user's ringer is silenced.
+  //
+  // iOS has no equivalent: Apple silently ignores/truncates any notification
+  // sound file over ~30 seconds, so a full multi-minute adhan cannot play via
+  // UNNotificationSound at all — only a real foreground audio session (or a
+  // Critical Alert, which carries the same length ceiling) can play audio
+  // that long, and neither fires unattended at a scheduled background time
+  // the way a plain local notification does. iOS keeps the existing 18s trim
+  // (ios/Runner/adhan_call.caf) until/unless that bigger redesign happens.
+  //
+  // Channel id carries a version suffix because Android locks a channel's
+  // sound *and* audio attributes at creation time; bump it again if either
+  // ever changes, or existing installs keep the old channel's behavior.
   static const _adhanPrayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _adhanBaseId = 3000;
 
@@ -83,12 +95,15 @@ class NotificationService {
           description: _adhanChannelDescription,
           importance: Importance.max,
           playSound: true,
-          sound: const RawResourceAndroidNotificationSound('adhan_call'),
+          sound: const RawResourceAndroidNotificationSound('adhan_full'),
+          audioAttributesUsage: AudioAttributesUsage.alarm,
         ),
       );
-      // Drop the pre-_v2 channel so it doesn't linger as a dead entry in
-      // system settings for installs upgrading from the default-sound version.
+      // Drop every earlier channel id so none linger as dead entries in
+      // system settings for installs upgrading from an older sound/audio
+      // attributes version.
       await androidImpl.deleteNotificationChannel('adhan_calls');
+      await androidImpl.deleteNotificationChannel('adhan_calls_v2');
     }
     _initialized = true;
   }
@@ -275,6 +290,11 @@ class NotificationService {
       channelDescription: _adhanChannelDescription,
       importance: Importance.max,
       priority: Priority.max,
+      // Only takes effect on Android <8 (no notification channels, so sound
+      // isn't locked at channel-creation time there) — kept in sync with the
+      // channel's own sound/audioAttributesUsage above for those devices.
+      sound: const RawResourceAndroidNotificationSound('adhan_full'),
+      audioAttributesUsage: AudioAttributesUsage.alarm,
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,

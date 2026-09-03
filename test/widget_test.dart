@@ -26,7 +26,7 @@ void main() {
 
     expect(find.text('Something specific broke'), findsOneWidget);
     expect(find.text('network unreachable'), findsOneWidget);
-    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
   });
 
   testWidgets('ErrorPage falls back to a generic message when none is given', (
