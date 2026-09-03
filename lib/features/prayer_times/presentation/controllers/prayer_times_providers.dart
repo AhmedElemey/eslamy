@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/prayer_times.dart';
 import '../../service/location_service.dart';
@@ -151,8 +153,20 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
         tomorrow: asMap(tomorrow),
         l10n: await loadStoredLocalizations(),
       );
-    } catch (_) {
-      // Adhan scheduling is a side effect — never block or fail the main flow.
+    } catch (e, st) {
+      // Adhan scheduling is a side effect — never block or fail the main
+      // flow. Still surface it (Crashlytics is release-only, gated in
+      // main.dart) — this used to be a bare silent catch, which made a
+      // release-only scheduling failure completely undiagnosable.
+      debugPrint('Adhan scheduling failed: $e\n$st');
+      unawaited(
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          st,
+          reason: 'Adhan scheduling failed',
+          fatal: false,
+        ),
+      );
     }
   }
 }

@@ -85,10 +85,15 @@ class _AdhanRescheduleFlutterApi extends WorkmanagerFlutterApi {
         tomorrow: asMap(tomorrow),
         l10n: await loadStoredLocalizations(),
       );
-    } catch (_) {
+    } catch (e, st) {
       // Best-effort background refresh — leave whatever was already
       // scheduled untouched on failure rather than surfacing an error
-      // with no UI to show it in.
+      // with no UI to show it in. Still log it: this isolate never calls
+      // Firebase.initializeApp() (unlike the main isolate or
+      // _firebaseMessagingBackgroundHandler above), so Crashlytics isn't
+      // available here — debugPrint is still visible via `adb logcat` on a
+      // release build, which a bare silent catch was not.
+      debugPrint('Adhan reschedule task failed: $e\n$st');
     }
     return true;
   }

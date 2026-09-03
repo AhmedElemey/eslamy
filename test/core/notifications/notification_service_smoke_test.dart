@@ -59,6 +59,33 @@ void main() {
     expect(channelCalls.length, 2);
   });
 
+  test(
+    'init() creates the Adhan channel with the full adhan recording as its '
+    'sound and alarm-style audio attributes, so it plays in full and is not '
+    'silenced by the notification volume/DND the way a short notification '
+    'blip would be',
+    () async {
+      await NotificationService().init();
+
+      final adhanChannelCall = calls.firstWhere(
+        (c) =>
+            c.method == 'createNotificationChannel' &&
+            (c.arguments as Map)['id'] == 'adhan_calls_v3',
+      );
+      final args = adhanChannelCall.arguments as Map;
+      expect(args['sound'], 'adhan_full');
+      expect(args['soundSource'], 0); // AndroidNotificationSoundSource.rawResource
+      expect(args['audioAttributesUsage'], 4); // AudioAttributesUsage.alarm
+
+      final deletedChannelIds =
+          calls
+              .where((c) => c.method == 'deleteNotificationChannel')
+              .map((c) => c.arguments)
+              .toList();
+      expect(deletedChannelIds, containsAll(['adhan_calls', 'adhan_calls_v2']));
+    },
+  );
+
   test('showNow() fires a show call without throwing', () async {
     await NotificationService().showNow(title: 'Test', body: 'Body');
     final showCall = calls.firstWhere((c) => c.method == 'show');
