@@ -150,15 +150,27 @@ class _MushafViewState extends State<MushafView> {
                 shape: BoxShape.circle,
                 border: Border.all(color: gold, width: 1.1),
               ),
-              child: Text(
-                toArabicIndicDigits(verse.numberInSurah),
-                // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
-                // reversed by the bidi algorithm inside this RTL paragraph.
-                textDirection: TextDirection.ltr,
-                style: TextStyle(
-                  fontSize: markerSize * 0.42,
-                  fontWeight: FontWeight.w700,
-                  color: gold,
+              // Arabic-Indic digit glyphs can be wider than the Western
+              // digits this badge size was tuned for, so a 2-3 digit ayah
+              // number can overflow the circle (and bleed into a
+              // neighboring marker on the same line) without this — shrink
+              // to fit instead of overflowing.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text(
+                    toArabicIndicDigits(verse.numberInSurah),
+                    // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
+                    // reversed by the bidi algorithm inside this RTL
+                    // paragraph.
+                    textDirection: TextDirection.ltr,
+                    style: TextStyle(
+                      fontSize: markerSize * 0.42,
+                      fontWeight: FontWeight.w700,
+                      color: gold,
+                    ),
+                  ),
                 ),
               ),
             ),
