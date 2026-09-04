@@ -48,13 +48,14 @@ _ServiceWithAdapter _serviceWith(List<ResponseBody Function()> responses) {
   );
 }
 
-ResponseBody _jsonResponse(Map<String, dynamic> body) => ResponseBody.fromString(
-  jsonEncode(body),
-  200,
-  headers: {
-    Headers.contentTypeHeader: ['application/json'],
-  },
-);
+ResponseBody _jsonResponse(Map<String, dynamic> body) =>
+    ResponseBody.fromString(
+      jsonEncode(body),
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
 
 Map<String, dynamic> _timingsPayload({
   Map<String, String>? timings,
@@ -121,10 +122,14 @@ void main() {
 
         expect(result.date, date);
         expect(result.prayers, hasLength(6));
-        expect(
-          result.prayers.map((p) => p.name),
-          ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'],
-        );
+        expect(result.prayers.map((p) => p.name), [
+          'Fajr',
+          'Sunrise',
+          'Dhuhr',
+          'Asr',
+          'Maghrib',
+          'Isha',
+        ]);
         expect(result.prayers[0].time, DateTime(2026, 9, 3, 4, 32));
         expect(result.prayers[1].time, DateTime(2026, 9, 3, 5, 58));
         expect(result.prayers[2].time, DateTime(2026, 9, 3, 11, 52));
@@ -138,43 +143,47 @@ void main() {
       },
     );
 
-    test('parses hijri day/year given as JSON numbers, not just strings', () async {
-      final harness = _serviceWith([
-        () => _jsonResponse(
-          _timingsPayload(hijriDay: 17, hijriYear: 1447),
-        ),
-      ]);
+    test(
+      'parses hijri day/year given as JSON numbers, not just strings',
+      () async {
+        final harness = _serviceWith([
+          () => _jsonResponse(_timingsPayload(hijriDay: 17, hijriYear: 1447)),
+        ]);
 
-      final result = await harness.service.fetchTimings(
-        latitude: 30.0444,
-        longitude: 31.2357,
-        date: DateTime(2026, 9, 3),
-      );
+        final result = await harness.service.fetchTimings(
+          latitude: 30.0444,
+          longitude: 31.2357,
+          date: DateTime(2026, 9, 3),
+        );
 
-      expect(result.hijriDay, 17);
-      expect(result.hijriYear, 1447);
-    });
+        expect(result.hijriDay, 17);
+        expect(result.hijriYear, 1447);
+      },
+    );
   });
 
   group('PrayerTimesService.fetchQiblaDirection', () {
-    test('hits /v1/qibla/<lat>/<lng> and parses an integer-valued direction', () async {
-      final harness = _serviceWith([
-        () => _jsonResponse({
-          'data': {'direction': 135},
-        }),
-      ]);
+    test(
+      'hits /v1/qibla/<lat>/<lng> and parses an integer-valued direction',
+      () async {
+        final harness = _serviceWith([
+          () => _jsonResponse({
+            'data': {'direction': 135},
+          }),
+        ]);
 
-      final direction = await harness.service.fetchQiblaDirection(
-        latitude: 30.0444,
-        longitude: 31.2357,
-      );
+        final direction = await harness.service.fetchQiblaDirection(
+          latitude: 30.0444,
+          longitude: 31.2357,
+        );
 
-      expect(direction, 135.0);
-      expect(direction, isA<double>());
+        expect(direction, 135.0);
+        expect(direction, isA<double>());
 
-      final uri = harness.adapter.capturedRequests.single.uri;
-      expect(uri.path, '/v1/qibla/30.0444/31.2357');
-    });
+        final uri = harness.adapter.capturedRequests.single.uri;
+        expect(uri.path, '/v1/qibla/30.0444/31.2357');
+      },
+    );
 
     test('parses a fractional direction', () async {
       final harness = _serviceWith([

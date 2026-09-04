@@ -49,13 +49,14 @@ _ServiceWithAdapter _serviceWith(List<ResponseBody Function()> responses) {
   );
 }
 
-ResponseBody _jsonResponse(Map<String, dynamic> body) => ResponseBody.fromString(
-  jsonEncode(body),
-  200,
-  headers: {
-    Headers.contentTypeHeader: ['application/json'],
-  },
-);
+ResponseBody _jsonResponse(Map<String, dynamic> body) =>
+    ResponseBody.fromString(
+      jsonEncode(body),
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
 
 String _dmy(DateTime d) =>
     '${d.day.toString().padLeft(2, '0')}-${d.month.toString().padLeft(2, '0')}-${d.year}';
@@ -141,10 +142,11 @@ void main() {
         );
 
         expect(result, hasLength(3));
-        expect(
-          result.map((d) => d.gregorian),
-          [DateTime(2026, 9, 1), DateTime(2026, 9, 2), DateTime(2026, 9, 3)],
-        );
+        expect(result.map((d) => d.gregorian), [
+          DateTime(2026, 9, 1),
+          DateTime(2026, 9, 2),
+          DateTime(2026, 9, 3),
+        ]);
         expect(result.map((d) => d.hijriDay), [19, 20, 21]);
         expect(result.every((d) => d.hijriMonth == 2), isTrue);
         expect(result.every((d) => d.hijriMonthName == 'Safar'), isTrue);

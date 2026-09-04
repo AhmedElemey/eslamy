@@ -44,47 +44,49 @@ void main() {
         .setMockMethodCallHandler(timezoneChannel, null);
   });
 
-  test('init() sends the @mipmap/ic_launcher small icon to the platform side', () async {
-    await NotificationService().init();
-
-    final initializeCall = calls.firstWhere((c) => c.method == 'initialize');
-    expect(
-      (initializeCall.arguments as Map)['defaultIcon'],
-      '@mipmap/ic_launcher',
-    );
-
-    final channelCalls = calls
-        .where((c) => c.method == 'createNotificationChannel')
-        .toList();
-    expect(channelCalls.length, 2);
-  });
-
   test(
-    'init() creates the Adhan channel with the full adhan recording as its '
-    'sound and alarm-style audio attributes, so it plays in full and is not '
-    'silenced by the notification volume/DND the way a short notification '
-    'blip would be',
+    'init() sends the @mipmap/ic_launcher small icon to the platform side',
     () async {
       await NotificationService().init();
 
-      final adhanChannelCall = calls.firstWhere(
-        (c) =>
-            c.method == 'createNotificationChannel' &&
-            (c.arguments as Map)['id'] == 'adhan_calls_v3',
+      final initializeCall = calls.firstWhere((c) => c.method == 'initialize');
+      expect(
+        (initializeCall.arguments as Map)['defaultIcon'],
+        '@mipmap/ic_launcher',
       );
-      final args = adhanChannelCall.arguments as Map;
-      expect(args['sound'], 'adhan_full');
-      expect(args['soundSource'], 0); // AndroidNotificationSoundSource.rawResource
-      expect(args['audioAttributesUsage'], 4); // AudioAttributesUsage.alarm
 
-      final deletedChannelIds =
-          calls
-              .where((c) => c.method == 'deleteNotificationChannel')
-              .map((c) => c.arguments)
-              .toList();
-      expect(deletedChannelIds, containsAll(['adhan_calls', 'adhan_calls_v2']));
+      final channelCalls =
+          calls.where((c) => c.method == 'createNotificationChannel').toList();
+      expect(channelCalls.length, 2);
     },
   );
+
+  test('init() creates the Adhan channel with the full adhan recording as its '
+      'sound and alarm-style audio attributes, so it plays in full and is not '
+      'silenced by the notification volume/DND the way a short notification '
+      'blip would be', () async {
+    await NotificationService().init();
+
+    final adhanChannelCall = calls.firstWhere(
+      (c) =>
+          c.method == 'createNotificationChannel' &&
+          (c.arguments as Map)['id'] == 'adhan_calls_v3',
+    );
+    final args = adhanChannelCall.arguments as Map;
+    expect(args['sound'], 'adhan_full');
+    expect(
+      args['soundSource'],
+      0,
+    ); // AndroidNotificationSoundSource.rawResource
+    expect(args['audioAttributesUsage'], 4); // AudioAttributesUsage.alarm
+
+    final deletedChannelIds =
+        calls
+            .where((c) => c.method == 'deleteNotificationChannel')
+            .map((c) => c.arguments)
+            .toList();
+    expect(deletedChannelIds, containsAll(['adhan_calls', 'adhan_calls_v2']));
+  });
 
   test('showNow() fires a show call without throwing', () async {
     await NotificationService().showNow(title: 'Test', body: 'Body');
@@ -93,49 +95,46 @@ void main() {
     expect(showCall.arguments['body'], 'Body');
   });
 
-  test(
-    'requestPermissions() coalesces concurrent calls instead of racing the '
-    'native plugin (which throws permissionRequestInProgress for overlapping '
-    'requests)',
-    () async {
-      var permissionCallCount = 0;
-      var requestInProgress = false;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(pluginChannel, (call) async {
-            calls.add(call);
-            switch (call.method) {
-              case 'initialize':
-                return true;
-              case 'createNotificationChannel':
-              case 'deleteNotificationChannel':
-                return null;
-              case 'requestNotificationsPermission':
-                permissionCallCount++;
-                if (requestInProgress) {
-                  throw PlatformException(
-                    code: 'permissionRequestInProgress',
-                    message: 'Another permission request is already in progress',
-                  );
-                }
-                requestInProgress = true;
-                await Future<void>.delayed(const Duration(milliseconds: 20));
-                requestInProgress = false;
-                return true;
-              case 'canScheduleExactNotifications':
-                return true;
-              default:
-                return null;
-            }
-          });
+  test('requestPermissions() coalesces concurrent calls instead of racing the '
+      'native plugin (which throws permissionRequestInProgress for overlapping '
+      'requests)', () async {
+    var permissionCallCount = 0;
+    var requestInProgress = false;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pluginChannel, (call) async {
+          calls.add(call);
+          switch (call.method) {
+            case 'initialize':
+              return true;
+            case 'createNotificationChannel':
+            case 'deleteNotificationChannel':
+              return null;
+            case 'requestNotificationsPermission':
+              permissionCallCount++;
+              if (requestInProgress) {
+                throw PlatformException(
+                  code: 'permissionRequestInProgress',
+                  message: 'Another permission request is already in progress',
+                );
+              }
+              requestInProgress = true;
+              await Future<void>.delayed(const Duration(milliseconds: 20));
+              requestInProgress = false;
+              return true;
+            case 'canScheduleExactNotifications':
+              return true;
+            default:
+              return null;
+          }
+        });
 
-      await NotificationService().init();
-      final results = await Future.wait([
-        NotificationService().requestPermissions(),
-        NotificationService().requestPermissions(),
-      ]);
+    await NotificationService().init();
+    final results = await Future.wait([
+      NotificationService().requestPermissions(),
+      NotificationService().requestPermissions(),
+    ]);
 
-      expect(results, [true, true]);
-      expect(permissionCallCount, 1);
-    },
-  );
+    expect(results, [true, true]);
+    expect(permissionCallCount, 1);
+  });
 }

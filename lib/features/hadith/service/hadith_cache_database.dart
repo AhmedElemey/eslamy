@@ -96,7 +96,8 @@ class HadithCacheDatabase {
         .map(
           (m) => HadithItem(
             id: m['id'] as int,
-            title: '$bookName #${formatHadithNumber(m['hadith_number'] as num?)}',
+            title:
+                '$bookName #${formatHadithNumber(m['hadith_number'] as num?)}',
             narrator: m['narrator'] as String?,
             body: m['body'] as String?,
             book: bookSlug,

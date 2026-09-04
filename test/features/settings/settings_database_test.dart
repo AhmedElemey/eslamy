@@ -80,10 +80,7 @@ void main() {
   group('getWerdTime/setWerdTime', () {
     test('delegates to the werd_time key', () async {
       await db.setWerdTime(const TimeOfDay(hour: 3, minute: 45));
-      expect(
-        await db.getWerdTime(),
-        const TimeOfDay(hour: 3, minute: 45),
-      );
+      expect(await db.getWerdTime(), const TimeOfDay(hour: 3, minute: 45));
       expect(await db.getValue('werd_time'), '03:45');
     });
   });

@@ -78,14 +78,17 @@ void main() {
       expect(await service.load(), isNull);
     });
 
-    test('load returns null when the stored JSON is missing a required field', () async {
-      SharedPreferences.setMockInitialValues({
-        'last_read_position': jsonEncode({'chapterNumber': 2}),
-      });
-      service = LastReadPositionService();
+    test(
+      'load returns null when the stored JSON is missing a required field',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'last_read_position': jsonEncode({'chapterNumber': 2}),
+        });
+        service = LastReadPositionService();
 
-      expect(await service.load(), isNull);
-    });
+        expect(await service.load(), isNull);
+      },
+    );
   });
 
   group('LastReadPosition JSON', () {
@@ -179,23 +182,29 @@ void main() {
       expect(loaded.chapterNumber, 2);
     });
 
-    test('loadCached returns null when the stored value is corrupt JSON', () async {
-      SharedPreferences.setMockInitialValues({
-        'ayah_of_the_day': 'not valid json',
-      });
-      service = AyahOfTheDayService();
+    test(
+      'loadCached returns null when the stored value is corrupt JSON',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'ayah_of_the_day': 'not valid json',
+        });
+        service = AyahOfTheDayService();
 
-      expect(await service.loadCached(), isNull);
-    });
+        expect(await service.loadCached(), isNull);
+      },
+    );
 
-    test('loadCached returns null when the stored JSON is missing a required field', () async {
-      SharedPreferences.setMockInitialValues({
-        'ayah_of_the_day': jsonEncode({'chapterNumber': 1}),
-      });
-      service = AyahOfTheDayService();
+    test(
+      'loadCached returns null when the stored JSON is missing a required field',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'ayah_of_the_day': jsonEncode({'chapterNumber': 1}),
+        });
+        service = AyahOfTheDayService();
 
-      expect(await service.loadCached(), isNull);
-    });
+        expect(await service.loadCached(), isNull);
+      },
+    );
   });
 
   group('AyahOfTheDay JSON', () {

@@ -109,7 +109,11 @@ void main() {
       expect(await db.countForBook(cacheKey), 2);
 
       final replacement = [
-        const HadithItem(id: 5001, body: 'Only one hadith now.', hadithNumber: 1),
+        const HadithItem(
+          id: 5001,
+          body: 'Only one hadith now.',
+          hadithNumber: 1,
+        ),
       ];
       await db.cacheBook(cacheKey, replacement);
 
@@ -127,22 +131,14 @@ void main() {
     test('do not collide', () async {
       await db.cacheBook(cacheKey, sampleItems());
       await db.cacheBook('ara-bukhari', [
-        const HadithItem(
-          id: 9001,
-          body: 'Arabic text here',
-          hadithNumber: 1,
-        ),
+        const HadithItem(id: 9001, body: 'Arabic text here', hadithNumber: 1),
       ]);
 
       expect(await db.countForBook(cacheKey), 2);
       expect(await db.countForBook('ara-bukhari'), 1);
 
       final english = await db.getBookHadiths(cacheKey, bookSlug, bookName);
-      final arabic = await db.getBookHadiths(
-        'ara-bukhari',
-        bookSlug,
-        bookName,
-      );
+      final arabic = await db.getBookHadiths('ara-bukhari', bookSlug, bookName);
       expect(english, hasLength(2));
       expect(arabic, hasLength(1));
       expect(arabic.single.id, 9001);

@@ -125,18 +125,10 @@ void main() {
 
     test('getAllFavorites orders newest saved_at first', () async {
       await db.insertFavorite(
-        _hadithFavorite(
-          id: 'old',
-          hadithId: 1,
-          savedAt: DateTime(2020, 1, 1),
-        ),
+        _hadithFavorite(id: 'old', hadithId: 1, savedAt: DateTime(2020, 1, 1)),
       );
       await db.insertFavorite(
-        _hadithFavorite(
-          id: 'new',
-          hadithId: 2,
-          savedAt: DateTime(2026, 1, 1),
-        ),
+        _hadithFavorite(id: 'new', hadithId: 2, savedAt: DateTime(2026, 1, 1)),
       );
 
       final all = await db.getAllFavorites();

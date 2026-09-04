@@ -83,26 +83,29 @@ void main() {
       expect(loaded.single.target, 50);
     });
 
-    test('addCustomPreset appends to, rather than overwrites, existing presets', () async {
-      const first = DhikrPreset(
-        id: 'custom-1',
-        arabic: 'أ',
-        englishName: 'First',
-        target: 10,
-      );
-      const second = DhikrPreset(
-        id: 'custom-2',
-        arabic: 'ب',
-        englishName: 'Second',
-        target: 20,
-      );
+    test(
+      'addCustomPreset appends to, rather than overwrites, existing presets',
+      () async {
+        const first = DhikrPreset(
+          id: 'custom-1',
+          arabic: 'أ',
+          englishName: 'First',
+          target: 10,
+        );
+        const second = DhikrPreset(
+          id: 'custom-2',
+          arabic: 'ب',
+          englishName: 'Second',
+          target: 20,
+        );
 
-      await service.addCustomPreset(first);
-      await service.addCustomPreset(second);
+        await service.addCustomPreset(first);
+        await service.addCustomPreset(second);
 
-      final loaded = await service.getCustomPresets();
-      expect(loaded, hasLength(2));
-      expect(loaded.map((p) => p.id), ['custom-1', 'custom-2']);
-    });
+        final loaded = await service.getCustomPresets();
+        expect(loaded, hasLength(2));
+        expect(loaded.map((p) => p.id), ['custom-1', 'custom-2']);
+      },
+    );
   });
 }

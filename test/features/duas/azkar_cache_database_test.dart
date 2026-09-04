@@ -79,10 +79,7 @@ void main() {
       final categories = await db.getCategories();
 
       expect(categories, hasLength(2));
-      expect(categories.map((c) => c.name), [
-        'Evening Azkar',
-        'Morning Azkar',
-      ]);
+      expect(categories.map((c) => c.name), ['Evening Azkar', 'Morning Azkar']);
       expect(categories[0].id, 'evening');
       expect(categories[0].description, 'Duas to say in the evening');
       expect(categories[1].id, 'morning');

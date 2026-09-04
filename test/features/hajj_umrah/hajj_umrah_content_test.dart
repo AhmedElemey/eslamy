@@ -10,25 +10,22 @@ void main() {
       expect(ids.toSet(), hasLength(ids.length));
     });
 
-    test(
-      'every dua has non-empty Arabic text and translation, unless it is a '
-      '"no specific dua mandated" placeholder (empty arabic/translation but '
-      'a note explaining why, e.g. farewell_tawaf)',
-      () {
-        for (final dua in hajjUmrahDuas) {
-          if (dua.arabic.isEmpty) {
-            expect(
-              dua.note,
-              isNotEmpty,
-              reason:
-                  'dua ${dua.id} has no Arabic text and no note explaining why',
-            );
-            continue;
-          }
-          expect(dua.translation, isNotEmpty, reason: 'dua ${dua.id}');
+    test('every dua has non-empty Arabic text and translation, unless it is a '
+        '"no specific dua mandated" placeholder (empty arabic/translation but '
+        'a note explaining why, e.g. farewell_tawaf)', () {
+      for (final dua in hajjUmrahDuas) {
+        if (dua.arabic.isEmpty) {
+          expect(
+            dua.note,
+            isNotEmpty,
+            reason:
+                'dua ${dua.id} has no Arabic text and no note explaining why',
+          );
+          continue;
         }
-      },
-    );
+        expect(dua.translation, isNotEmpty, reason: 'dua ${dua.id}');
+      }
+    });
   });
 
   group('hajjPhases and umrahPhases', () {
@@ -43,10 +40,11 @@ void main() {
       '(RitualProgressService persists completed step ids in one flat set, '
       'so a collision between two phases would mark the wrong step complete)',
       () {
-        final allSteps = [
-          ...hajjPhases,
-          ...umrahPhases,
-        ].expand((p) => p.steps).map((s) => s.id).toList();
+        final allSteps =
+            [
+              ...hajjPhases,
+              ...umrahPhases,
+            ].expand((p) => p.steps).map((s) => s.id).toList();
         expect(allSteps, isNotEmpty);
         expect(allSteps.toSet(), hasLength(allSteps.length));
       },
@@ -109,10 +107,8 @@ void main() {
     });
 
     test('relatedPhaseId, when set, references a real phase', () {
-      final knownPhaseIds = [
-        ...hajjPhases,
-        ...umrahPhases,
-      ].map((p) => p.id).toSet();
+      final knownPhaseIds =
+          [...hajjPhases, ...umrahPhases].map((p) => p.id).toSet();
       for (final site in holySites) {
         final relatedId = site.relatedPhaseId;
         if (relatedId == null) continue;

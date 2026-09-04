@@ -12,9 +12,12 @@ void main() {
       service = RitualProgressService();
     });
 
-    test('loadCompletedSteps returns an empty set when nothing is stored', () async {
-      expect(await service.loadCompletedSteps(), isEmpty);
-    });
+    test(
+      'loadCompletedSteps returns an empty set when nothing is stored',
+      () async {
+        expect(await service.loadCompletedSteps(), isEmpty);
+      },
+    );
 
     test('saveCompletedSteps then loadCompletedSteps round-trips', () async {
       await service.saveCompletedSteps({'ihram', 'tawaf', 'sai'});

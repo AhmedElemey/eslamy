@@ -29,9 +29,12 @@ void main() {
       await resetReciterState();
     });
 
-    test('loadSelectedReciter returns null when nothing has been saved', () async {
-      expect(await ReciterPreferencesService.loadSelectedReciter(), isNull);
-    });
+    test(
+      'loadSelectedReciter returns null when nothing has been saved',
+      () async {
+        expect(await ReciterPreferencesService.loadSelectedReciter(), isNull);
+      },
+    );
 
     test('saveSelectedReciter then loadSelectedReciter round-trips', () async {
       await ReciterPreferencesService.saveSelectedReciter(_testReciter);
@@ -51,13 +54,16 @@ void main() {
       expect(await ReciterPreferencesService.loadSelectedReciter(), isNull);
     });
 
-    test('saveSelectedReciter also mirrors into MemoryPreferencesService', () async {
-      await ReciterPreferencesService.saveSelectedReciter(_testReciter);
+    test(
+      'saveSelectedReciter also mirrors into MemoryPreferencesService',
+      () async {
+        await ReciterPreferencesService.saveSelectedReciter(_testReciter);
 
-      final memoryReciter = MemoryPreferencesService.loadSelectedReciter();
-      expect(memoryReciter, isNotNull);
-      expect(memoryReciter!.id, _testReciter.id);
-    });
+        final memoryReciter = MemoryPreferencesService.loadSelectedReciter();
+        expect(memoryReciter, isNotNull);
+        expect(memoryReciter!.id, _testReciter.id);
+      },
+    );
 
     test('clearSelectedReciter also clears MemoryPreferencesService', () async {
       await ReciterPreferencesService.saveSelectedReciter(_testReciter);

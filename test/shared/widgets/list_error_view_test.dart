@@ -11,7 +11,10 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: ListErrorView(message: 'Could not load the list', onRetry: onRetry),
+          body: ListErrorView(
+            message: 'Could not load the list',
+            onRetry: onRetry,
+          ),
         ),
       ),
     );

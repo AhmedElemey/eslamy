@@ -89,7 +89,9 @@ class _AdhanRescheduleFlutterApi extends WorkmanagerFlutterApi {
           date: DateTime.now().add(const Duration(days: 1)),
         );
       } catch (e, st) {
-        debugPrint('Adhan reschedule: failed to fetch tomorrow\'s timings: $e\n$st');
+        debugPrint(
+          'Adhan reschedule: failed to fetch tomorrow\'s timings: $e\n$st',
+        );
       }
       await NotificationService().scheduleAdhan(
         today: asMap(today),

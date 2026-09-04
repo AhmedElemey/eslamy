@@ -6,7 +6,11 @@ import '../../core/theme/app_colors.dart';
 /// button that re-runs [onRetry] (typically `ref.invalidate(someProvider)`).
 /// Used wherever a list-backed page/section surfaces an [AsyncValue.error].
 class ListErrorView extends StatelessWidget {
-  const ListErrorView({super.key, required this.message, required this.onRetry});
+  const ListErrorView({
+    super.key,
+    required this.message,
+    required this.onRetry,
+  });
 
   final String message;
   final VoidCallback onRetry;
