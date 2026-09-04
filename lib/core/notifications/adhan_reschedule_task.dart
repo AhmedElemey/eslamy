@@ -9,6 +9,7 @@ import '../../features/prayer_times/models/prayer_times.dart';
 import '../../features/prayer_times/service/location_service.dart';
 import '../../features/prayer_times/service/prayer_times_service.dart';
 import '../../features/settings/service/settings_database.dart';
+import '../network/dio_provider.dart';
 import '../network/request_controller.dart';
 import '../../features/settings/presentation/controllers/language_providers.dart';
 import 'notification_service.dart';
@@ -59,30 +60,40 @@ class _AdhanRescheduleFlutterApi extends WorkmanagerFlutterApi {
       if (cached == null) return true;
       final (lat, lng) = cached;
 
-      final service = PrayerTimesService(
-        requests: RequestController(
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 30),
-            ),
-          ),
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
         ),
       );
+      // This isolate builds its own Dio directly rather than going through
+      // dioProvider, so it must add the same rate-limit retry itself —
+      // aladhan.com is a shared, keyless free API that 429s under real
+      // multi-user load, and without a retry a single 429 here used to
+      // abort this periodic reschedule with nothing rescheduled at all.
+      dio.interceptors.add(RateLimitInterceptor(dio));
+      final service = PrayerTimesService(requests: RequestController(dio));
       final today = await service.fetchTimings(latitude: lat, longitude: lng);
-      final tomorrow = await service.fetchTimings(
-        latitude: lat,
-        longitude: lng,
-        date: DateTime.now().add(const Duration(days: 1)),
-      );
 
       Map<String, DateTime> asMap(DailyPrayerTimes d) => {
         for (final p in d.prayers)
           if (p.name != 'Sunrise') p.name: p.time,
       };
+      // Fetched separately so a failed/rate-limited fetch for tomorrow
+      // doesn't also throw away today's already-fetched alerts.
+      DailyPrayerTimes? tomorrow;
+      try {
+        tomorrow = await service.fetchTimings(
+          latitude: lat,
+          longitude: lng,
+          date: DateTime.now().add(const Duration(days: 1)),
+        );
+      } catch (e, st) {
+        debugPrint('Adhan reschedule: failed to fetch tomorrow\'s timings: $e\n$st');
+      }
       await NotificationService().scheduleAdhan(
         today: asMap(today),
-        tomorrow: asMap(tomorrow),
+        tomorrow: tomorrow == null ? {} : asMap(tomorrow),
         l10n: await loadStoredLocalizations(),
       );
     } catch (e, st) {
