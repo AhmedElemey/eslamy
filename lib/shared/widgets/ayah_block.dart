@@ -41,6 +41,9 @@ class AyahNumberMedallion extends StatelessWidget {
       ),
       child: Text(
         '$number',
+        // Force LTR so multi-digit numbers (e.g. 91, 92) aren't reversed by
+        // the bidi algorithm when this badge sits inside RTL Arabic layout.
+        textDirection: TextDirection.ltr,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,

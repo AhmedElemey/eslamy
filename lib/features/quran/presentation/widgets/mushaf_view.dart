@@ -151,6 +151,9 @@ class _MushafViewState extends State<MushafView> {
               ),
               child: Text(
                 '${verse.numberInSurah}',
+                // Force LTR so multi-digit numbers (e.g. 91, 92) aren't
+                // reversed by the bidi algorithm inside this RTL paragraph.
+                textDirection: TextDirection.ltr,
                 style: TextStyle(
                   fontSize: markerSize * 0.42,
                   fontWeight: FontWeight.w700,
