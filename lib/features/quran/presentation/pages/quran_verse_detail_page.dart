@@ -237,6 +237,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                               backgroundColor: Theme.of(context).primaryColor,
                               child: Text(
                                 '${widget.verseNumber}',
+                                // Force LTR so multi-digit numbers (e.g. 91,
+                                // 92) aren't reversed by the bidi algorithm.
+                                textDirection: TextDirection.ltr,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
