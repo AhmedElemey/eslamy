@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/arabic_numerals.dart';
 import '../../features/quran/presentation/widgets/tajweed_text.dart';
 
 class BasmalaHeader extends StatelessWidget {
@@ -40,8 +41,8 @@ class AyahNumberMedallion extends StatelessWidget {
         border: Border.all(color: AppColors.goldAccent(context), width: 1.2),
       ),
       child: Text(
-        '$number',
-        // Force LTR so multi-digit numbers (e.g. 91, 92) aren't reversed by
+        toArabicIndicDigits(number),
+        // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't reversed by
         // the bidi algorithm when this badge sits inside RTL Arabic layout.
         textDirection: TextDirection.ltr,
         style: TextStyle(
