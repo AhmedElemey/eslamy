@@ -246,10 +246,12 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                                   padding: const EdgeInsets.all(4),
                                   child: Text(
                                     toArabicIndicDigits(widget.verseNumber),
-                                    // Force LTR so multi-digit numbers (e.g.
-                                    // ٩١, ٩٢) aren't reversed by the bidi
-                                    // algorithm.
-                                    textDirection: TextDirection.ltr,
+                                    // Unlike Western digits (bidi type EN),
+                                    // Arabic-Indic digits are bidi type AN
+                                    // and already read in the correct order
+                                    // here — forcing LTR scrambles their
+                                    // digit order instead.
+                                    textDirection: TextDirection.rtl,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
