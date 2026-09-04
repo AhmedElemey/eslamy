@@ -139,18 +139,34 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       // once the OS has recorded a decision, requesting again is a no-op
       // that doesn't re-show any dialog.
       await NotificationService().requestPermissions();
-      final tomorrow = await _service.fetchTimings(
-        latitude: lat,
-        longitude: lng,
-        date: DateTime.now().add(const Duration(days: 1)),
-      );
       Map<String, DateTime> asMap(DailyPrayerTimes d) => {
         for (final p in d.prayers)
           if (p.name != 'Sunrise') p.name: p.time,
       };
+      // Fetched separately from `today` (already known) so a rate-limited
+      // or otherwise failed fetch for tomorrow doesn't also throw away the
+      // Adhan alerts we can already schedule for today.
+      DailyPrayerTimes? tomorrow;
+      try {
+        tomorrow = await _service.fetchTimings(
+          latitude: lat,
+          longitude: lng,
+          date: DateTime.now().add(const Duration(days: 1)),
+        );
+      } catch (e, st) {
+        debugPrint('Adhan: failed to fetch tomorrow\'s timings: $e\n$st');
+        unawaited(
+          FirebaseCrashlytics.instance.recordError(
+            e,
+            st,
+            reason: 'Adhan: failed to fetch tomorrow\'s timings',
+            fatal: false,
+          ),
+        );
+      }
       await NotificationService().scheduleAdhan(
         today: asMap(today),
-        tomorrow: asMap(tomorrow),
+        tomorrow: tomorrow == null ? {} : asMap(tomorrow),
         l10n: await loadStoredLocalizations(),
       );
     } catch (e, st) {
