@@ -134,49 +134,24 @@ class _MushafViewState extends State<MushafView> {
     }
 
     final gold = AppColors.goldAccent(context);
-    final markerSize = widget.bodyFontSize;
+    // Ayah-end marker, rendered as real text rather than an inline widget.
+    // Flutter has a long-standing engine bug (flutter/flutter#54400) where
+    // multiple WidgetSpans on the same RTL line don't get bidi-reordered
+    // relative to each other — two verse-end badges on one line could show
+    // up in the wrong left-right order. Plain text doesn't hit that bug, so
+    // this uses the actual Unicode "ARABIC END OF AYAH" character (U+06DD),
+    // which is a format character designed to enclose the digit sequence
+    // that follows it — the same technique quran.com and other Mushaf apps
+    // use in their Unicode (non-glyph-font) rendering mode.
+    final markerRecognizer =
+        TapGestureRecognizer()
+          ..onTap = () => widget.onVerseTap(verse.numberInSurah, verse.text);
+    _recognizers.add(markerRecognizer);
     spans.add(
-      WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: GestureDetector(
-          onTap: () => widget.onVerseTap(verse.numberInSurah, verse.text),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
-            child: Container(
-              width: markerSize,
-              height: markerSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: gold, width: 1.1),
-              ),
-              // Arabic-Indic digit glyphs can be wider than the Western
-              // digits this badge size was tuned for, so a 2-3 digit ayah
-              // number can overflow the circle (and bleed into a
-              // neighboring marker on the same line) without this — shrink
-              // to fit instead of overflowing.
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Text(
-                    toArabicIndicDigits(verse.numberInSurah),
-                    // Unlike Western digits (bidi type EN), Arabic-Indic
-                    // digits are bidi type AN and already read in the
-                    // correct order inside this RTL paragraph — forcing
-                    // LTR here scrambles their digit order instead.
-                    textDirection: TextDirection.rtl,
-                    style: TextStyle(
-                      fontSize: markerSize * 0.42,
-                      fontWeight: FontWeight.w700,
-                      color: gold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+      TextSpan(
+        text: '۝${toArabicIndicDigits(verse.numberInSurah)}',
+        style: baseStyle.copyWith(color: gold, fontWeight: FontWeight.w700),
+        recognizer: markerRecognizer,
       ),
     );
     spans.add(const TextSpan(text: ' '));
