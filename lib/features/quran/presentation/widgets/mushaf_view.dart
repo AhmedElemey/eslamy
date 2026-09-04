@@ -161,10 +161,11 @@ class _MushafViewState extends State<MushafView> {
                   padding: const EdgeInsets.all(2),
                   child: Text(
                     toArabicIndicDigits(verse.numberInSurah),
-                    // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
-                    // reversed by the bidi algorithm inside this RTL
-                    // paragraph.
-                    textDirection: TextDirection.ltr,
+                    // Unlike Western digits (bidi type EN), Arabic-Indic
+                    // digits are bidi type AN and already read in the
+                    // correct order inside this RTL paragraph — forcing
+                    // LTR here scrambles their digit order instead.
+                    textDirection: TextDirection.rtl,
                     style: TextStyle(
                       fontSize: markerSize * 0.42,
                       fontWeight: FontWeight.w700,

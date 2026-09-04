@@ -49,10 +49,11 @@ class AyahNumberMedallion extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           child: Text(
             toArabicIndicDigits(number),
-            // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
-            // reversed by the bidi algorithm when this badge sits inside
-            // RTL Arabic layout.
-            textDirection: TextDirection.ltr,
+            // Unlike Western digits (bidi type EN), Arabic-Indic digits are
+            // bidi type AN and already read in the correct order inside
+            // this RTL layout — forcing LTR here scrambles their digit
+            // order instead.
+            textDirection: TextDirection.rtl,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
