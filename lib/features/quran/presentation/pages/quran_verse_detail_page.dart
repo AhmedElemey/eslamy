@@ -236,14 +236,25 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                           children: [
                             CircleAvatar(
                               backgroundColor: Theme.of(context).primaryColor,
-                              child: Text(
-                                toArabicIndicDigits(widget.verseNumber),
-                                // Force LTR so multi-digit numbers (e.g. ٩١,
-                                // ٩٢) aren't reversed by the bidi algorithm.
-                                textDirection: TextDirection.ltr,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              // Arabic-Indic digit glyphs can be wider than
+                              // the Western digits this avatar was tuned
+                              // for, so a 2-3 digit ayah number can overflow
+                              // — shrink to fit instead of getting clipped.
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Text(
+                                    toArabicIndicDigits(widget.verseNumber),
+                                    // Force LTR so multi-digit numbers (e.g.
+                                    // ٩١, ٩٢) aren't reversed by the bidi
+                                    // algorithm.
+                                    textDirection: TextDirection.ltr,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),

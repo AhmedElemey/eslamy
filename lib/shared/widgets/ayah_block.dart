@@ -40,15 +40,25 @@ class AyahNumberMedallion extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.goldAccent(context), width: 1.2),
       ),
-      child: Text(
-        toArabicIndicDigits(number),
-        // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't reversed by
-        // the bidi algorithm when this badge sits inside RTL Arabic layout.
-        textDirection: TextDirection.ltr,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: AppColors.goldAccent(context),
+      // Arabic-Indic digit glyphs can be wider than the Western digits this
+      // badge size was tuned for, so a 2-3 digit ayah number can overflow
+      // the circle — shrink to fit instead of overflowing.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: Text(
+            toArabicIndicDigits(number),
+            // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
+            // reversed by the bidi algorithm when this badge sits inside
+            // RTL Arabic layout.
+            textDirection: TextDirection.ltr,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.goldAccent(context),
+            ),
+          ),
         ),
       ),
     );
