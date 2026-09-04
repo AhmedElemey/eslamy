@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/context_l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/arabic_numerals.dart';
 import '../../../../shared/widgets/app_background.dart';
 import '../../models/quran_models.dart';
 import '../../service/quran_audio_handler.dart';
@@ -236,9 +237,9 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             CircleAvatar(
                               backgroundColor: Theme.of(context).primaryColor,
                               child: Text(
-                                '${widget.verseNumber}',
-                                // Force LTR so multi-digit numbers (e.g. 91,
-                                // 92) aren't reversed by the bidi algorithm.
+                                toArabicIndicDigits(widget.verseNumber),
+                                // Force LTR so multi-digit numbers (e.g. ٩١,
+                                // ٩٢) aren't reversed by the bidi algorithm.
                                 textDirection: TextDirection.ltr,
                                 style: const TextStyle(
                                   color: Colors.white,

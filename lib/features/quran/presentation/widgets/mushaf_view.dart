@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/arabic_numerals.dart';
 import '../../data/tajweed_rules.dart';
 import '../../models/quran_models.dart';
 import '../../service/tajweed_text_parser.dart';
@@ -150,8 +151,8 @@ class _MushafViewState extends State<MushafView> {
                 border: Border.all(color: gold, width: 1.1),
               ),
               child: Text(
-                '${verse.numberInSurah}',
-                // Force LTR so multi-digit numbers (e.g. 91, 92) aren't
+                toArabicIndicDigits(verse.numberInSurah),
+                // Force LTR so multi-digit numbers (e.g. ٩١, ٩٢) aren't
                 // reversed by the bidi algorithm inside this RTL paragraph.
                 textDirection: TextDirection.ltr,
                 style: TextStyle(
