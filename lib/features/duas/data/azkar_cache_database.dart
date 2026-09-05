@@ -20,7 +20,12 @@ class AzkarCacheDatabase {
   Future<Database> _initDatabase() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'azkar_cache.db');
-    return await openDatabase(path, version: 1, onCreate: _createTables);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createTables,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future<void> _createTables(Database db, int version) async {
@@ -46,6 +51,27 @@ class AzkarCacheDatabase {
     await db.execute(
       'CREATE INDEX idx_azkar_category ON azkar_items(category_id)',
     );
+    await _createProgressTable(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createProgressTable(db);
+    }
+  }
+
+  /// Per-day repeat-counter progress, keyed by (date, item) — separate from
+  /// the content tables above so a background dataset refresh (`replaceAll`)
+  /// never touches it.
+  Future<void> _createProgressTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS azkar_progress (
+        date TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        done INTEGER NOT NULL,
+        PRIMARY KEY (date, item_id)
+      )
+    ''');
   }
 
   Future<bool> isEmpty() async {
@@ -140,5 +166,29 @@ class AzkarCacheDatabase {
           ),
         )
         .toList();
+  }
+
+  /// [itemId]'s repeat-counter progress on [date] (0 if never started, or if
+  /// [date] doesn't match — i.e. a previous day's progress never carries
+  /// over).
+  Future<int> getProgress(String date, int itemId) async {
+    final db = await database;
+    final rows = await db.query(
+      'azkar_progress',
+      columns: ['done'],
+      where: 'date = ? AND item_id = ?',
+      whereArgs: [date, itemId],
+    );
+    if (rows.isEmpty) return 0;
+    return rows.first['done'] as int? ?? 0;
+  }
+
+  Future<void> setProgress(String date, int itemId, int done) async {
+    final db = await database;
+    await db.insert('azkar_progress', {
+      'date': date,
+      'item_id': itemId,
+      'done': done,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }

@@ -170,4 +170,32 @@ void main() {
       expect(await db.getItemsForCategory('evening'), isEmpty);
     });
   });
+
+  group('azkar repeat-counter progress', () {
+    test('is zero before anything is recorded', () async {
+      expect(await db.getProgress('2024-01-01', firstItem.id), 0);
+    });
+
+    test('setProgress persists and is read back by the same date/item', () async {
+      await db.setProgress('2024-01-01', secondItem.id, 2);
+      expect(await db.getProgress('2024-01-01', secondItem.id), 2);
+    });
+
+    test('does not carry over to a different date', () async {
+      await db.setProgress('2024-01-01', secondItem.id, 3);
+      expect(await db.getProgress('2024-01-02', secondItem.id), 0);
+    });
+
+    test('setProgress overwrites a previous value for the same date/item', () async {
+      await db.setProgress('2024-01-01', thirdItem.id, 1);
+      await db.setProgress('2024-01-01', thirdItem.id, 2);
+      expect(await db.getProgress('2024-01-01', thirdItem.id), 2);
+    });
+
+    test('a content refresh (replaceAll) does not clear recorded progress', () async {
+      await db.setProgress('2024-01-01', firstItem.id, 1);
+      await db.replaceAll(sampleDataset);
+      expect(await db.getProgress('2024-01-01', firstItem.id), 1);
+    });
+  });
 }

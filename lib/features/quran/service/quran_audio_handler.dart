@@ -60,6 +60,14 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   // resolve) aborts instead of racing a concurrent `setUrl`/`play` against
   // the same underlying `AudioPlayer`, which is what was crashing the app.
   int _playToken = 0;
+
+  // Bumped by stop()/pause() so an audio load already in flight when the
+  // user taps Stop/Pause doesn't resume playback once that load finishes —
+  // `_playToken` above only detects a *newer play target* superseding an
+  // older one (skip/next); it says nothing about an explicit stop/pause of
+  // whatever target is currently loading.
+  int _pauseGeneration = 0;
+
   Future<void> _playerLock = Future.value();
 
   Future<void> _runExclusive(Future<void> Function() action) async {
@@ -216,6 +224,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   Future<void> playSurah(int chapterNumber, {Reciter? reciter}) async {
     final clamped = chapterNumber.clamp(kFirstSurahNumber, kLastSurahNumber);
     final token = ++_playToken;
+    final pauseGenAtStart = _pauseGeneration;
     _currentSurah = clamped;
     _rangeAyahs = null;
     _rangeIndex = 0;
@@ -313,6 +322,10 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
         try {
           await _player.setUrl(loopUrl).timeout(_kAudioLoadTimeout);
           if (loopToken != _playToken) continue; // resync to the latest tap
+          // The user stopped/paused while this load was in flight — leave
+          // the track loaded (so a plain "play" resumes it) but don't start
+          // it, otherwise playback resumes right after being stopped.
+          if (pauseGenAtStart != _pauseGeneration) return;
           // `play()`'s Future does not complete until playback pauses or
           // ends (documented just_audio behavior) — awaiting it here would
           // hold this critical section for the rest of the track's runtime,
@@ -362,6 +375,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     final ayahNumber = ayahs[_rangeIndex];
     final rangeIndexAtRequest = _rangeIndex;
     final token = ++_playToken;
+    final pauseGenAtStart = _pauseGeneration;
     final currentReciter = _currentReciter;
 
     // See the matching comment in playSurah: publish immediately so a
@@ -461,10 +475,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
           if (duration != null && loopRangeIndex < _rangeDurations.length) {
             _rangeDurations[loopRangeIndex] = duration;
           }
-          // See the matching comment/fix in playSurah: don't await — its
-          // Future doesn't resolve until playback pauses or ends, which
-          // would hold this lock for the rest of the track and block every
-          // future skip/play request behind it.
+          // See the matching comment/fix in playSurah: don't resume if the
+          // user stopped/paused while this ayah's audio was still loading.
+          if (pauseGenAtStart != _pauseGeneration) return;
+          // Don't await — its Future doesn't resolve until playback pauses
+          // or ends, which would hold this lock for the rest of the track
+          // and block every future skip/play request behind it.
           unawaited(_player.play());
           if (loopToken == _playToken) return; // stable — done
         } catch (e) {
@@ -500,13 +516,20 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    // Bumped before the await below so an audio load already in flight
+    // (see playSurah/_playCurrentRangeAyah) sees it as soon as it checks,
+    // rather than resuming playback right after this pause.
+    _pauseGeneration++;
+    await _player.pause();
+  }
 
   @override
   Future<void> seek(Duration position) => _player.seek(position);
 
   @override
   Future<void> stop() async {
+    _pauseGeneration++;
     await _player.stop();
     _rangeAyahs = null;
     _rangeIndex = 0;

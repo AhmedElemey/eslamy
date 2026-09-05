@@ -109,17 +109,36 @@ class BookHadithsNotifier extends StateNotifier<BookHadithsState> {
   }
 
   List<HadithItem> _filter(List<HadithItem> items, String query) {
-    final q = query.trim().toLowerCase();
+    final q = _normalizeArabic(query.trim().toLowerCase());
     if (q.isEmpty) return items;
     return items.where((h) {
-      final body = h.body?.toLowerCase() ?? '';
-      final narrator = h.narrator?.toLowerCase() ?? '';
+      final body = _normalizeArabic(h.body?.toLowerCase() ?? '');
+      final narrator = _normalizeArabic(h.narrator?.toLowerCase() ?? '');
       return body.contains(q) ||
           narrator.contains(q) ||
           '${h.hadithNumber}' == q ||
           (h.hadithNumber != null && h.hadithNumber!.toInt().toString() == q);
     }).toList();
   }
+}
+
+/// Light Arabic normalization for search: strips tashkeel (diacritics) and
+/// tatweel, and folds common letter-shape variants (alef forms, alef
+/// maksura, ta marbuta, hamza carriers) together. Arabic hadith text is
+/// stored fully diacritized, but people normally type Arabic without
+/// diacritics — a plain substring match against the raw text would almost
+/// never find anything. A no-op on non-Arabic text.
+String _normalizeArabic(String input) {
+  if (input.isEmpty) return input;
+  return input
+      // Tashkeel (fathatan..wavy hamza below) + superscript alef + tatweel.
+      .replaceAll(RegExp('[\u064B-\u065F\u0670\u0640]'), '')
+      // Alef variants (madda, hamza-above, hamza-below, wasla) -> bare alef.
+      .replaceAll(RegExp('[\u0622\u0623\u0625\u0671]'), '\u0627')
+      .replaceAll('\u0649', '\u064A') // alef maksura -> ya
+      .replaceAll('\u0629', '\u0647') // ta marbuta -> ha
+      .replaceAll('\u0624', '\u0648') // waw with hamza -> waw
+      .replaceAll('\u0626', '\u064A'); // ya with hamza -> ya
 }
 
 final bookHadithsProvider = StateNotifierProvider.autoDispose

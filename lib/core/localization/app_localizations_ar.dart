@@ -495,6 +495,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enableButton => 'تفعيل';
 
   @override
+  String get prayerTimesLocationDenied =>
+      'يلزم إذن الموقع لعرض مواقيت صلاة دقيقة وتنبيهات الأذان.';
+
+  @override
+  String get prayerTimesLocationDeniedForever =>
+      'تم إيقاف الموقع لتطبيق إسلامي. فعّله من الإعدادات لعرض مواقيت صلاة دقيقة وتنبيهات الأذان.';
+
+  @override
+  String get prayerTimesLocationServicesOff =>
+      'فعّل خدمات الموقع لعرض مواقيت صلاة دقيقة وتنبيهات الأذان.';
+
+  @override
   String get findQiblaDirection => 'تحديد اتجاه القبلة';
 
   @override

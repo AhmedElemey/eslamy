@@ -126,6 +126,9 @@
   "failedToLoadPrayerTimesWithError": "Impossibile caricare gli orari di preghiera\n{error}",
   "showingCairoFallback": "Vengono mostrati gli orari del Cairo (predefinito). Attiva la posizione per orari precisi.",
   "enableButton": "Attiva",
+  "prayerTimesLocationDenied": "È necessaria l'autorizzazione alla posizione per orari di preghiera precisi e avvisi dell'Adhan.",
+  "prayerTimesLocationDeniedForever": "L'accesso alla posizione è disattivato per Eslamy. Attivalo nelle Impostazioni per orari di preghiera precisi e avvisi dell'Adhan.",
+  "prayerTimesLocationServicesOff": "Attiva i servizi di localizzazione per orari di preghiera precisi e avvisi dell'Adhan.",
   "findQiblaDirection": "Trova la direzione della qibla",
 
   "qiblaDirectionTitle": "Direzione della Qibla",

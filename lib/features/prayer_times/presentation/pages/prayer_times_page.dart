@@ -89,6 +89,47 @@ class PrayerTimesPage extends ConsumerWidget {
       );
     }
 
+    if (state.locationIssue != null && state.timings == null) {
+      final message = switch (state.locationIssue!) {
+        PrayerLocationIssue.permissionDenied =>
+          context.l10n.prayerTimesLocationDenied,
+        PrayerLocationIssue.permissionDeniedForever =>
+          context.l10n.prayerTimesLocationDeniedForever,
+        PrayerLocationIssue.servicesDisabled =>
+          context.l10n.prayerTimesLocationServicesOff,
+      };
+      return ListView(
+        children: [
+          const SizedBox(height: 120),
+          const Icon(Icons.location_off_outlined, size: 48, color: Colors.grey),
+          const SizedBox(height: 12),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(message, textAlign: TextAlign.center),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: Wrap(
+              spacing: 12,
+              alignment: WrapAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () => notifier.load(requestFreshLocation: true),
+                  child: Text(context.l10n.retry),
+                ),
+                FilledButton(
+                  onPressed: notifier.openSystemSettings,
+                  child: Text(context.l10n.mosqueLocatorOpenSettings),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     final timings = state.timings;
     if (timings == null) return const SizedBox.shrink();
 

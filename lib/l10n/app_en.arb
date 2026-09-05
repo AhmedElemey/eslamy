@@ -148,6 +148,9 @@
   "@failedToLoadPrayerTimesWithError": {"placeholders": {"error": {"type": "String"}}},
   "showingCairoFallback": "Showing times for Cairo (default). Enable location for accurate times.",
   "enableButton": "Enable",
+  "prayerTimesLocationDenied": "Location permission is needed for accurate prayer times and Adhan alerts.",
+  "prayerTimesLocationDeniedForever": "Location access is turned off for Eslamy. Enable it in Settings for accurate prayer times and Adhan alerts.",
+  "prayerTimesLocationServicesOff": "Turn on Location Services for accurate prayer times and Adhan alerts.",
   "findQiblaDirection": "Find Qibla direction",
 
   "qiblaDirectionTitle": "Qibla Direction",

@@ -481,6 +481,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enableButton => 'Attiva';
 
   @override
+  String get prayerTimesLocationDenied =>
+      'È necessaria l\'autorizzazione alla posizione per orari di preghiera precisi e avvisi dell\'Adhan.';
+
+  @override
+  String get prayerTimesLocationDeniedForever =>
+      'L\'accesso alla posizione è disattivato per Eslamy. Attivalo nelle Impostazioni per orari di preghiera precisi e avvisi dell\'Adhan.';
+
+  @override
+  String get prayerTimesLocationServicesOff =>
+      'Attiva i servizi di localizzazione per orari di preghiera precisi e avvisi dell\'Adhan.';
+
+  @override
   String get findQiblaDirection => 'Trova la direzione della qibla';
 
   @override

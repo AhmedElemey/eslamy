@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/prayer_times.dart';
 import '../../service/location_service.dart';
 import '../../service/prayer_times_service.dart';
@@ -11,12 +12,21 @@ import '../../../../core/notifications/notification_service.dart';
 
 final locationServiceProvider = Provider((ref) => LocationService());
 
+/// Mirrors `MosqueLocationIssue` — a location problem the user can actually
+/// fix (unlike a transient GPS timeout, which just falls back silently).
+enum PrayerLocationIssue {
+  permissionDenied,
+  permissionDeniedForever,
+  servicesDisabled,
+}
+
 class PrayerTimesState {
   final DailyPrayerTimes? timings;
   final double? qiblaDirection;
   final bool isLoading;
   final String? error;
   final bool usingFallbackLocation;
+  final PrayerLocationIssue? locationIssue;
 
   const PrayerTimesState({
     this.timings,
@@ -24,6 +34,7 @@ class PrayerTimesState {
     this.isLoading = false,
     this.error,
     this.usingFallbackLocation = false,
+    this.locationIssue,
   });
 
   PrayerTimesState copyWith({
@@ -32,6 +43,8 @@ class PrayerTimesState {
     bool? isLoading,
     String? error,
     bool? usingFallbackLocation,
+    PrayerLocationIssue? locationIssue,
+    bool clearLocationIssue = false,
   }) {
     return PrayerTimesState(
       timings: timings ?? this.timings,
@@ -40,6 +53,8 @@ class PrayerTimesState {
       error: error,
       usingFallbackLocation:
           usingFallbackLocation ?? this.usingFallbackLocation,
+      locationIssue:
+          clearLocationIssue ? null : (locationIssue ?? this.locationIssue),
     );
   }
 }
@@ -58,25 +73,56 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
   final LocationService _locationService;
 
   Future<void> load({bool requestFreshLocation = false}) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      clearLocationIssue: true,
+    );
     try {
       double lat;
       double lng;
       var fallback = false;
 
-      final position =
+      final fix =
           requestFreshLocation || state.timings == null
-              ? await _locationService.getCurrentPosition()
+              ? await _locationService.obtainFix(
+                accuracy: LocationAccuracy.medium,
+              )
               : null;
 
-      if (position != null) {
-        lat = position.latitude;
-        lng = position.longitude;
+      if (fix != null && fix.hasCoordinates) {
+        lat = fix.latitude!;
+        lng = fix.longitude!;
       } else {
         final cached = await _locationService.getCachedPosition();
         if (cached != null) {
           (lat, lng) = cached;
+        } else if (fix != null &&
+            (fix.kind == LocationFixKind.permissionDenied ||
+                fix.kind == LocationFixKind.permissionDeniedForever ||
+                fix.kind == LocationFixKind.servicesDisabled)) {
+          // A recoverable issue with nothing cached to fall back on — surface
+          // it (with a way to fix it) instead of silently pinning the user to
+          // Cairo forever, which also means every Adhan alert fires for the
+          // wrong city.
+          if (!mounted) return;
+          state = state.copyWith(
+            isLoading: false,
+            locationIssue: switch (fix.kind) {
+              LocationFixKind.permissionDenied =>
+                PrayerLocationIssue.permissionDenied,
+              LocationFixKind.permissionDeniedForever =>
+                PrayerLocationIssue.permissionDeniedForever,
+              LocationFixKind.servicesDisabled =>
+                PrayerLocationIssue.servicesDisabled,
+              _ => null,
+            },
+          );
+          return;
         } else {
+          // Transient failure (e.g. a GPS timeout) with nothing cached —
+          // still recoverable via a normal retry, so fall back rather than
+          // showing a dead-end permission screen.
           lat = fallbackLatitude;
           lng = fallbackLongitude;
           fallback = true;
@@ -94,11 +140,30 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
         qiblaDirection: results[1] as double,
         isLoading: false,
         usingFallbackLocation: fallback,
+        clearLocationIssue: true,
       );
-      unawaited(_scheduleAdhan(lat, lng, results[0] as DailyPrayerTimes));
+      // Never schedule Adhan against the hardcoded Cairo fallback — a real
+      // (even if stale/cached) location is required so alerts fire at the
+      // user's own prayer times, not someone else's.
+      if (!fallback) {
+        unawaited(_scheduleAdhan(lat, lng, results[0] as DailyPrayerTimes));
+      }
     } catch (e) {
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Opens the relevant system settings screen for the current
+  /// [PrayerTimesState.locationIssue] — location services for a disabled
+  /// service, the app's own permission page otherwise (denied/deniedForever
+  /// both need the same screen; re-requesting in-app can't recover from
+  /// "denied forever").
+  Future<void> openSystemSettings() async {
+    if (state.locationIssue == PrayerLocationIssue.servicesDisabled) {
+      await Geolocator.openLocationSettings();
+    } else {
+      await Geolocator.openAppSettings();
     }
   }
 
@@ -159,13 +224,14 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       // main.dart) — this used to be a bare silent catch, which made a
       // release-only scheduling failure completely undiagnosable.
       debugPrint('Adhan scheduling failed: $e\n$st');
+      // Best-effort reporting only: if Firebase itself failed to initialize
+      // (see main.dart), this call would throw too — swallow that rather
+      // than letting a failed *report* about a swallowed error escalate
+      // into the app's global error screen.
       unawaited(
-        FirebaseCrashlytics.instance.recordError(
-          e,
-          st,
-          reason: 'Adhan scheduling failed',
-          fatal: false,
-        ),
+        FirebaseCrashlytics.instance
+            .recordError(e, st, reason: 'Adhan scheduling failed', fatal: false)
+            .catchError((_) {}),
       );
     }
   }

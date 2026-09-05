@@ -790,6 +790,24 @@ abstract class AppLocalizations {
   /// **'Enable'**
   String get enableButton;
 
+  /// No description provided for @prayerTimesLocationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is needed for accurate prayer times and Adhan alerts.'**
+  String get prayerTimesLocationDenied;
+
+  /// No description provided for @prayerTimesLocationDeniedForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is turned off for Eslamy. Enable it in Settings for accurate prayer times and Adhan alerts.'**
+  String get prayerTimesLocationDeniedForever;
+
+  /// No description provided for @prayerTimesLocationServicesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Location Services for accurate prayer times and Adhan alerts.'**
+  String get prayerTimesLocationServicesOff;
+
   /// No description provided for @findQiblaDirection.
   ///
   /// In en, this message translates to:

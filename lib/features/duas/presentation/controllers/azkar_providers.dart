@@ -78,6 +78,46 @@ final azkarItemsProvider = FutureProvider.family<List<AzkarItem>, String>((
   return cache.getItemsForCategory(categoryId);
 });
 
+String _todayKey() {
+  final now = DateTime.now();
+  return '${now.year}-${now.month}-${now.day}';
+}
+
+/// One azkar item's repeat-counter progress for today, persisted to sqflite
+/// (date-scoped, so it resets naturally with the next day) instead of
+/// living in throwaway widget state — without this, scrolling the list away
+/// and back (which disposes the off-screen card) or leaving the page
+/// silently reset progress to zero.
+class AzkarItemProgressNotifier extends StateNotifier<int> {
+  AzkarItemProgressNotifier(this._cache, this._itemId) : super(0) {
+    _load();
+  }
+
+  final AzkarCacheDatabase _cache;
+  final int _itemId;
+
+  Future<void> _load() async {
+    final done = await _cache.getProgress(_todayKey(), _itemId);
+    if (!mounted) return;
+    state = done;
+  }
+
+  Future<void> increment(int target) async {
+    if (state >= target) return;
+    final next = state + 1;
+    state = next;
+    await _cache.setProgress(_todayKey(), _itemId, next);
+  }
+}
+
+final azkarItemProgressProvider = StateNotifierProvider.autoDispose
+    .family<AzkarItemProgressNotifier, int, int>((ref, itemId) {
+      return AzkarItemProgressNotifier(
+        ref.watch(azkarCacheDatabaseProvider),
+        itemId,
+      );
+    });
+
 /// A dua picked deterministically once per calendar day (same seeding
 /// approach as Quran's ayahOfTheDayProvider), for the home screen's "Dua of
 /// the Day" card. No separate persistence needed — the dataset is already

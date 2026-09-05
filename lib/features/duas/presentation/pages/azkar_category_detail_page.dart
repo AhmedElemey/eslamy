@@ -57,7 +57,11 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
                   ),
                   itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) => _AzkarItemCard(item: items[i]),
+                  itemBuilder:
+                      (context, i) => _AzkarItemCard(
+                        key: ValueKey(items[i].id),
+                        item: items[i],
+                      ),
                 ),
           ),
         ),
@@ -66,23 +70,16 @@ class AzkarCategoryDetailPage extends ConsumerWidget {
   }
 }
 
-class _AzkarItemCard extends StatefulWidget {
-  const _AzkarItemCard({required this.item});
+class _AzkarItemCard extends ConsumerWidget {
+  const _AzkarItemCard({super.key, required this.item});
 
   final AzkarItem item;
 
   @override
-  State<_AzkarItemCard> createState() => _AzkarItemCardState();
-}
-
-class _AzkarItemCardState extends State<_AzkarItemCard> {
-  int _done = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final item = widget.item;
+  Widget build(BuildContext context, WidgetRef ref) {
     final target = item.repeat;
-    final complete = _done >= target;
+    final done = ref.watch(azkarItemProgressProvider(item.id));
+    final complete = done >= target;
 
     return GlassCard(
       borderRadius: 18,
@@ -140,13 +137,17 @@ class _AzkarItemCardState extends State<_AzkarItemCard> {
                             ? null
                             : () {
                               HapticFeedback.lightImpact();
-                              setState(() => _done++);
+                              ref
+                                  .read(
+                                    azkarItemProgressProvider(item.id).notifier,
+                                  )
+                                  .increment(target);
                             },
                     style: FilledButton.styleFrom(
                       backgroundColor:
                           complete ? AppColors.success : AppColors.primary,
                     ),
-                    child: Text('$_done / $target'),
+                    child: Text('$done / $target'),
                   ),
                 )
               else

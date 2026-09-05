@@ -50,6 +50,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 late final QuranAudioHandler _audioHandler;
 
 Future<void> main() async {
+  // Declared outside the zone body so the zone's own error handler below can
+  // also see it — both closures capture this same local.
+  var firebaseReady = false;
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
@@ -81,26 +84,42 @@ Future<void> main() async {
       });
       BubbleOverlayChannel.setOpenNowPlayingHandler(openNowPlayingPage);
 
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-
-      // Only report real crashes to Crashlytics — debug builds stay local
-      // so day-to-day development noise doesn't pollute the dashboard.
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
-        !kDebugMode,
-      );
+      // Firebase config (google-services.json / GoogleService-Info.plist) is
+      // deliberately not checked into the repo — a build missing it (or any
+      // other init-time failure) must not take the whole app down with it.
+      // Without this try/catch, a thrown error here skips runApp() entirely,
+      // and the zone error handler's own Crashlytics call then also throws
+      // (Crashlytics needs the Firebase app that just failed to exist) —
+      // leaving a permanently blank, unrecoverable screen with no way to
+      // even report what happened.
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        // Only report real crashes to Crashlytics — debug builds stay local
+        // so day-to-day development noise doesn't pollute the dashboard.
+        await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+          !kDebugMode,
+        );
+        firebaseReady = true;
+      } catch (e, st) {
+        debugPrint('Firebase initialization failed, continuing without it: $e\n$st');
+      }
 
       // Flutter framework errors and anything escaping the zone below (see
       // the runZonedGuarded error handler) both get forwarded to
       // Crashlytics, in addition to the existing local error screen.
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
-        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        if (firebaseReady) {
+          FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        }
         _navigateToError(details.exception, details.stack);
       };
       PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        if (firebaseReady) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        }
         return true;
       };
 
@@ -114,12 +133,16 @@ Future<void> main() async {
       );
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await NotificationService().init(l10n: await loadStoredLocalizations());
-        await _initFirebaseMessaging();
+        if (firebaseReady) {
+          await _initFirebaseMessaging();
+        }
         await registerAdhanRescheduleTask();
       });
     },
     (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      if (firebaseReady) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      }
       _navigateToError(error, stack);
     },
   );

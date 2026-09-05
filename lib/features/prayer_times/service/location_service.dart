@@ -52,26 +52,6 @@ class LocationService {
 
   final SettingsDatabase _settingsDb = SettingsDatabase();
 
-  Future<Position?> getCurrentPosition({
-    LocationAccuracy accuracy = LocationAccuracy.medium,
-    Duration? timeLimit,
-  }) async {
-    final fix = await obtainFix(accuracy: accuracy, timeLimit: timeLimit);
-    if (!fix.hasCoordinates || fix.kind != LocationFixKind.gps) return null;
-    return Position(
-      longitude: fix.longitude!,
-      latitude: fix.latitude!,
-      timestamp: DateTime.now(),
-      accuracy: 0,
-      altitude: 0,
-      altitudeAccuracy: 0,
-      heading: 0,
-      headingAccuracy: 0,
-      speed: 0,
-      speedAccuracy: 0,
-    );
-  }
-
   /// Resolves the best available device location without falling back to a
   /// hardcoded city. Used by the mosque locator so "nearest" means nearest
   /// to the user, not nearest to Cairo.
