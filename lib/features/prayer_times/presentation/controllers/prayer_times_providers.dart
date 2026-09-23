@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/prayer_times.dart';
 import '../../service/location_service.dart';
@@ -48,14 +48,38 @@ class PrayerTimesState {
 /// the dedicated prayer times / qibla pages read from this one provider, and
 /// re-fetching on every navigation would waste API calls for data that only
 /// changes once a day.
-class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
+class PrayerTimesNotifier extends StateNotifier<PrayerTimesState>
+    with WidgetsBindingObserver {
   PrayerTimesNotifier(this._service, this._locationService)
     : super(const PrayerTimesState()) {
+    WidgetsBinding.instance.addObserver(this);
+    // 20s is well inside a prayer's clock minute, so a boundary is not
+    // skipped just because the tick landed a few seconds after HH:MM:00.
+    _adhanTick = Timer.periodic(const Duration(seconds: 20), (_) {
+      unawaited(_onAdhanTick());
+    });
     load();
   }
 
   final PrayerTimesService _service;
   final LocationService _locationService;
+  Timer? _adhanTick;
+  double? _lastLat;
+  double? _lastLng;
+
+  @override
+  void dispose() {
+    _adhanTick?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    if (lifecycle == AppLifecycleState.resumed) {
+      unawaited(_onAdhanTick());
+    }
+  }
 
   Future<void> load({bool requestFreshLocation = false}) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -88,6 +112,8 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
         _service.fetchQiblaDirection(latitude: lat, longitude: lng),
       ]);
 
+      _lastLat = lat;
+      _lastLng = lng;
       if (!mounted) return;
       state = state.copyWith(
         timings: results[0] as DailyPrayerTimes,
@@ -114,12 +140,51 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       return;
     }
     final today = state.timings;
-    if (today == null) return;
+    if (today == null) {
+      await load();
+      return;
+    }
     final cached = await _locationService.getCachedPosition();
-    if (cached == null) return;
-    final (lat, lng) = cached;
+    final lat = _lastLat ?? cached?.$1 ?? fallbackLatitude;
+    final lng = _lastLng ?? cached?.$2 ?? fallbackLongitude;
     await _scheduleAdhan(lat, lng, today);
   }
+
+  /// Fires an Adhan if a prayer's HH:MM is the current clock minute, and
+  /// reloads/reschedules when the calendar day has rolled over (the
+  /// provider is kept alive, so [load] would otherwise never run again).
+  Future<void> _onAdhanTick() async {
+    try {
+      final enabled = await SettingsDatabase().getAdhanEnabled();
+      if (!enabled) return;
+      final timings = state.timings;
+      if (timings == null) return;
+
+      final now = DateTime.now();
+      final loadedDay = DateTime(
+        timings.date.year,
+        timings.date.month,
+        timings.date.day,
+      );
+      final today = DateTime(now.year, now.month, now.day);
+      if (loadedDay != today) {
+        await load();
+        return;
+      }
+
+      await NotificationService().notifyIfPrayerTimeNow(
+        today: _asAdhanMap(timings),
+        l10n: await loadStoredLocalizations(),
+      );
+    } catch (e, st) {
+      debugPrint('Adhan tick failed: $e\n$st');
+    }
+  }
+
+  Map<String, DateTime> _asAdhanMap(DailyPrayerTimes d) => {
+    for (final p in d.prayers)
+      if (p.name != 'Sunrise') p.name: p.time,
+  };
 
   /// Schedules today + tomorrow's Adhan alerts once timings are known.
   /// Best-effort: failures here must never surface as a prayer-times error.
@@ -139,10 +204,6 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
       // once the OS has recorded a decision, requesting again is a no-op
       // that doesn't re-show any dialog.
       await NotificationService().requestPermissions();
-      Map<String, DateTime> asMap(DailyPrayerTimes d) => {
-        for (final p in d.prayers)
-          if (p.name != 'Sunrise') p.name: p.time,
-      };
       // Fetched separately from `today` (already known) so a rate-limited
       // or otherwise failed fetch for tomorrow doesn't also throw away the
       // Adhan alerts we can already schedule for today.
@@ -165,8 +226,8 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
         );
       }
       await NotificationService().scheduleAdhan(
-        today: asMap(today),
-        tomorrow: tomorrow == null ? {} : asMap(tomorrow),
+        today: _asAdhanMap(today),
+        tomorrow: tomorrow == null ? {} : _asAdhanMap(tomorrow),
         l10n: await loadStoredLocalizations(),
       );
     } catch (e, st) {

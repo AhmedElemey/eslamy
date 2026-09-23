@@ -36,7 +36,6 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
   late final ProviderSubscription<Reciter?> _reciterSubscription;
   int? _repeatTarget = 1;
-  int _repeatCount = 0;
 
   bool _isThisVerse(MediaItem? mediaItem) =>
       mediaItem?.extras?['chapterNumber'] == widget.chapterNumber &&
@@ -72,11 +71,24 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
       await handler.pause();
       return;
     }
+    // Same verse, already loaded: resume. Rebuilding the source on every
+    // tap (and seeking from the completion listener at the same time) is
+    // what crashed after a few repeats.
+    if (isThisVerseActive &&
+        handler.canResume &&
+        handler.matchesRange(
+          widget.chapterNumber,
+          widget.verseNumber,
+          widget.verseNumber,
+        )) {
+      handler.setRepeatTarget(_repeatTarget);
+      await handler.play();
+      return;
+    }
     await _startAudio(handler);
   }
 
   Future<void> _startAudio(QuranAudioHandler handler) async {
-    _repeatCount = 0;
     final l10n = context.l10n;
     try {
       final reciter = ref.read(selectedReciterProvider);
@@ -85,6 +97,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
         fromAyah: widget.verseNumber,
         toAyah: widget.verseNumber,
         reciter: reciter,
+        repeatTarget: _repeatTarget,
       );
     } catch (e) {
       if (mounted) {
@@ -114,6 +127,16 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
   @override
   void dispose() {
+    final handler = ref.read(quranAudioHandlerProvider);
+    if (handler.matchesRange(
+      widget.chapterNumber,
+      widget.verseNumber,
+      widget.verseNumber,
+    )) {
+      // Leaving the page stops further practice loops. The pass already
+      // in progress plays out, then playback pauses.
+      handler.setRepeatTarget(1);
+    }
     _reciterSubscription.close();
     super.dispose();
   }
@@ -155,27 +178,6 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
     // and the floating bar just sits on top of the last card with no way to
     // see what's underneath it.
     final reserveForMiniPlayer = activeMediaItem != null;
-
-    ref.listen<AsyncValue<PlaybackState>>(playbackStateProvider, (
-      previous,
-      next,
-    ) {
-      final state = next.valueOrNull;
-      if (state == null) return;
-      if (!_isThisVerse(ref.read(currentMediaItemProvider).valueOrNull)) {
-        return;
-      }
-      if (state.processingState != AudioProcessingState.completed) return;
-      final target = _repeatTarget;
-      final shouldRepeatAgain = target == null || _repeatCount + 1 < target;
-      if (shouldRepeatAgain) {
-        _repeatCount++;
-        handler.seek(Duration.zero);
-        handler.play();
-      } else {
-        _repeatCount = 0;
-      }
-    });
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground(context),
@@ -312,10 +314,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                             ),
                             const SizedBox(width: 12),
                             IconButton(
-                              onPressed: () {
-                                handler.stop();
-                                _repeatCount = 0;
-                              },
+                              onPressed: handler.stop,
                               icon: const Icon(Icons.stop),
                               style: IconButton.styleFrom(
                                 backgroundColor: AppColors.pageBackground(
@@ -352,9 +351,16 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
                               ChoiceChip(
                                 label: Text(option == null ? '∞' : '$option×'),
                                 selected: _repeatTarget == option,
-                                onSelected:
-                                    (_) =>
-                                        setState(() => _repeatTarget = option),
+                                onSelected: (_) {
+                                  setState(() => _repeatTarget = option);
+                                  if (_isThisVerse(
+                                    ref
+                                        .read(currentMediaItemProvider)
+                                        .valueOrNull,
+                                  )) {
+                                    handler.setRepeatTarget(option);
+                                  }
+                                },
                               ),
                           ],
                         ),

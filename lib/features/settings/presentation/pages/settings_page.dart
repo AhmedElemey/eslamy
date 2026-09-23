@@ -465,6 +465,17 @@ class _AdhanToggleRowState extends ConsumerState<_AdhanToggleRow> {
     // waiting for the next cold-start prayer-times load to notice the
     // saved flag.
     await ref.read(prayerTimesProvider.notifier).applyAdhanEnabledChange(value);
+    if (!mounted) return;
+    if (value) {
+      final notificationsOn =
+          await NotificationService().areNotificationsEnabled();
+      if (!mounted) return;
+      if (!notificationsOn) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.notificationsDisabledMessage)),
+        );
+      }
+    }
   }
 
   @override

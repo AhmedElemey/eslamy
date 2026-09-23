@@ -26,6 +26,16 @@ void main() {
               return null;
             case 'show':
               return null;
+            case 'cancel':
+              return null;
+            case 'zonedSchedule':
+              return null;
+            case 'pendingNotificationRequests':
+              return <Map<String, Object?>>[];
+            case 'getActiveNotifications':
+              return <Map<String, Object?>>[];
+            case 'canScheduleExactNotifications':
+              return true;
             default:
               return null;
           }
@@ -136,5 +146,64 @@ void main() {
 
     expect(results, [true, true]);
     expect(permissionCallCount, 1);
+  });
+
+  test('scheduleAdhan shows immediately when a prayer is in the current minute '
+      'instead of skipping it as already past', () async {
+    await NotificationService().init();
+    await NotificationService().cancelAdhan();
+    calls.removeWhere((c) => c.method == 'cancel');
+
+    final now = DateTime.now();
+    final thisMinute = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+    final later = thisMinute.add(const Duration(hours: 3));
+
+    await NotificationService().scheduleAdhan(
+      today: {'Fajr': thisMinute, 'Isha': later},
+      tomorrow: const {},
+    );
+
+    final showCalls = calls.where((c) => c.method == 'show').toList();
+    expect(showCalls, isNotEmpty);
+    expect(showCalls.first.arguments['title'], 'Adhan — Fajr');
+
+    final scheduled = calls.where((c) => c.method == 'zonedSchedule').toList();
+    expect(
+      scheduled.any((c) => (c.arguments as Map)['title'] == 'Adhan — Isha'),
+      isTrue,
+    );
+  });
+
+  test('notifyIfPrayerTimeNow does not re-show an Adhan already posted this '
+      'minute', () async {
+    await NotificationService().init();
+    await NotificationService().cancelAdhan();
+    calls.clear();
+
+    final now = DateTime.now();
+    final thisMinute = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+
+    await NotificationService().scheduleAdhan(
+      today: {'Dhuhr': thisMinute},
+      tomorrow: const {},
+    );
+    final showsAfterSchedule = calls.where((c) => c.method == 'show').length;
+
+    await NotificationService().notifyIfPrayerTimeNow(
+      today: {'Dhuhr': thisMinute},
+    );
+    expect(calls.where((c) => c.method == 'show').length, showsAfterSchedule);
   });
 }

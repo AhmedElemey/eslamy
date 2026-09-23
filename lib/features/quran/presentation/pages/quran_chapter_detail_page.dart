@@ -79,6 +79,38 @@ class _QuranChapterDetailPageState
     return {for (var i = range.start.round(); i <= range.end.round(); i++) i};
   }
 
+  /// Plays, pauses, or resumes. Resuming a paused selection calls [play]
+  /// on the source already loaded — starting [playAyahRange] again on every
+  /// tap reloaded the player and crashed after a few repeats.
+  void _onPlayButton(
+    QuranAudioHandler handler, {
+    required bool isThisChapterActive,
+    required bool isPlaying,
+  }) {
+    if (isPlaying) {
+      handler.pause();
+      return;
+    }
+    final range = _ayahRange;
+    if (_audioMode == _ChapterAudioMode.range && range != null) {
+      final from = range.start.round();
+      final to = range.end.round();
+      if (isThisChapterActive &&
+          handler.canResume &&
+          handler.matchesRange(widget.chapterNumber, from, to)) {
+        handler.play();
+        return;
+      }
+      _startRangeAudio(handler, range);
+      return;
+    }
+    if (isThisChapterActive && handler.canResume && !handler.isRangeMode) {
+      handler.play();
+      return;
+    }
+    _startChapterAudio(handler);
+  }
+
   /// Plays the whole chapter on the shared handler (any other chapter or
   /// range already playing is replaced — matches the old page-local "stop
   /// current before starting new" behavior, now app-wide instead of
@@ -321,13 +353,11 @@ class _QuranChapterDetailPageState
                   : Icons.play_circle_fill_rounded,
             ),
             onPressed:
-                isPlaying
-                    ? handler.pause
-                    : () =>
-                        _audioMode == _ChapterAudioMode.range &&
-                                _ayahRange != null
-                            ? _startRangeAudio(handler, _ayahRange!)
-                            : _startChapterAudio(handler),
+                () => _onPlayButton(
+                  handler,
+                  isThisChapterActive: isThisChapterActive,
+                  isPlaying: isPlaying,
+                ),
             tooltip:
                 isPlaying
                     ? l10n.pauseChapterAudioTooltip

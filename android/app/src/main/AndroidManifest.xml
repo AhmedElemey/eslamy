@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Required so flutter_local_notifications can re-register AlarmManager
+         alarms after a reboot (plugin no longer declares this itself). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Adhan alerts are scheduled with AndroidScheduleMode.exactAllowWhileIdle
          (see NotificationService.scheduleAdhan) so each prayer fires at its
          precise minute. Without this permission, Android 12+ throws when
@@ -97,6 +101,23 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
+        <!-- flutter_local_notifications (v16+): these receivers are no longer
+             in the plugin's own manifest. Without them, AlarmManager fires
+             into a void and scheduled Adhan / daily-wird alerts never appear. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
