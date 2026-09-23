@@ -31,6 +31,36 @@ bool shouldReplayRange({
   return repeatTarget == null || completedPlays + 1 < repeatTarget;
 }
 
+/// Loop mode for an ayah range while [completedPlays] passes are done.
+/// Looping natively (instead of seeking back once the range completes) lets
+/// the player queue the next pass before this one ends, so a repeat doesn't
+/// wait on a fresh network load of the ayah. The last pass runs with
+/// [LoopMode.off] so the range completes and pauses.
+LoopMode rangeLoopModeFor({
+  required int ayahCount,
+  required int? repeatTarget,
+  required int completedPlays,
+}) {
+  if (ayahCount <= 0 ||
+      !shouldReplayRange(
+        repeatTarget: repeatTarget,
+        completedPlays: completedPlays,
+      )) {
+    return LoopMode.off;
+  }
+  return ayahCount == 1 ? LoopMode.one : LoopMode.all;
+}
+
+/// Whether an auto-advance from [previousIndex] to [index] wrapped from the
+/// last ayah of the range back to the first, i.e. one pass just finished.
+bool isRangePassWrap({
+  required int? previousIndex,
+  required int? index,
+  required int ayahCount,
+}) {
+  return ayahCount > 0 && previousIndex == ayahCount - 1 && index == 0;
+}
+
 /// Single app-wide audio session for surah playback. Replaces the old
 /// per-screen `AudioPlayer` instances so play state (and the audio itself)
 /// survives navigation, and so the OS notification/lock-screen/Control
@@ -57,6 +87,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       _rememberRangeClipDuration,
       onError: (Object error, StackTrace _) {
         debugPrint('Quran duration stream error: $error');
+      },
+    );
+    _player.positionDiscontinuityStream.listen(
+      _onPositionDiscontinuity,
+      onError: (Object error, StackTrace _) {
+        debugPrint('Quran discontinuity stream error: $error');
       },
     );
     _player.processingStateStream.listen(
@@ -211,6 +247,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   /// including a range that's already playing.
   void setRepeatTarget(int? target) {
     _repeatTarget = target;
+    unawaited(_syncRangeLoopMode());
   }
 
   /// Sum of the durations of range ayahs already finished — the offset to
@@ -415,6 +452,9 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
           );
         }
         try {
+          // A range practice loop may have left the player looping; a
+          // surah must complete so playback can continue to the next one.
+          await _player.setLoopMode(LoopMode.off);
           await _player.setUrl(loopUrl).timeout(_kAudioLoadTimeout);
           if (loopToken != _playToken) continue; // resync to the latest tap
           // `play()`'s Future does not complete until playback pauses or
@@ -527,6 +567,13 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
             ],
           );
           final startIndex = _rangeIndex.clamp(0, loopUrls.length - 1);
+          await _player.setLoopMode(
+            rangeLoopModeFor(
+              ayahCount: loopAyahs.length,
+              repeatTarget: _repeatTarget,
+              completedPlays: _completedPlays,
+            ),
+          );
           final duration = await _player
               .setAudioSource(
                 playlist,
@@ -596,8 +643,47 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     _rangeDurations[index] = duration;
   }
 
-  /// The playlist reached its end. Either start another pass or rewind and
-  /// pause. Runs outside the completion callback so a seek can't re-enter it.
+  /// Counts a finished pass each time the looping player wraps from the last
+  /// ayah back to the first, and turns looping off once the pass that just
+  /// started is the last one wanted.
+  void _onPositionDiscontinuity(PositionDiscontinuity discontinuity) {
+    if (discontinuity.reason != PositionDiscontinuityReason.autoAdvance) {
+      return;
+    }
+    final ayahs = _rangeAyahs;
+    if (_intent != _PlayIntent.range || ayahs == null) return;
+    if (!isRangePassWrap(
+      previousIndex: discontinuity.previousEvent.currentIndex,
+      index: discontinuity.event.currentIndex,
+      ayahCount: ayahs.length,
+    )) {
+      return;
+    }
+    _completedPlays++;
+    unawaited(_syncRangeLoopMode());
+  }
+
+  Future<void> _syncRangeLoopMode() async {
+    final ayahs = _rangeAyahs;
+    if (_intent != _PlayIntent.range || ayahs == null) return;
+    final mode = rangeLoopModeFor(
+      ayahCount: ayahs.length,
+      repeatTarget: _repeatTarget,
+      completedPlays: _completedPlays,
+    );
+    if (_player.loopMode == mode) return;
+    try {
+      await _player.setLoopMode(mode);
+    } catch (e) {
+      debugPrint('Quran loop mode update failed: $e');
+    }
+  }
+
+  /// The playlist reached its end — normally only on the last pass, since
+  /// earlier passes loop natively. Rewinds and pauses; if looping was turned
+  /// off too late to catch a pass that should repeat, starts it again by
+  /// seeking instead. Runs outside the completion callback so a seek can't
+  /// re-enter it.
   Future<void> _handleRangeFinished() async {
     if (_finishingRange) return;
     if (_intent != _PlayIntent.range || _rangeAyahs == null) return;
@@ -610,6 +696,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       );
       if (repeat) {
         _completedPlays++;
+        await _syncRangeLoopMode();
         await _player.seek(Duration.zero, index: 0);
         if (token != _playToken || _intent != _PlayIntent.range) return;
         _startPlayback();
@@ -619,6 +706,8 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       await _player.pause();
       if (token != _playToken || _intent != _PlayIntent.range) return;
       await _player.seek(Duration.zero, index: 0);
+      // Re-arm looping so resuming the rewound range repeats again.
+      await _syncRangeLoopMode();
     } catch (e) {
       debugPrint('Quran range finished with error: $e');
     } finally {
@@ -697,6 +786,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     _rangeDurations = [];
     _rangeUrls = [];
     await _player.stop();
+    await _player.setLoopMode(LoopMode.off);
     mediaItem.add(null);
     await super.stop();
   }
