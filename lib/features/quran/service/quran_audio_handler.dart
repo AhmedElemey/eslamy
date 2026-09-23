@@ -61,6 +61,51 @@ bool isRangePassWrap({
   return ayahCount > 0 && previousIndex == ayahCount - 1 && index == 0;
 }
 
+/// Counts finished passes of a looping ayah range from two independent
+/// signals — just_audio's auto-advance discontinuity and the sampled playback
+/// position — so a loop that one of them misses still gets counted and a
+/// finite repeat target can't over-repeat. A pass can be counted only after
+/// playback has reached the second half of the range's last ayah, so the
+/// same wrap reported by both signals counts once.
+class RangePassTracker {
+  bool _armed = false;
+  Duration _lastPosition = Duration.zero;
+
+  /// Forgets any progress through the current pass — after a new load, a
+  /// seek, or the range finishing.
+  void reset([Duration position = Duration.zero]) {
+    _armed = false;
+    _lastPosition = position;
+  }
+
+  /// Feeds a sampled playback position. Returns true when the position shows
+  /// a single-ayah loop jumping back to its start that hasn't been counted.
+  bool onPosition({
+    required Duration position,
+    required Duration? duration,
+    required bool onLastAyah,
+    required bool singleAyah,
+  }) {
+    final previous = _lastPosition;
+    _lastPosition = position;
+    if (duration == null || duration <= Duration.zero) return false;
+    final half = duration * 0.5;
+    if (singleAyah && previous >= half && position <= duration * 0.25) {
+      return onWrap();
+    }
+    if (onLastAyah && position >= half) _armed = true;
+    return false;
+  }
+
+  /// A loop back to the first ayah was reported. Returns true if it finishes
+  /// a pass that hasn't been counted yet.
+  bool onWrap() {
+    if (!_armed) return false;
+    _armed = false;
+    return true;
+  }
+}
+
 /// Single app-wide audio session for surah playback. Replaces the old
 /// per-screen `AudioPlayer` instances so play state (and the audio itself)
 /// survives navigation, and so the OS notification/lock-screen/Control
@@ -87,6 +132,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       _rememberRangeClipDuration,
       onError: (Object error, StackTrace _) {
         debugPrint('Quran duration stream error: $error');
+      },
+    );
+    _player.positionStream.listen(
+      _trackRangePosition,
+      onError: (Object error, StackTrace _) {
+        debugPrint('Quran position stream error: $error');
       },
     );
     _player.positionDiscontinuityStream.listen(
@@ -163,6 +214,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   int? _repeatTarget = 1;
   int _completedPlays = 0;
   bool _rangeEndArmed = true;
+  final RangePassTracker _passTracker = RangePassTracker();
   bool _finishingRange = false;
 
   // Non-null while playing a specific ayah range (from `playAyahRange`);
@@ -511,6 +563,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     _repeatTarget = repeatTarget;
     _completedPlays = 0;
     _rangeEndArmed = true;
+    _passTracker.reset();
     _currentSurah = clampedSurah;
     if (reciter != null) _currentReciter = reciter;
     _rangeAyahs = ayahs;
@@ -628,6 +681,16 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       return;
     }
     if (index < 0 || index >= ayahs.length || index == _rangeIndex) return;
+    // Backup for the discontinuity signal: the looping playlist moved from
+    // the last ayah back to the first. A seek there already reset the
+    // tracker, so only a real loop counts.
+    if (isRangePassWrap(
+      previousIndex: _rangeIndex,
+      index: index,
+      ayahCount: ayahs.length,
+    )) {
+      _countRangePass();
+    }
     _rangeIndex = index;
     _publishRangeMediaItem();
   }
@@ -647,6 +710,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   /// ayah back to the first, and turns looping off once the pass that just
   /// started is the last one wanted.
   void _onPositionDiscontinuity(PositionDiscontinuity discontinuity) {
+    if (discontinuity.reason == PositionDiscontinuityReason.seek) {
+      // A seek (user drag, skip, or our own rewind) is never a finished
+      // pass; start tracking again from where it landed.
+      _passTracker.reset(discontinuity.event.updatePosition);
+      return;
+    }
     if (discontinuity.reason != PositionDiscontinuityReason.autoAdvance) {
       return;
     }
@@ -659,6 +728,31 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     )) {
       return;
     }
+    _countRangePass();
+  }
+
+  void _trackRangePosition(Duration position) {
+    final ayahs = _rangeAyahs;
+    if (_intent != _PlayIntent.range || ayahs == null || ayahs.isEmpty) {
+      return;
+    }
+    final index = _player.currentIndex;
+    final restarted = _passTracker.onPosition(
+      position: position,
+      duration: _player.duration,
+      onLastAyah: index == ayahs.length - 1,
+      singleAyah: ayahs.length == 1,
+    );
+    if (restarted) _bumpCompletedPlays();
+  }
+
+  /// One pass of the range finished while looping, reported by any of the
+  /// signals above. Counted at most once per pass.
+  void _countRangePass() {
+    if (_passTracker.onWrap()) _bumpCompletedPlays();
+  }
+
+  void _bumpCompletedPlays() {
     _completedPlays++;
     unawaited(_syncRangeLoopMode());
   }
@@ -694,6 +788,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
         repeatTarget: _repeatTarget,
         completedPlays: _completedPlays,
       );
+      _passTracker.reset();
       if (repeat) {
         _completedPlays++;
         await _syncRangeLoopMode();

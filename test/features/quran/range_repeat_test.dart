@@ -84,4 +84,78 @@ void main() {
       );
     });
   });
+
+  group('RangePassTracker', () {
+    const duration = Duration(seconds: 10);
+
+    bool sample(
+      RangePassTracker tracker,
+      int millis, {
+      bool onLastAyah = true,
+      bool singleAyah = true,
+    }) {
+      return tracker.onPosition(
+        position: Duration(milliseconds: millis),
+        duration: duration,
+        onLastAyah: onLastAyah,
+        singleAyah: singleAyah,
+      );
+    }
+
+    test('counts a single-ayah loop the discontinuity signal missed', () {
+      final tracker = RangePassTracker();
+      expect(sample(tracker, 2000), isFalse);
+      expect(sample(tracker, 9800), isFalse);
+      expect(sample(tracker, 100), isTrue);
+    });
+
+    test('counts a wrap reported by both signals only once', () {
+      final tracker = RangePassTracker();
+      sample(tracker, 9800);
+      expect(tracker.onWrap(), isTrue);
+      expect(sample(tracker, 100), isFalse);
+
+      sample(tracker, 9800);
+      expect(sample(tracker, 100), isTrue);
+      expect(tracker.onWrap(), isFalse);
+    });
+
+    test('does not count a wrap before the last ayah\'s second half', () {
+      final tracker = RangePassTracker();
+      sample(tracker, 3000);
+      expect(tracker.onWrap(), isFalse);
+    });
+
+    test('a seek back to the start is not a pass', () {
+      final tracker = RangePassTracker();
+      sample(tracker, 9000);
+      tracker.reset(Duration.zero);
+      expect(sample(tracker, 50), isFalse);
+      expect(tracker.onWrap(), isFalse);
+    });
+
+    test('multi-ayah ranges count wraps only from the last ayah', () {
+      final tracker = RangePassTracker();
+      sample(tracker, 9000, onLastAyah: false, singleAyah: false);
+      expect(tracker.onWrap(), isFalse);
+      sample(tracker, 9000, singleAyah: false);
+      // A position drop alone is an ayah change, not a pass, in a range.
+      expect(sample(tracker, 100, singleAyah: false), isFalse);
+      expect(tracker.onWrap(), isTrue);
+    });
+
+    test('ignores samples before the clip duration is known', () {
+      final tracker = RangePassTracker();
+      expect(
+        tracker.onPosition(
+          position: const Duration(seconds: 9),
+          duration: null,
+          onLastAyah: true,
+          singleAyah: true,
+        ),
+        isFalse,
+      );
+      expect(tracker.onWrap(), isFalse);
+    });
+  });
 }
