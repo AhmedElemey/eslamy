@@ -158,4 +158,17 @@ void main() {
       expect(tracker.onWrap(), isFalse);
     });
   });
+
+  group('isRecoverablePlaybackError', () {
+    test('a cancelled load is not a fatal error', () {
+      expect(
+        isRecoverablePlaybackError(
+          PlayerInterruptedException('Connection aborted'),
+        ),
+        isTrue,
+      );
+      expect(isRecoverablePlaybackError('Connection aborted'), isTrue);
+      expect(isRecoverablePlaybackError(Exception('socket closed')), isFalse);
+    });
+  });
 }

@@ -35,6 +35,7 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   static const List<int?> _repeatOptions = [1, 3, 5, 10, null];
 
   late final ProviderSubscription<Reciter?> _reciterSubscription;
+  late final QuranAudioHandler _audioHandler;
   int? _repeatTarget = 1;
 
   bool _isThisVerse(MediaItem? mediaItem) =>
@@ -44,6 +45,8 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
   @override
   void initState() {
     super.initState();
+    // dispose() runs after unmount, where ref.read throws.
+    _audioHandler = ref.read(quranAudioHandlerProvider);
     // Restart with the new reciter's audio if this verse is playing when the
     // user switches reciters (from this page's own picker, or any other
     // screen) — mirrors the app-wide handler, scoped to only this verse.
@@ -127,16 +130,20 @@ class _QuranVerseDetailPageState extends ConsumerState<QuranVerseDetailPage> {
 
   @override
   void dispose() {
-    final handler = ref.read(quranAudioHandlerProvider);
-    if (handler.matchesRange(
-      widget.chapterNumber,
-      widget.verseNumber,
-      widget.verseNumber,
-    )) {
-      // Leaving the page stops further practice loops. The pass already
-      // in progress plays out, then playback pauses.
-      handler.setRepeatTarget(1);
-    }
+    final handler = _audioHandler;
+    final chapter = widget.chapterNumber;
+    final verse = widget.verseNumber;
+    // unmount marks this element defunct before dispose, while ref.watch
+    // listeners are still attached. setRepeatTarget notifies those listeners
+    // immediately, and markNeedsBuild then asserts on the defunct element.
+    // Run it after unmount has dropped the listeners.
+    Future.microtask(() {
+      if (handler.matchesRange(chapter, verse, verse)) {
+        // Leaving the page stops further practice loops. The pass already
+        // in progress plays out, then playback pauses.
+        handler.setRepeatTarget(1);
+      }
+    });
     _reciterSubscription.close();
     super.dispose();
   }

@@ -53,6 +53,14 @@ LoopMode rangeLoopModeFor({
 
 /// Whether an auto-advance from [previousIndex] to [index] wrapped from the
 /// last ayah of the range back to the first, i.e. one pass just finished.
+/// just_audio reports a load cancelled by the next play/skip as
+/// [PlayerInterruptedException], whose text is "Connection aborted". That is
+/// a superseded request, not a broken screen.
+bool isRecoverablePlaybackError(Object error) {
+  return error is PlayerInterruptedException ||
+      error.toString() == 'Connection aborted';
+}
+
 bool isRangePassWrap({
   required int? previousIndex,
   required int? index,
@@ -223,6 +231,10 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   // at the one currently loaded.
   List<int>? _rangeAyahs;
   int _rangeIndex = 0;
+
+  /// Bumped whenever a newer skip or a new load should cancel a skip that is
+  /// still waiting for the player to leave the loading state.
+  int _rangeSeekSerial = 0;
   List<String> _rangeUrls = [];
 
   // Duration of each range ayah's clip, filled in as it loads (Duration.zero
@@ -397,6 +409,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   Future<void> playSurah(int chapterNumber, {Reciter? reciter}) async {
     final clamped = chapterNumber.clamp(kFirstSurahNumber, kLastSurahNumber);
     final token = ++_playToken;
+    _rangeSeekSerial++;
     _intent = _PlayIntent.surah;
     _currentSurah = clamped;
     _rangeAyahs = null;
@@ -473,6 +486,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       var loopToken = token;
       var loopClamped = clamped;
       var loopUrl = url;
+      var interruptedRetries = 0;
       while (true) {
         if (_intent != _PlayIntent.surah) return;
         if (loopToken != _playToken) {
@@ -519,6 +533,25 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
           _startPlayback();
           if (loopToken == _playToken) return; // stable — done
         } catch (e) {
+          // Skipping to the next surah while this file is still loading
+          // aborts the in-flight prepare. just_audio surfaces that as
+          // "Connection aborted". Retry the load that is still current;
+          // never let the cancellation escape as an app-wide error.
+          if (isRecoverablePlaybackError(e)) {
+            final stillCurrent =
+                loopToken == _playToken && _intent == _PlayIntent.surah;
+            if (!stillCurrent) {
+              interruptedRetries = 0;
+              continue;
+            }
+            if (interruptedRetries >= 2) {
+              debugPrint('Quran load interrupted: $e');
+              return;
+            }
+            interruptedRetries++;
+            continue;
+          }
+          interruptedRetries = 0;
           // A genuine load/play failure (bad connection, dead URL) must
           // surface to the caller so the UI can show an error and offer a
           // retry — only a request superseded by a newer one is silently
@@ -559,6 +592,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
     final ayahs = [for (var ayah = start; ayah <= end; ayah++) ayah];
     final index = initialIndex.clamp(0, ayahs.length - 1);
     final token = ++_playToken;
+    _rangeSeekSerial++;
     _intent = _PlayIntent.range;
     _repeatTarget = repeatTarget;
     _completedPlays = 0;
@@ -600,6 +634,7 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
 
     await _runExclusive(() async {
       var loopToken = token;
+      var interruptedRetries = 0;
       while (true) {
         if (_intent != _PlayIntent.range) return;
         final loopAyahs = _rangeAyahs;
@@ -643,6 +678,21 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
           _startPlayback();
           if (loopToken == _playToken) return;
         } catch (e) {
+          if (isRecoverablePlaybackError(e)) {
+            final stillCurrent =
+                loopToken == _playToken && _intent == _PlayIntent.range;
+            if (!stillCurrent) {
+              interruptedRetries = 0;
+              continue;
+            }
+            if (interruptedRetries >= 2) {
+              debugPrint('Quran load interrupted: $e');
+              return;
+            }
+            interruptedRetries++;
+            continue;
+          }
+          interruptedRetries = 0;
           if (loopToken == _playToken && _intent == _PlayIntent.range) {
             rethrow;
           }
@@ -838,7 +888,8 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   /// simply applies next time playback starts.
   Future<void> setReciterAndRestartIfPlaying(Reciter reciter) async {
     _currentReciter = reciter;
-    if (_player.playing) {
+    if (!_player.playing) return;
+    try {
       final ayahs = _rangeAyahs;
       if (_intent == _PlayIntent.range && ayahs != null && ayahs.isNotEmpty) {
         await playAyahRange(
@@ -852,6 +903,8 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
       } else {
         await playSurah(_currentSurah, reciter: reciter);
       }
+    } catch (e) {
+      debugPrint('Quran reciter restart failed: $e');
     }
   }
 
@@ -865,14 +918,27 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    try {
+      await _player.pause();
+    } catch (e) {
+      debugPrint('Quran pause failed: $e');
+    }
+  }
 
   @override
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> seek(Duration position) async {
+    try {
+      await _player.seek(position);
+    } catch (e) {
+      debugPrint('Quran seek failed: $e');
+    }
+  }
 
   @override
   Future<void> stop() async {
     _playToken++;
+    _rangeSeekSerial++;
     _intent = _PlayIntent.none;
     _repeatTarget = 1;
     _completedPlays = 0;
@@ -917,12 +983,25 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   /// bounds. No-op at either end, same as the surah skip clamp above.
   /// Seeks inside the already-loaded playlist — loading a new URL per step
   /// is what crashed after a few ayahs.
+  ///
+  /// just_audio ignores [AudioPlayer.seek] while a source is still loading,
+  /// so a skip tapped in that window used to do nothing. Wait until the
+  /// player can accept the seek, then apply only the latest tap.
   Future<void> _stepRange(int delta) async {
     final ayahs = _rangeAyahs;
-    if (ayahs == null) return;
+    if (ayahs == null || ayahs.isEmpty) return;
     final next = (_rangeIndex + delta).clamp(0, ayahs.length - 1);
     if (next == _rangeIndex) return;
+    final serial = ++_rangeSeekSerial;
+    _rangeIndex = next;
+    _publishRangeMediaItem();
     try {
+      if (_player.processingState == ProcessingState.loading) {
+        await _player.processingStateStream
+            .firstWhere((state) => state != ProcessingState.loading)
+            .timeout(const Duration(seconds: 15));
+      }
+      if (serial != _rangeSeekSerial || _intent != _PlayIntent.range) return;
       await _player.seek(Duration.zero, index: next);
     } catch (e) {
       debugPrint('Quran range skip failed: $e');
