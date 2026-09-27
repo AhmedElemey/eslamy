@@ -96,7 +96,21 @@ class ErrorPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).maybePop(),
+                              onPressed: () {
+                                final navigator = Navigator.of(context);
+                                // This page is often the only route left,
+                                // because fatal errors clear the stack. Pop
+                                // when something is underneath; otherwise
+                                // leave for home — maybePop() would no-op.
+                                if (navigator.canPop()) {
+                                  navigator.pop();
+                                  return;
+                                }
+                                navigator.pushNamedAndRemoveUntil(
+                                  '/home',
+                                  (_) => false,
+                                );
+                              },
                               child: Text(l10n.goBack),
                             ),
                           ),

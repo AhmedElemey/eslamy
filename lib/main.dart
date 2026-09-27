@@ -95,11 +95,21 @@ Future<void> main() async {
       // the runZonedGuarded error handler) both get forwarded to
       // Crashlytics, in addition to the existing local error screen.
       FlutterError.onError = (FlutterErrorDetails details) {
+        if (isRecoverablePlaybackError(details.exception)) {
+          debugPrint(
+            'Ignored recoverable playback error: ${details.exception}',
+          );
+          return;
+        }
         FlutterError.presentError(details);
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
         _navigateToError(details.exception, details.stack);
       };
       PlatformDispatcher.instance.onError = (error, stack) {
+        if (isRecoverablePlaybackError(error)) {
+          debugPrint('Ignored recoverable playback error: $error');
+          return true;
+        }
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
       };
@@ -119,6 +129,10 @@ Future<void> main() async {
       });
     },
     (error, stack) {
+      if (isRecoverablePlaybackError(error)) {
+        debugPrint('Ignored recoverable playback error: $error');
+        return;
+      }
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       _navigateToError(error, stack);
     },
