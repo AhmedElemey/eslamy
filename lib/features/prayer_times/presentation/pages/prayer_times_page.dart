@@ -115,10 +115,22 @@ class PrayerTimesPage extends ConsumerWidget {
                     style: TextStyle(fontSize: 12, color: textColor),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => notifier.load(requestFreshLocation: true),
-                  child: Text(context.l10n.enableButton),
-                ),
+                if (state.isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else
+                  TextButton(
+                    onPressed: () async {
+                      await _enableLocation(context, notifier);
+                    },
+                    child: Text(context.l10n.enableButton),
+                  ),
               ],
             ),
           ),
@@ -211,6 +223,19 @@ class PrayerTimesPage extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _enableLocation(
+    BuildContext context,
+    PrayerTimesNotifier notifier,
+  ) async {
+    final result = await notifier.enableLocation();
+    if (!context.mounted) return;
+    if (result == LocationEnableResult.failed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.prayerTimesLocationUnavailable)),
+      );
+    }
   }
 
   String _formatTime(BuildContext context, DateTime t) {

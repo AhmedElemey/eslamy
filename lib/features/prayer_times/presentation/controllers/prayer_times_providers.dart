@@ -11,6 +11,8 @@ import '../../../../core/notifications/notification_service.dart';
 
 final locationServiceProvider = Provider((ref) => LocationService());
 
+enum LocationEnableResult { activated, openedSettings, denied, failed }
+
 class PrayerTimesState {
   final DailyPrayerTimes? timings;
   final double? qiblaDirection;
@@ -66,6 +68,12 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState>
   Timer? _adhanTick;
   double? _lastLat;
   double? _lastLng;
+  int _loadSerial = 0;
+
+  /// Set when Enable opens system Settings. The next resume reloads times
+  /// with whatever permission the user just changed.
+  bool _awaitingSettingsReturn = false;
+  bool _enableInFlight = false;
 
   @override
   void dispose() {
@@ -77,11 +85,67 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState>
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
     if (lifecycle == AppLifecycleState.resumed) {
+      if (_awaitingSettingsReturn) {
+        _awaitingSettingsReturn = false;
+        unawaited(load(requestFreshLocation: true));
+      }
       unawaited(_onAdhanTick());
     }
   }
 
+  /// Enable button on the Cairo fallback banner. A plain reload does nothing
+  /// once Android has stopped showing the permission dialog, or when Location
+  /// Services are off — those cases have to open system Settings, then reload
+  /// when the user comes back.
+  Future<LocationEnableResult> enableLocation() async {
+    if (_enableInFlight) return LocationEnableResult.denied;
+    _enableInFlight = true;
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final access = await _locationService.requestAccess();
+      if (!mounted) return LocationEnableResult.failed;
+      switch (access) {
+        case LocationAccess.needsLocationSettings:
+          return await _openSettings(_locationService.openLocationSettings);
+        case LocationAccess.needsAppSettings:
+          return await _openSettings(_locationService.openAppSettings);
+        case LocationAccess.denied:
+          state = state.copyWith(isLoading: false);
+          return LocationEnableResult.denied;
+        case LocationAccess.granted:
+          break;
+      }
+
+      await load(requestFreshLocation: true);
+      if (!mounted) return LocationEnableResult.failed;
+      return state.usingFallbackLocation
+          ? LocationEnableResult.failed
+          : LocationEnableResult.activated;
+    } catch (e, st) {
+      _awaitingSettingsReturn = false;
+      debugPrint('Enable location failed: $e\n$st');
+      if (mounted) state = state.copyWith(isLoading: false);
+      return LocationEnableResult.failed;
+    } finally {
+      _enableInFlight = false;
+    }
+  }
+
+  Future<LocationEnableResult> _openSettings(
+    Future<bool> Function() open,
+  ) async {
+    _awaitingSettingsReturn = true;
+    state = state.copyWith(isLoading: false);
+    final opened = await open();
+    if (!opened) {
+      _awaitingSettingsReturn = false;
+      return LocationEnableResult.failed;
+    }
+    return LocationEnableResult.openedSettings;
+  }
+
   Future<void> load({bool requestFreshLocation = false}) async {
+    final serial = ++_loadSerial;
     state = state.copyWith(isLoading: true, error: null);
     try {
       double lat;
@@ -114,7 +178,7 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState>
 
       _lastLat = lat;
       _lastLng = lng;
-      if (!mounted) return;
+      if (!mounted || serial != _loadSerial) return;
       state = state.copyWith(
         timings: results[0] as DailyPrayerTimes,
         qiblaDirection: results[1] as double,
@@ -123,7 +187,7 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState>
       );
       unawaited(_scheduleAdhan(lat, lng, results[0] as DailyPrayerTimes));
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || serial != _loadSerial) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }

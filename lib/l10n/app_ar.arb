@@ -126,6 +126,7 @@
   "failedToLoadPrayerTimesWithError": "فشل تحميل مواقيت الصلاة\n{error}",
   "showingCairoFallback": "يتم عرض مواقيت القاهرة (افتراضي). فعّل الموقع لعرض مواقيت دقيقة.",
   "enableButton": "تفعيل",
+  "prayerTimesLocationUnavailable": "تعذّر تحديد موقعك. شغّل خدمة الموقع ثم أعد المحاولة.",
   "findQiblaDirection": "تحديد اتجاه القبلة",
 
   "qiblaDirectionTitle": "اتجاه القبلة",

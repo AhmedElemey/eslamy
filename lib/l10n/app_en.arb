@@ -148,6 +148,7 @@
   "@failedToLoadPrayerTimesWithError": {"placeholders": {"error": {"type": "String"}}},
   "showingCairoFallback": "Showing times for Cairo (default). Enable location for accurate times.",
   "enableButton": "Enable",
+  "prayerTimesLocationUnavailable": "Couldn't get your location. Turn on Location, then try again.",
   "findQiblaDirection": "Find Qibla direction",
 
   "qiblaDirectionTitle": "Qibla Direction",

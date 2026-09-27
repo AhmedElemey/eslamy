@@ -495,6 +495,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enableButton => 'تفعيل';
 
   @override
+  String get prayerTimesLocationUnavailable =>
+      'تعذّر تحديد موقعك. شغّل خدمة الموقع ثم أعد المحاولة.';
+
+  @override
   String get findQiblaDirection => 'تحديد اتجاه القبلة';
 
   @override

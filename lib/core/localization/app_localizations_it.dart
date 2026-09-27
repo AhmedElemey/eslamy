@@ -481,6 +481,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enableButton => 'Attiva';
 
   @override
+  String get prayerTimesLocationUnavailable =>
+      'Impossibile ottenere la posizione. Attiva la localizzazione e riprova.';
+
+  @override
   String get findQiblaDirection => 'Trova la direzione della qibla';
 
   @override

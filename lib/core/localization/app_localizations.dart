@@ -790,6 +790,12 @@ abstract class AppLocalizations {
   /// **'Enable'**
   String get enableButton;
 
+  /// No description provided for @prayerTimesLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your location. Turn on Location, then try again.'**
+  String get prayerTimesLocationUnavailable;
+
   /// No description provided for @findQiblaDirection.
   ///
   /// In en, this message translates to:

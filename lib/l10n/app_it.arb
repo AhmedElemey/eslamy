@@ -126,6 +126,7 @@
   "failedToLoadPrayerTimesWithError": "Impossibile caricare gli orari di preghiera\n{error}",
   "showingCairoFallback": "Vengono mostrati gli orari del Cairo (predefinito). Attiva la posizione per orari precisi.",
   "enableButton": "Attiva",
+  "prayerTimesLocationUnavailable": "Impossibile ottenere la posizione. Attiva la localizzazione e riprova.",
   "findQiblaDirection": "Trova la direzione della qibla",
 
   "qiblaDirectionTitle": "Direzione della Qibla",
